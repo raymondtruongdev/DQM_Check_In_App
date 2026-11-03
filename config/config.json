@@ -1,0 +1,18 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/config.2.0.schema.json",
+  "version": "2.0",
+  "bundles": {
+    "dqm-checkin-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/dqmCheckin/DqmCheckinWebPart.js",
+          "manifest": "./src/webparts/dqmCheckin/DqmCheckinWebPart.manifest.json"
+        }
+      ]
+    }
+  },
+  "externals": {},
+  "localizedResources": {
+    "DqmCheckinWebPartStrings": "lib/webparts/dqmCheckin/loc/{locale}.js"
+  }
+}

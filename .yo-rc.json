@@ -1,0 +1,22 @@
+{
+  "@microsoft/generator-sharepoint": {
+    "whichFolder": "subdir",
+    "solutionName": "dqm-spfx-checkin",
+    "environment": "spo",
+    "packageManager": "npm",
+    "skipFeatureDeployment": true,
+    "useGulp": false,
+    "componentType": "webpart",
+    "template": "react",
+    "componentName": "DqmCheckin",
+    "componentDescription": "DQM Check-in Portal WebPart",
+    "plusBeta": false,
+    "isCreatingSolution": true,
+    "nodeVersion": "26.10.0",
+    "sdksVersions": {},
+    "version": "1.24.1",
+    "libraryName": "dqm-spfx-checkin",
+    "libraryId": "0c115257-9f55-4564-8c12-d71fc6759401",
+    "solutionShortDescription": "dqm-spfx-checkin description"
+  }
+}

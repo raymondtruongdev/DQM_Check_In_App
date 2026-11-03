@@ -1,0 +1,39 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
+  "solution": {
+    "name": "dqm-check-in-app-client-side-solution",
+    "id": "0c115257-9f55-4564-8c12-d71fc6759401",
+    "version": "1.0.0.0",
+    "includeClientSideAssets": true,
+    "skipFeatureDeployment": true,
+    "developer": {
+      "name": "THADICO DQM",
+      "websiteUrl": "",
+      "privacyUrl": "",
+      "termsOfUseUrl": "",
+      "mpnId": "Undefined-1.24.1"
+    },
+    "metadata": {
+      "shortDescription": {
+        "default": "THADICO DQM Check In App"
+      },
+      "longDescription": {
+        "default": "THADICO DQM Check In Management Application for SharePoint Online"
+      },
+      "screenshotPaths": [],
+      "videoUrl": "",
+      "categories": []
+    },
+    "features": [
+      {
+        "title": "dqm-spfx-checkin Feature",
+        "description": "The feature that activates elements of the dqm-spfx-checkin solution.",
+        "id": "35eeabd7-72b5-49cd-a623-7582a60818a7",
+        "version": "1.0.0.0"
+      }
+    ]
+  },
+  "paths": {
+    "zippedPackage": "solution/dqm-spfx-checkin.sppkg"
+  }
+}
