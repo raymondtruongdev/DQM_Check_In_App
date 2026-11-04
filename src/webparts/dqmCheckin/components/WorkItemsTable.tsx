@@ -76,6 +76,14 @@ export const WorkItemsTable: React.FC<WorkItemsTableProps> = ({
     direction: 'desc',
   });
 
+  // Responsive View Mode: default to 'cards' on small screens (<768px) and 'table' on desktop
+  const [viewMode, setViewMode] = useState<'cards' | 'table'>(() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      return 'cards';
+    }
+    return 'table';
+  });
+
   // Resizable column widths with persistent storage in localStorage
   const [columnWidths, setColumnWidths] = useState<Record<string, number>>(() => {
     try {
@@ -317,16 +325,50 @@ export const WorkItemsTable: React.FC<WorkItemsTableProps> = ({
           </p>
         </div>
 
-        {/* Toolbar Controls: Search & Reset Widths */}
+        {/* Toolbar Controls: View Mode Toggle, Reset Widths & Search */}
         <div className="toolbar-actions-group">
-          <button
-            type="button"
-            className="btn-text-subtle"
-            onClick={resetAllWidths}
-            title="Reset column widths to default layout"
-          >
-            Reset widths
-          </button>
+          {/* View Mode Switcher: Cards vs Table */}
+          <div className="view-mode-toggle" role="group" aria-label="Display mode">
+            <button
+              type="button"
+              className={`view-toggle-btn ${viewMode === 'cards' ? 'is-active' : ''}`}
+              onClick={() => setViewMode('cards')}
+              title="Card view (optimized for mobile)"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="3" y="3" width="7" height="7" rx="1" />
+                <rect x="14" y="3" width="7" height="7" rx="1" />
+                <rect x="3" y="14" width="7" height="7" rx="1" />
+                <rect x="14" y="14" width="7" height="7" rx="1" />
+              </svg>
+              <span>Cards</span>
+            </button>
+            <button
+              type="button"
+              className={`view-toggle-btn ${viewMode === 'table' ? 'is-active' : ''}`}
+              onClick={() => setViewMode('table')}
+              title="Table view (full spreadsheet grid)"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <line x1="3" y1="9" x2="21" y2="9" />
+                <line x1="3" y1="15" x2="21" y2="15" />
+                <line x1="9" y1="3" x2="9" y2="21" />
+              </svg>
+              <span>Table</span>
+            </button>
+          </div>
+
+          {viewMode === 'table' && (
+            <button
+              type="button"
+              className="btn-text-subtle"
+              onClick={resetAllWidths}
+              title="Reset column widths to default layout"
+            >
+              Reset widths
+            </button>
+          )}
 
           {/* Search Input */}
           <div className="search-wrapper">
@@ -365,8 +407,152 @@ export const WorkItemsTable: React.FC<WorkItemsTableProps> = ({
         </div>
       </div>
 
-      {/* Responsive Table Container */}
-      <div className="table-responsive">
+      {/* Main Content Area: Card View vs Table View */}
+      {viewMode === 'cards' ? (
+        <div className="cards-view-wrapper">
+          <div className="mobile-cards-list">
+            {processedItems.map((item, index) => {
+              const displayId = item.field_0 !== undefined ? item.field_0 : item.ID;
+              const formattedDate = formatDateTime(item.field_2);
+              const avatarChar = getAvatarLetter(item.Title);
+
+              return (
+                <div key={item.ID ?? `card-${index}`} className="mobile-item-card">
+                  {/* Card Header: Avatar, Name, ID, Location */}
+                  <div className="mobile-card-header">
+                    <div className="mobile-card-identity">
+                      <div className="avatar-chip">{avatarChar}</div>
+                      <div className="mobile-card-meta">
+                        <div className="mobile-card-topline">
+                          <span className="id-badge">#{displayId ?? '—'}</span>
+                          {item.field_3 && (
+                            <div className="location-pill" title={item.field_3}>
+                              <svg
+                                className="location-icon"
+                                width="12"
+                                height="12"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                                <circle cx="12" cy="10" r="3" />
+                              </svg>
+                              <span>{item.field_3}</span>
+                            </div>
+                          )}
+                        </div>
+                        <h3 className="mobile-card-title">{item.Title || '(Untitled)'}</h3>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Card Details: Phone, Date, Note */}
+                  <div className="mobile-card-details">
+                    {item.Phone && (
+                      <div className="mobile-card-row">
+                        <span className="mobile-row-label">
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                          </svg>
+                          Phone:
+                        </span>
+                        <a href={`tel:${item.Phone}`} className="phone-link">
+                          {item.Phone}
+                        </a>
+                      </div>
+                    )}
+
+                    <div className="mobile-card-row">
+                      <span className="mobile-row-label">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                          <line x1="16" y1="2" x2="16" y2="6" />
+                          <line x1="8" y1="2" x2="8" y2="6" />
+                          <line x1="3" y1="10" x2="21" y2="10" />
+                        </svg>
+                        Check in:
+                      </span>
+                      <span className="mobile-row-val">{formattedDate}</span>
+                    </div>
+
+                    {item.field_4 && (
+                      <div className="mobile-card-row mobile-note-row">
+                        <span className="mobile-row-label">
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                            <polyline points="14 2 14 8 20 8" />
+                            <line x1="16" y1="13" x2="8" y2="13" />
+                            <line x1="16" y1="17" x2="8" y2="17" />
+                          </svg>
+                          Note:
+                        </span>
+                        <span className="mobile-note-text">{item.field_4}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Card Action Buttons */}
+                  <div className="mobile-card-actions">
+                    <button
+                      type="button"
+                      className="btn-card-action btn-edit"
+                      onClick={() => onEdit(item)}
+                      aria-label={`Edit ${item.Title || 'item'}`}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M12 20h9" />
+                        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                      </svg>
+                      <span>Edit</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      className="btn-card-action btn-delete"
+                      onClick={() => onDelete(item)}
+                      aria-label={`Delete ${item.Title || 'item'}`}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M3 6h18" />
+                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                      </svg>
+                      <span>Delete</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {processedItems.length === 0 && (
+            <div className="table-empty-state">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                <line x1="8" y1="11" x2="14" y2="11" />
+              </svg>
+              <p className="empty-title">No matching work items</p>
+              <p className="empty-subtitle">
+                No records match <strong>&ldquo;{searchQuery}&rdquo;</strong>. Try checking for typos or searching by another keyword.
+              </p>
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => setSearchQuery('')}
+              >
+                Clear filter
+              </button>
+            </div>
+          )}
+        </div>
+      ) : (
+        /* Responsive Table Container */
+        <div className="table-responsive">
         <table
           className={`data-table ${resizingCol ? 'is-resizing' : ''}`}
           style={{ tableLayout: 'fixed', minWidth: `${totalTableWidth}px`, width: '100%' }}
@@ -683,7 +869,7 @@ export const WorkItemsTable: React.FC<WorkItemsTableProps> = ({
             </svg>
             <p className="empty-title">No matching work items</p>
             <p className="empty-subtitle">
-              No records match <strong>"{searchQuery}"</strong>. Try checking for typos or searching by another keyword.
+              No records match <strong>&ldquo;{searchQuery}&rdquo;</strong>. Try checking for typos or searching by another keyword.
             </p>
             <button
               type="button"
@@ -695,11 +881,13 @@ export const WorkItemsTable: React.FC<WorkItemsTableProps> = ({
           </div>
         )}
       </div>
+      )}
 
       {/* Table Footer info */}
       <div className="table-footer">
         <span className="footer-meta">
-          Showing {processedItems.length} of {items.length} total entries • Drag header borders to customize column width
+          Showing {processedItems.length} of {items.length} total entries
+          {viewMode === 'table' && ' • Drag header borders to customize column width'}
         </span>
         <span className="footer-brand">SharePoint List Integration</span>
       </div>
