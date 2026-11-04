@@ -24,7 +24,7 @@ export default class DqmCheckinWebPart extends BaseClientSideWebPart<IDqmCheckin
   private _root: Root | undefined;
 
   public render(): void {
-    const effectiveSiteUrl = this.properties.siteUrl || this.context.pageContext.web.absoluteUrl || 'https://thadicodqm.sharepoint.com/sites/DataPortal';
+    const effectiveSiteUrl = this.properties.siteUrl || this.context.pageContext.web.absoluteUrl;
 
     const element: React.ReactElement<IDqmCheckinProps> = React.createElement(
       DqmCheckin,
@@ -32,7 +32,7 @@ export default class DqmCheckinWebPart extends BaseClientSideWebPart<IDqmCheckin
         description: this.properties.description,
         isDarkTheme: this._isDarkTheme,
         environmentMessage: this._environmentMessage,
-        userDisplayName: this.context.pageContext.user.displayName || 'THADICO User',
+        userDisplayName: this.context.pageContext.user.displayName || 'User',
         userEmail: this.context.pageContext.user.email || '',
         spHttpClient: this.context.spHttpClient,
         siteUrl: effectiveSiteUrl
