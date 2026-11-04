@@ -1829,14 +1829,22 @@
 /* Responsive Breakpoints */
 @media (max-width: 768px) {
   .app-layout {
-    width: 100%;
-    max-width: 100%;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
     overflow-x: hidden;
   }
 
   .main-content {
-    padding: 10px 8px;
-    gap: var(--space-3);
+    padding: 8px 0 !important;
+    gap: var(--space-2-5);
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .app-bar {
+    border-left: none;
+    border-right: none;
   }
 
   .app-bar-container {
@@ -1874,7 +1882,10 @@
   }
 
   .card-container {
-    border-radius: var(--radius-lg);
+    border-radius: 0 !important;
+    border-left: none !important;
+    border-right: none !important;
+    box-shadow: none !important;
   }
 
   .table-toolbar {
@@ -1917,8 +1928,13 @@
   }
 
   .mobile-cards-list {
-    padding: 12px 10px;
+    padding: 10px 8px;
     gap: 10px;
+  }
+
+  .mobile-item-card {
+    border-radius: var(--radius-md);
+    padding: 12px;
   }
 
   .table-footer {
