@@ -150,10 +150,10 @@ export const EditItemView: React.FC<EditItemViewProps> = ({
             <line x1="19" y1="12" x2="5" y2="12" />
             <polyline points="12 19 5 12 12 5" />
           </svg>
-          Back to Work Items
+          Quay lại danh sách
         </button>
         <span className="breadcrumb-separator">/</span>
-        <span className="breadcrumb-current">Edit Item #{displayId}</span>
+        <span className="breadcrumb-current">Chỉnh sửa #{displayId}</span>
       </nav>
 
       {/* Main Form Card */}
@@ -162,16 +162,16 @@ export const EditItemView: React.FC<EditItemViewProps> = ({
         <div className="edit-card-header">
           <div className="edit-header-info">
             <div className="edit-title-row">
-              <h2 className="edit-title">Edit Work Item</h2>
+              <h2 className="edit-title">Chỉnh sửa thông tin Check-In</h2>
               <span className="id-badge">#{displayId}</span>
               {isDirty && (
-                <span className="dirty-indicator" title="Unsaved changes detected">
-                  Unsaved changes
+                <span className="dirty-indicator" title="Có thay đổi chưa lưu">
+                  Chưa lưu thay đổi
                 </span>
               )}
             </div>
             <p className="edit-subtitle">
-              Update details for this item in SharePoint list <code>data_checkin</code>.
+              Cập nhật thông tin chi tiết vào danh sách <code>data_checkin</code> trên SharePoint.
             </p>
           </div>
 
@@ -186,7 +186,7 @@ export const EditItemView: React.FC<EditItemViewProps> = ({
                 <line x1="19" y1="12" x2="5" y2="12" />
                 <polyline points="12 19 5 12 12 5" />
               </svg>
-              Back
+              Quay lại
             </button>
           </div>
         </div>
@@ -209,59 +209,59 @@ export const EditItemView: React.FC<EditItemViewProps> = ({
             {/* Field: Name */}
             <div className="form-group form-col-full">
               <label htmlFor="field-name" className="form-label">
-                Name <span className="required-mark">*</span>
+                Họ và Tên <span className="required-mark">*</span>
               </label>
               <input
                 id="field-name"
                 type="text"
                 className="form-input"
-                placeholder="Enter work item or check-in name"
+                placeholder="Nhập họ tên người check-in..."
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
                 disabled={isSaving}
               />
-              <span className="form-help-text">Mapped to list column <code>Name</code></span>
+              <span className="form-help-text">Ánh xạ tới cột <code>Name</code> trong SharePoint</span>
             </div>
 
             {/* Field: Id */}
             <div className="form-group form-col-half">
               <label htmlFor="field-id" className="form-label">
-                Id (Code)
+                Mã số / ID
               </label>
               <input
                 id="field-id"
                 type="number"
                 className="form-input"
-                placeholder="e.g. 101"
+                placeholder="VD: 101"
                 value={customId}
                 onChange={(e) => setCustomId(e.target.value)}
                 disabled={isSaving}
               />
-              <span className="form-help-text">Custom numeric identifier (<code>Id</code>)</span>
+              <span className="form-help-text">Mã định danh số (<code>Id</code>)</span>
             </div>
 
             {/* Field: Phone */}
             <div className="form-group form-col-half">
               <label htmlFor="field-phone" className="form-label">
-                Phone
+                Số điện thoại
               </label>
               <input
                 id="field-phone"
                 type="tel"
                 className="form-input"
-                placeholder="e.g. +84 901 234 567"
+                placeholder="VD: 0901234567"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 disabled={isSaving}
               />
-              <span className="form-help-text">Contact phone number (<code>Phone</code>)</span>
+              <span className="form-help-text">Số liên hệ (<code>Phone</code>)</span>
             </div>
 
             {/* Field: Check in */}
             <div className="form-group form-col-half">
               <label htmlFor="field-checkin" className="form-label">
-                Check in Date & Time
+                Thời gian Check-in
               </label>
               <input
                 id="field-checkin"
@@ -271,41 +271,41 @@ export const EditItemView: React.FC<EditItemViewProps> = ({
                 onChange={(e) => setCheckin(e.target.value)}
                 disabled={isSaving}
               />
-              <span className="form-help-text">Timestamp recorded (<code>Check in</code>)</span>
+              <span className="form-help-text">Thời điểm ghi nhận (<code>Check in</code>)</span>
             </div>
 
             {/* Field: Location */}
             <div className="form-group form-col-half">
               <label htmlFor="field-location" className="form-label">
-                Location
+                Địa điểm / Trạm
               </label>
               <input
                 id="field-location"
                 type="text"
                 className="form-input"
-                placeholder="e.g. Hanoi Logistics Hub or Chu Lai Factory"
+                placeholder="VD: ST5, Sala, Sadora..."
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 disabled={isSaving}
               />
-              <span className="form-help-text">Site or plant location (<code>Location</code>)</span>
+              <span className="form-help-text">Vị trí trạm hoặc công trình (<code>Location</code>)</span>
             </div>
 
             {/* Field: Note */}
             <div className="form-group form-col-full">
               <label htmlFor="field-note" className="form-label">
-                Note
+                Ghi chú
               </label>
               <textarea
                 id="field-note"
                 className="form-textarea"
                 rows={4}
-                placeholder="Add operational notes, remarks, or observations..."
+                placeholder="Thêm ghi chú công việc, tình trạng kiểm tra..."
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 disabled={isSaving}
               />
-              <span className="form-help-text">Inspection remarks or audit notes (<code>Note</code>)</span>
+              <span className="form-help-text">Nội dung ghi chú chi tiết (<code>Note</code>)</span>
             </div>
           </div>
 
@@ -318,7 +318,7 @@ export const EditItemView: React.FC<EditItemViewProps> = ({
                 onClick={handleBack}
                 disabled={isSaving}
               >
-                Back
+                Quay lại
               </button>
             </div>
 
@@ -328,9 +328,9 @@ export const EditItemView: React.FC<EditItemViewProps> = ({
                 className="btn-secondary"
                 onClick={handleDiscard}
                 disabled={!isDirty || isSaving}
-                title="Discard uncommitted changes"
+                title="Hủy các thay đổi vừa nhập"
               >
-                Discard
+                Hủy thay đổi
               </button>
 
               <button
@@ -343,7 +343,7 @@ export const EditItemView: React.FC<EditItemViewProps> = ({
                     <svg className="spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
                     </svg>
-                    Saving...
+                    Đang lưu...
                   </>
                 ) : (
                   <>
@@ -352,7 +352,7 @@ export const EditItemView: React.FC<EditItemViewProps> = ({
                       <polyline points="17 21 17 13 7 13 7 21" />
                       <polyline points="7 3 7 8 15 8" />
                     </svg>
-                    Save Changes
+                    Lưu thay đổi
                   </>
                 )}
               </button>

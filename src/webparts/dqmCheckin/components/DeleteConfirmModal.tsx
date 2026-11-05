@@ -38,17 +38,17 @@ export const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
           </div>
           <div>
             <h3 id="modal-title" className="modal-title">
-              Delete Work Item #{displayId}
+              Xác nhận xóa bản ghi #{displayId}
             </h3>
             <p className="modal-subtitle">
-              This will permanently delete "<strong>{displayName || 'Untitled'}</strong>" from the SharePoint list.
+              Thao tác này sẽ xóa vĩnh viễn &ldquo;<strong>{displayName || 'Chưa đặt tên'}</strong>&rdquo; khỏi danh sách SharePoint.
             </p>
           </div>
         </div>
 
         <div className="modal-body">
           <p className="modal-warning-text">
-            Are you sure you want to proceed? This action cannot be undone.
+            Bạn có chắc chắn muốn tiếp tục không? Thao tác này không thể hoàn tác.
           </p>
         </div>
 
@@ -59,7 +59,7 @@ export const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
             onClick={onCancel}
             disabled={isDeleting}
           >
-            Cancel
+            Hủy
           </button>
           <button
             type="button"
@@ -72,10 +72,10 @@ export const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
                 <svg className="spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
                 </svg>
-                Deleting...
+                Đang xóa...
               </>
             ) : (
-              'Delete'
+              'Xác nhận xóa'
             )}
           </button>
         </div>

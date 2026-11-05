@@ -233,6 +233,7 @@ export const DqmCheckin: React.FC<IDqmCheckinProps> = (props) => {
   const handleOpenEdit = (item: Data_checkinRead) => {
     setEditingItem(item);
     setSaveError(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleCloseEdit = () => {
@@ -391,6 +392,14 @@ export const DqmCheckin: React.FC<IDqmCheckinProps> = (props) => {
             onRetry={handleRefresh}
             onUseDemoData={handleUseDemoData}
           />
+        ) : editingItem ? (
+          <EditItemView
+            item={editingItem}
+            isSaving={isSaving}
+            saveError={saveError}
+            onSave={handleSaveEdit}
+            onBack={handleCloseEdit}
+          />
         ) : viewMode === 'cards' ? (
           <CheckinCardsView
             items={items}
@@ -411,17 +420,6 @@ export const DqmCheckin: React.FC<IDqmCheckinProps> = (props) => {
           />
         )}
       </main>
-
-      {/* Edit Item Modal */}
-      {editingItem && (
-        <EditItemView
-          item={editingItem}
-          isSaving={isSaving}
-          saveError={saveError}
-          onSave={handleSaveEdit}
-          onBack={handleCloseEdit}
-        />
-      )}
 
       {/* Delete Confirmation Modal */}
       <DeleteConfirmModal
