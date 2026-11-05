@@ -1,10 +1,48 @@
 import React, { useState } from 'react';
 import { SharePointService } from '../services/SharePointService';
 
+export interface UserSession {
+  username: string;
+  displayName: string;
+  role: string;
+  isAdmin: boolean;
+}
+
 interface LoginPageProps {
-  onLoginSuccess: (user: { username: string; displayName: string }) => void;
+  onLoginSuccess: (user: UserSession) => void;
   spService: SharePointService;
   siteUrl: string;
+}
+
+// Helper to extract role from account item
+function getAccountRole(acc: Record<string, unknown>): string {
+  const possibleKeys = [
+    'Role', 'role', 'RoleName', 'Quyen', 'VaiTro',
+    'field_5',
+    'field_6'
+  ];
+  for (const key of possibleKeys) {
+    const val = acc[key];
+    if (val !== undefined && val !== null && String(val).trim() !== '' && String(val).trim() !== 'null') {
+      return String(val).trim();
+    }
+  }
+  // Check any property containing 'role' or 'quyen'
+  for (const key of Object.keys(acc)) {
+    const lower = key.toLowerCase();
+    if (lower.includes('role') || lower.includes('quyen') || lower.includes('vaitro')) {
+      const val = acc[key];
+      if (val !== undefined && val !== null && String(val).trim() !== '' && String(val).trim() !== 'null') {
+        return String(val).trim();
+      }
+    }
+  }
+  return 'user';
+}
+
+export function checkIsAdmin(role: string): boolean {
+  const r = role.toLowerCase().trim();
+  return r === 'admin' || r === 'administrator' || r === 'quantri' || r === 'quản trị';
 }
 
 // Helper to extract username from account item
@@ -123,9 +161,15 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, spService,
           matchedUser.Title ||
           trimmedUser
         );
+        const role = getAccountRole(matchedUser);
+        const isAdmin = checkIsAdmin(role);
+        console.log(`[LoginPage] User authenticated: "${trimmedUser}", role: "${role}", isAdmin: ${isAdmin}`);
+
         onLoginSuccess({
           username: trimmedUser,
           displayName,
+          role,
+          isAdmin,
         });
         return;
       } else {
@@ -154,6 +198,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, spService,
       onLoginSuccess({
         username: 'admin',
         displayName: 'Administrator (Demo)',
+        role: 'admin',
+        isAdmin: true,
       });
       setIsSubmitting(false);
     }, 300);

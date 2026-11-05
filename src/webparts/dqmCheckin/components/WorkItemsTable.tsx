@@ -22,6 +22,7 @@ interface WorkItemsTableProps {
   isDemoData?: boolean;
   onEdit: (item: Data_checkinRead) => void;
   onDelete: (item: Data_checkinRead) => void;
+  isAdmin?: boolean;
 }
 
 // Fixed width for the Action column so buttons always remain visible and stable
@@ -77,6 +78,7 @@ export const WorkItemsTable: React.FC<WorkItemsTableProps> = ({
   isDemoData,
   onEdit,
   onDelete,
+  isAdmin = true,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortConfig, setSortConfig] = useState<SortConfig>({
@@ -113,6 +115,7 @@ export const WorkItemsTable: React.FC<WorkItemsTableProps> = ({
 
   const totalTableWidth = useMemo(() => {
     const nameWidth = columnWidths.name || columnWidths.title || DEFAULT_COLUMN_WIDTHS.name;
+    const actionsW = isAdmin ? ACTIONS_COLUMN_WIDTH : 0;
     return (
       (columnWidths.id || DEFAULT_COLUMN_WIDTHS.id) +
       nameWidth +
@@ -120,9 +123,9 @@ export const WorkItemsTable: React.FC<WorkItemsTableProps> = ({
       (columnWidths.checkin || DEFAULT_COLUMN_WIDTHS.checkin) +
       (columnWidths.location || DEFAULT_COLUMN_WIDTHS.location) +
       (columnWidths.note || DEFAULT_COLUMN_WIDTHS.note) +
-      ACTIONS_COLUMN_WIDTH
+      actionsW
     );
-  }, [columnWidths]);
+  }, [columnWidths, isAdmin]);
 
   // Resize column border drag handler
   const startResize = useCallback(
@@ -514,35 +517,37 @@ export const WorkItemsTable: React.FC<WorkItemsTableProps> = ({
                     )}
                   </div>
 
-                  {/* Card Action Buttons */}
-                  <div className="mobile-card-actions">
-                    <button
-                      type="button"
-                      className="btn-card-action btn-edit"
-                      onClick={() => onEdit(item)}
-                      aria-label={`Edit ${displayName || 'item'}`}
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M12 20h9" />
-                        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-                      </svg>
-                      <span>Edit</span>
-                    </button>
+                  {/* Card Action Buttons (Admin only) */}
+                  {isAdmin && (
+                    <div className="mobile-card-actions">
+                      <button
+                        type="button"
+                        className="btn-card-action btn-edit"
+                        onClick={() => onEdit(item)}
+                        aria-label={`Edit ${displayName || 'item'}`}
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M12 20h9" />
+                          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                        </svg>
+                        <span>Edit</span>
+                      </button>
 
-                    <button
-                      type="button"
-                      className="btn-card-action btn-delete"
-                      onClick={() => onDelete(item)}
-                      aria-label={`Delete ${displayName || 'item'}`}
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M3 6h18" />
-                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-                      </svg>
-                      <span>Delete</span>
-                    </button>
-                  </div>
+                      <button
+                        type="button"
+                        className="btn-card-action btn-delete"
+                        onClick={() => onDelete(item)}
+                        aria-label={`Delete ${displayName || 'item'}`}
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M3 6h18" />
+                          <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                          <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                        </svg>
+                        <span>Delete</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -584,7 +589,7 @@ export const WorkItemsTable: React.FC<WorkItemsTableProps> = ({
             <col style={{ width: `${columnWidths.checkin}px` }} />
             <col style={{ width: `${columnWidths.location}px` }} />
             <col style={{ width: `${columnWidths.note}px` }} />
-            <col style={{ width: `${ACTIONS_COLUMN_WIDTH}px` }} />
+            {isAdmin && <col style={{ width: `${ACTIONS_COLUMN_WIDTH}px` }} />}
           </colgroup>
 
           <thead>
@@ -715,12 +720,14 @@ export const WorkItemsTable: React.FC<WorkItemsTableProps> = ({
                 />
               </th>
 
-              {/* ACTION Column (Fixed & Center-aligned) */}
-              <th scope="col" className="th-actions">
-                <div className="th-content" style={{ justifyContent: 'center' }}>
-                  <span>ACTION</span>
-                </div>
-              </th>
+              {/* ACTION Column (Fixed & Center-aligned, Admin only) */}
+              {isAdmin && (
+                <th scope="col" className="th-actions">
+                  <div className="th-content" style={{ justifyContent: 'center' }}>
+                    <span>ACTION</span>
+                  </div>
+                </th>
+              )}
             </tr>
           </thead>
           <tbody>
@@ -835,39 +842,41 @@ export const WorkItemsTable: React.FC<WorkItemsTableProps> = ({
                     </span>
                   </td>
 
-                  {/* ACTION: Edit & Delete (Fixed & Center-aligned) */}
-                  <td className="td-actions">
-                    <div className="row-actions" style={{ justifyContent: 'center' }}>
-                      <button
-                        type="button"
-                        className="btn-row-action btn-edit"
-                        onClick={() => onEdit(item)}
-                        title={`Edit #${displayId}`}
-                        aria-label={`Edit ${displayName || 'item'}`}
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M12 20h9" />
-                          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-                        </svg>
-                        <span>Edit</span>
-                      </button>
+                  {/* ACTION: Edit & Delete (Fixed & Center-aligned, Admin only) */}
+                  {isAdmin && (
+                    <td className="td-actions">
+                      <div className="row-actions" style={{ justifyContent: 'center' }}>
+                        <button
+                          type="button"
+                          className="btn-row-action btn-edit"
+                          onClick={() => onEdit(item)}
+                          title={`Edit #${displayId}`}
+                          aria-label={`Edit ${displayName || 'item'}`}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M12 20h9" />
+                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                          </svg>
+                          <span>Edit</span>
+                        </button>
 
-                      <button
-                        type="button"
-                        className="btn-row-action btn-delete"
-                        onClick={() => onDelete(item)}
-                        title={`Delete #${displayId}`}
-                        aria-label={`Delete ${displayName || 'item'}`}
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M3 6h18" />
-                          <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-                          <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-                        </svg>
-                        <span>Delete</span>
-                      </button>
-                    </div>
-                  </td>
+                        <button
+                          type="button"
+                          className="btn-row-action btn-delete"
+                          onClick={() => onDelete(item)}
+                          title={`Delete #${displayId}`}
+                          aria-label={`Delete ${displayName || 'item'}`}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M3 6h18" />
+                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                          </svg>
+                          <span>Delete</span>
+                        </button>
+                      </div>
+                    </td>
+                  )}
                 </tr>
               );
             })}

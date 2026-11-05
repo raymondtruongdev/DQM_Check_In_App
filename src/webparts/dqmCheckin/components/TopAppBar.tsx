@@ -4,8 +4,15 @@ interface TopAppBarProps {
   onRefresh?: () => void;
   isLoading?: boolean;
   itemCount?: number;
-  currentUser?: { username: string; displayName: string } | null;
+  currentUser?: {
+    username: string;
+    displayName: string;
+    role?: string;
+    isAdmin?: boolean;
+  } | null;
   onLogout?: () => void;
+  activeView?: 'cards' | 'table';
+  onViewChange?: (view: 'cards' | 'table') => void;
 }
 
 export const TopAppBar: React.FC<TopAppBarProps> = ({
@@ -14,6 +21,8 @@ export const TopAppBar: React.FC<TopAppBarProps> = ({
   itemCount,
   currentUser,
   onLogout,
+  activeView = 'cards',
+  onViewChange,
 }) => {
   const userInitials = currentUser?.displayName
     ? currentUser.displayName.slice(0, 2).toUpperCase()
@@ -48,12 +57,50 @@ export const TopAppBar: React.FC<TopAppBarProps> = ({
             </svg>
           </div>
           <div className="brand-meta">
-            <span className="brand-badge">Check In App</span>
+            <h1 className="brand-title">Check In App</h1>
           </div>
         </div>
 
-        {/* Right: Actions & User Meta */}
+        {/* Right: View Switcher, Actions & User Meta */}
         <div className="app-bar-actions">
+          {/* View Mode Switcher: Cards vs Table */}
+          {onViewChange && (
+            <div className="view-mode-tabs" role="tablist">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeView === 'cards'}
+                className={`view-tab-btn ${activeView === 'cards' ? 'is-active' : ''}`}
+                onClick={() => onViewChange('cards')}
+                title="Xem dạng thẻ (tối ưu cho điện thoại và máy tính)"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="3" width="7" height="7" rx="1" />
+                  <rect x="14" y="3" width="7" height="7" rx="1" />
+                  <rect x="3" y="14" width="7" height="7" rx="1" />
+                  <rect x="14" y="14" width="7" height="7" rx="1" />
+                </svg>
+                <span>Dạng Thẻ</span>
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeView === 'table'}
+                className={`view-tab-btn ${activeView === 'table' ? 'is-active' : ''}`}
+                onClick={() => onViewChange('table')}
+                title="Xem dạng bảng"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                  <line x1="3" y1="9" x2="21" y2="9" />
+                  <line x1="3" y1="15" x2="21" y2="15" />
+                  <line x1="9" y1="3" x2="9" y2="21" />
+                </svg>
+                <span>Dạng Bảng</span>
+              </button>
+            </div>
+          )}
+
           {onRefresh && (
             <button
               type="button"
@@ -83,11 +130,18 @@ export const TopAppBar: React.FC<TopAppBarProps> = ({
             </button>
           )}
 
-          <div className="user-profile" title={`Signed in as ${currentUser?.displayName || 'Administrator'}`}>
+          <div className="user-profile" title={`Signed in as ${currentUser?.displayName || 'Administrator'} (${currentUser?.role || 'user'})`}>
             <div className="user-avatar">{userInitials}</div>
-            {currentUser && (
-              <span className="user-name-text">{currentUser.displayName}</span>
-            )}
+            <div className="user-profile-info">
+              {currentUser && (
+                <span className="user-name-text">{currentUser.displayName}</span>
+              )}
+              {currentUser?.role && (
+                <span className={`role-badge ${currentUser.isAdmin ? 'role-admin' : 'role-user'}`}>
+                  {currentUser.isAdmin ? 'Admin' : currentUser.role}
+                </span>
+              )}
+            </div>
           </div>
 
           {onLogout && (

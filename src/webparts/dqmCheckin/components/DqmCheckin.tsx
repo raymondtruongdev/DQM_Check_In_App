@@ -5,6 +5,7 @@ import type { IDqmCheckinProps } from './IDqmCheckinProps';
 import { LoginPage } from './LoginPage';
 import { TopAppBar } from './TopAppBar';
 import { WorkItemsTable } from './WorkItemsTable';
+import { CheckinCardsView } from './CheckinCardsView';
 import { SkeletonLoader } from './SkeletonLoader';
 import { ErrorState } from './ErrorState';
 import { EditItemView } from './EditItemView';
@@ -84,6 +85,8 @@ interface ToastState {
 interface UserSession {
   username: string;
   displayName: string;
+  role?: string;
+  isAdmin?: boolean;
 }
 
 export const DqmCheckin: React.FC<IDqmCheckinProps> = (props) => {
@@ -91,6 +94,9 @@ export const DqmCheckin: React.FC<IDqmCheckinProps> = (props) => {
 
   // Initialize SharePoint Service
   const spService = useMemo(() => new SharePointService(spHttpClient), [spHttpClient]);
+
+  // View Mode: 'cards' by default as requested (for desktop and mobile)
+  const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
 
   // Session state: null by default so user is presented with the Login Page first
   const [currentUser, setCurrentUser] = useState<UserSession | null>(() => {
@@ -330,13 +336,15 @@ export const DqmCheckin: React.FC<IDqmCheckinProps> = (props) => {
 
   return (
     <div className="app-layout">
-      {/* Top App Bar with Logout */}
+      {/* Top App Bar with View Switcher & Logout */}
       <TopAppBar
         currentUser={currentUser}
         onRefresh={handleRefresh}
         isLoading={isLoading}
         itemCount={items.length}
         onLogout={handleLogout}
+        activeView={viewMode}
+        onViewChange={setViewMode}
       />
 
       {/* Main Container */}
@@ -383,12 +391,23 @@ export const DqmCheckin: React.FC<IDqmCheckinProps> = (props) => {
             onRetry={handleRefresh}
             onUseDemoData={handleUseDemoData}
           />
+        ) : viewMode === 'cards' ? (
+          <CheckinCardsView
+            items={items}
+            currentUser={currentUser}
+            isDemoData={isDemoMode}
+            onEdit={handleOpenEdit}
+            onDelete={handleOpenDelete}
+            onRefresh={handleRefresh}
+            isLoading={isLoading}
+          />
         ) : (
           <WorkItemsTable
             items={items}
             isDemoData={isDemoMode}
             onEdit={handleOpenEdit}
             onDelete={handleOpenDelete}
+            isAdmin={currentUser?.isAdmin}
           />
         )}
       </main>
