@@ -1,7 +1,7 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
   "solution": {
-    "name": "dqm-check-in-app-client-side-solution",
+    "name": "dqm-checkin-solution",
     "id": "0c115257-9f55-4564-8c12-d71fc6759401",
     "version": "1.0.0.0",
     "includeClientSideAssets": true,
@@ -26,7 +26,7 @@
     },
     "features": [
       {
-        "title": "dqm-spfx-checkin Feature",
+        "title": "dqm-checkin-Feature",
         "description": "The feature that activates elements of the dqm-spfx-checkin solution.",
         "id": "35eeabd7-72b5-49cd-a623-7582a60818a7",
         "version": "1.0.0.0"
@@ -34,6 +34,6 @@
     ]
   },
   "paths": {
-    "zippedPackage": "solution/dqm-spfx-checkin.sppkg"
+    "zippedPackage": "solution/dqm-checkin.sppkg"
   }
 }
