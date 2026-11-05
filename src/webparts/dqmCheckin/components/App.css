@@ -522,14 +522,60 @@
   color: var(--color-text-primary);
 }
 
-.login-btn {
-  width: 100%;
-  justify-content: center;
-  padding: 11px 18px;
-  font-size: var(--text-md);
-  font-weight: 600;
-  border-radius: var(--radius-md);
-  margin-top: var(--space-2);
+.login-btn,
+.app-layout button.login-btn,
+.btn-primary.login-btn {
+  background-color: var(--color-accent) !important;
+  color: #ffffff !important;
+  border: 1px solid var(--color-accent-hover) !important;
+  width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: var(--space-2) !important;
+  padding: 12px 20px !important;
+  font-size: var(--text-md) !important;
+  font-weight: 600 !important;
+  border-radius: var(--radius-md) !important;
+  margin-top: var(--space-2) !important;
+  cursor: pointer !important;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.25) !important;
+  transition: all var(--transition-fast) !important;
+}
+
+.login-btn span,
+.btn-primary.login-btn span,
+.app-layout button.login-btn span {
+  color: #ffffff !important;
+}
+
+.login-btn svg,
+.btn-primary.login-btn svg,
+.app-layout button.login-btn svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+.login-btn:hover:not(:disabled),
+.app-layout button.login-btn:hover:not(:disabled) {
+  background-color: var(--color-accent-hover) !important;
+  border-color: var(--color-accent-active) !important;
+  color: #ffffff !important;
+}
+
+.login-btn:disabled,
+.app-layout button.login-btn:disabled {
+  background-color: #93c5fd !important;
+  border-color: #bfdbfe !important;
+  color: #ffffff !important;
+  opacity: 0.75 !important;
+  cursor: not-allowed !important;
+}
+
+.login-btn:disabled span,
+.login-btn:disabled svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
 }
 
 .login-demo-helper {
@@ -1603,28 +1649,35 @@
 }
 
 /* Button Variants */
-.btn-primary {
+.btn-primary,
+.app-layout button.btn-primary {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
   padding: 8px 18px;
   border-radius: var(--radius-md);
-  background-color: var(--color-accent);
-  color: var(--color-text-inverse);
+  background-color: var(--color-accent) !important;
+  color: #ffffff !important;
+  border: 1px solid var(--color-accent-hover) !important;
   font-weight: 600;
   font-size: var(--text-sm);
   box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);
 }
 
-.btn-primary:hover:not(:disabled) {
-  background-color: var(--color-accent-hover);
+.btn-primary:hover:not(:disabled),
+.app-layout button.btn-primary:hover:not(:disabled) {
+  background-color: var(--color-accent-hover) !important;
 }
 
-.btn-primary:active:not(:disabled) {
-  background-color: var(--color-accent-active);
+.btn-primary:active:not(:disabled),
+.app-layout button.btn-primary:active:not(:disabled) {
+  background-color: var(--color-accent-active) !important;
 }
 
-.btn-primary:disabled {
+.btn-primary:disabled,
+.app-layout button.btn-primary:disabled {
+  background-color: #93c5fd !important;
+  color: #ffffff !important;
   opacity: 0.65;
   cursor: not-allowed;
 }

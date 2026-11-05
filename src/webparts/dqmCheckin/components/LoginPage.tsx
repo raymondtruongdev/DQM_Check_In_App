@@ -7,6 +7,52 @@ interface LoginPageProps {
   siteUrl: string;
 }
 
+// Helper to extract username from account item
+function getAccountUsername(acc: Record<string, unknown>): string {
+  // Check exact Username or field_1 (SharePoint internal name for Username in Account list)
+  const possibleKeys = [
+    'Username', 'username', 'UserName', 'User_x0020_Name',
+    'field_1', // Internal name for Username column in Account list
+    'User', 'user', 'Email', 'email', 'Account', 'account',
+    'Title', 'title'
+  ];
+  for (const key of possibleKeys) {
+    const val = acc[key];
+    if (val !== undefined && val !== null && String(val).trim() !== '' && String(val).trim() !== 'null') {
+      return String(val).trim();
+    }
+  }
+  return '';
+}
+
+// Helper to extract password from account item
+function getAccountPassword(acc: Record<string, unknown>): string {
+  // Check exact Password or field_2 (SharePoint internal name for Password in Account list)
+  const possibleKeys = [
+    'Password', 'password', 'PassWord', 'Pass_x0020_Word',
+    'field_2', // Internal name for Password column in Account list
+    'Pass', 'pass', 'Pwd', 'pwd',
+    'MatKhau', 'matkhau', 'Mat_x0020_khau', 'Mat_x0020_Khau'
+  ];
+  for (const key of possibleKeys) {
+    const val = acc[key];
+    if (val !== undefined && val !== null && String(val).trim() !== '' && String(val).trim() !== 'null') {
+      return String(val).trim();
+    }
+  }
+  // Check any property name containing pass, pwd, or khau
+  for (const key of Object.keys(acc)) {
+    const lower = key.toLowerCase();
+    if (lower.includes('pass') || lower.includes('pwd') || lower.includes('khau')) {
+      const val = acc[key];
+      if (val !== undefined && val !== null && String(val).trim() !== '' && String(val).trim() !== 'null') {
+        return String(val).trim();
+      }
+    }
+  }
+  return '';
+}
+
 export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, spService, siteUrl }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -32,33 +78,59 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, spService,
     setIsSubmitting(true);
 
     try {
-      console.log('[LoginPage] Querying SharePoint Account list via SPHttpClient...');
+      console.log('[LoginPage] Querying SharePoint Account list via SPHttpClient from site:', siteUrl);
       const accounts = await spService.getAccounts(siteUrl);
-      console.log(`[LoginPage] Found ${accounts.length} accounts:`, accounts);
+      console.log(`[LoginPage] Found ${accounts.length} accounts in SharePoint:`, accounts);
 
       if (accounts.length === 0) {
         setErrorMessage(
-          'Đã kết nối SharePoint thành công, nhưng bảng "Account" hiện đang TRỐNG (0 dòng). Hãy vào SharePoint thêm ít nhất một dòng tài khoản!'
+          'Đã kết nối SharePoint thành công, nhưng bảng "Account" hiện đang TRỐNG (0 dòng). Hãy vào SharePoint thêm tài khoản vào danh sách Account!'
         );
         return;
       }
 
-      // Check matching credentials against SharePoint list
-      const matched = accounts.find((acc) => {
-        const accUser = String(acc.Username || acc.Title || acc.Usernam || acc.User || acc.username || '').trim().toLowerCase();
-        const accPass = String(acc.Password || acc.password || '').trim();
-        return accUser === trimmedUser.toLowerCase() && accPass === trimmedPass;
+      // 1. Find account by username (checking Username, Title, etc.)
+      const matchedUser = accounts.find((acc) => {
+        const u = getAccountUsername(acc).toLowerCase();
+        return u === trimmedUser.toLowerCase();
       });
 
-      if (matched) {
-        const displayName = String(matched.Username || matched.Title || matched.Usernam || trimmedUser);
+      if (!matchedUser) {
+        console.warn(`[LoginPage] Username "${trimmedUser}" not found. Available usernames:`, accounts.map(a => getAccountUsername(a)));
+        setErrorMessage(`Không tìm thấy tài khoản "${trimmedUser}" trong danh sách Account trên SharePoint.`);
+        return;
+      }
+
+      console.log(`[LoginPage] Found account for "${trimmedUser}":`, matchedUser);
+      console.log(`[LoginPage] Available columns on this account:`, Object.keys(matchedUser));
+
+      // 2. Extract password from account
+      const storedPass = getAccountPassword(matchedUser);
+
+      if (!storedPass) {
+        console.warn(`[LoginPage] Password column not found or empty on user account:`, matchedUser);
+        const columnNames = Object.keys(matchedUser).filter(k => !k.startsWith('OData_') && !k.startsWith('{')).join(', ');
+        setErrorMessage(`Tài khoản "${trimmedUser}" tồn tại nhưng chưa có mật khẩu trong cột Password. Các cột tìm thấy trong list: [${columnNames}]`);
+        return;
+      }
+
+      // 3. Compare password
+      if (storedPass === trimmedPass || storedPass.trim() === trimmedPass) {
+        const displayName = String(
+          matchedUser.DisplayName ||
+          matchedUser.field_1 ||
+          matchedUser.Username ||
+          matchedUser.Title ||
+          trimmedUser
+        );
         onLoginSuccess({
           username: trimmedUser,
           displayName,
         });
         return;
       } else {
-        setErrorMessage('Tên đăng nhập hoặc mật khẩu không chính xác.');
+        console.warn(`[LoginPage] Password mismatch for ${trimmedUser}.`);
+        setErrorMessage('Mật khẩu không chính xác. Vui lòng kiểm tra lại (chú ý chữ hoa/thường, khoảng trắng).');
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);

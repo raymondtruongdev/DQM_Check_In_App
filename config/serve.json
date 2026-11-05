@@ -2,5 +2,5 @@
   "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/spfx-serve.schema.json",
   "port": 4321,
   "https": true,
-  "initialPage": "https://ytf84.sharepoint.com/sites/metro-checkin/_layouts/15/workbench.aspx"
+  "initialPage": "https://ytf84.sharepoint.com/sites/metro-checkin-dev/_layouts/15/workbench.aspx"
 }
