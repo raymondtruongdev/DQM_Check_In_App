@@ -1,7 +1,15 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import type { Data_checkinRead } from '../models/DataCheckinModel';
+import {
+  getItemName,
+  getItemDisplayId,
+  getItemCheckIn,
+  getItemLocation,
+  getItemNote,
+  getItemPhone,
+} from '../models/DataCheckinModel';
 
-export type SortField = 'id' | 'title' | 'phone' | 'checkin' | 'location' | 'note';
+export type SortField = 'id' | 'name' | 'phone' | 'checkin' | 'location' | 'note';
 export type SortDirection = 'asc' | 'desc';
 
 interface SortConfig {
@@ -22,7 +30,7 @@ const ACTIONS_COLUMN_WIDTH = 130;
 // Sensible compact default column widths in pixels so all 7 columns fit on screen
 const DEFAULT_COLUMN_WIDTHS: Record<string, number> = {
   id: 70,
-  title: 170,
+  name: 170,
   phone: 125,
   checkin: 150,
   location: 120,
@@ -32,7 +40,7 @@ const DEFAULT_COLUMN_WIDTHS: Record<string, number> = {
 // Minimum column widths to ensure usability
 const MIN_COLUMN_WIDTHS: Record<string, number> = {
   id: 55,
-  title: 120,
+  name: 120,
   phone: 95,
   checkin: 120,
   location: 95,
@@ -89,7 +97,11 @@ export const WorkItemsTable: React.FC<WorkItemsTableProps> = ({
     try {
       const saved = localStorage.getItem('dqm_spfx_col_widths_v2');
       if (saved) {
-        return { ...DEFAULT_COLUMN_WIDTHS, ...JSON.parse(saved) };
+        const parsed = JSON.parse(saved);
+        if (parsed.title && !parsed.name) {
+          parsed.name = parsed.title;
+        }
+        return { ...DEFAULT_COLUMN_WIDTHS, ...parsed };
       }
     } catch {
       // Fallback to defaults
@@ -100,9 +112,10 @@ export const WorkItemsTable: React.FC<WorkItemsTableProps> = ({
   const [resizingCol, setResizingCol] = useState<string | null>(null);
 
   const totalTableWidth = useMemo(() => {
+    const nameWidth = columnWidths.name || columnWidths.title || DEFAULT_COLUMN_WIDTHS.name;
     return (
       (columnWidths.id || DEFAULT_COLUMN_WIDTHS.id) +
-      (columnWidths.title || DEFAULT_COLUMN_WIDTHS.title) +
+      nameWidth +
       (columnWidths.phone || DEFAULT_COLUMN_WIDTHS.phone) +
       (columnWidths.checkin || DEFAULT_COLUMN_WIDTHS.checkin) +
       (columnWidths.location || DEFAULT_COLUMN_WIDTHS.location) +
@@ -207,15 +220,15 @@ export const WorkItemsTable: React.FC<WorkItemsTableProps> = ({
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
       result = result.filter((item) => {
-        const idStr = String(item.field_0 ?? item.ID ?? '').toLowerCase();
-        const titleStr = (item.Title || '').toLowerCase();
-        const phoneStr = (item.Phone || '').toLowerCase();
-        const locationStr = (item.field_3 || '').toLowerCase();
-        const noteStr = (item.field_4 || '').toLowerCase();
+        const idStr = String(getItemDisplayId(item) ?? '').toLowerCase();
+        const nameStr = getItemName(item).toLowerCase();
+        const phoneStr = getItemPhone(item).toLowerCase();
+        const locationStr = getItemLocation(item).toLowerCase();
+        const noteStr = getItemNote(item).toLowerCase();
 
         return (
           idStr.includes(query) ||
-          titleStr.includes(query) ||
+          nameStr.includes(query) ||
           phoneStr.includes(query) ||
           locationStr.includes(query) ||
           noteStr.includes(query)
@@ -229,38 +242,40 @@ export const WorkItemsTable: React.FC<WorkItemsTableProps> = ({
 
       switch (sortConfig.field) {
         case 'id': {
-          const idA = a.field_0 !== undefined ? a.field_0 : (a.ID ?? 0);
-          const idB = b.field_0 !== undefined ? b.field_0 : (b.ID ?? 0);
+          const idA = Number(getItemDisplayId(a)) || 0;
+          const idB = Number(getItemDisplayId(b)) || 0;
           comparison = idA - idB;
           break;
         }
-        case 'title': {
-          const titleA = a.Title || '';
-          const titleB = b.Title || '';
-          comparison = titleA.localeCompare(titleB, undefined, { sensitivity: 'base' });
+        case 'name': {
+          const nameA = getItemName(a);
+          const nameB = getItemName(b);
+          comparison = nameA.localeCompare(nameB, undefined, { sensitivity: 'base' });
           break;
         }
         case 'phone': {
-          const phoneA = a.Phone || '';
-          const phoneB = b.Phone || '';
+          const phoneA = getItemPhone(a);
+          const phoneB = getItemPhone(b);
           comparison = phoneA.localeCompare(phoneB, undefined, { sensitivity: 'base' });
           break;
         }
         case 'checkin': {
-          const timeA = a.field_2 ? new Date(a.field_2).getTime() : 0;
-          const timeB = b.field_2 ? new Date(b.field_2).getTime() : 0;
+          const checkinA = getItemCheckIn(a);
+          const checkinB = getItemCheckIn(b);
+          const timeA = checkinA ? new Date(checkinA).getTime() : 0;
+          const timeB = checkinB ? new Date(checkinB).getTime() : 0;
           comparison = timeA - timeB;
           break;
         }
         case 'location': {
-          const locA = a.field_3 || '';
-          const locB = b.field_3 || '';
+          const locA = getItemLocation(a);
+          const locB = getItemLocation(b);
           comparison = locA.localeCompare(locB, undefined, { sensitivity: 'base' });
           break;
         }
         case 'note': {
-          const noteA = a.field_4 || '';
-          const noteB = b.field_4 || '';
+          const noteA = getItemNote(a);
+          const noteB = getItemNote(b);
           comparison = noteA.localeCompare(noteB, undefined, { sensitivity: 'base' });
           break;
         }
@@ -291,9 +306,9 @@ export const WorkItemsTable: React.FC<WorkItemsTableProps> = ({
   };
 
   // Helper for generating consistent avatar letters
-  const getAvatarLetter = (title?: string) => {
-    if (!title || title.trim().length === 0) return 'W';
-    return title.trim().charAt(0).toUpperCase();
+  const getAvatarLetter = (name?: string) => {
+    if (!name || name.trim().length === 0) return 'W';
+    return name.trim().charAt(0).toUpperCase();
   };
 
   const getSortTitle = (label: string, field: SortField) => {
@@ -412,9 +427,14 @@ export const WorkItemsTable: React.FC<WorkItemsTableProps> = ({
         <div className="cards-view-wrapper">
           <div className="mobile-cards-list">
             {processedItems.map((item, index) => {
-              const displayId = item.field_0 !== undefined ? item.field_0 : item.ID;
-              const formattedDate = formatDateTime(item.field_2);
-              const avatarChar = getAvatarLetter(item.Title);
+              const displayId = getItemDisplayId(item);
+              const displayName = getItemName(item);
+              const displayPhone = getItemPhone(item);
+              const displayCheckin = getItemCheckIn(item);
+              const displayLocation = getItemLocation(item);
+              const displayNote = getItemNote(item);
+              const formattedDate = formatDateTime(displayCheckin);
+              const avatarChar = getAvatarLetter(displayName);
 
               return (
                 <div key={item.ID ?? `card-${index}`} className="mobile-item-card">
@@ -425,8 +445,8 @@ export const WorkItemsTable: React.FC<WorkItemsTableProps> = ({
                       <div className="mobile-card-meta">
                         <div className="mobile-card-topline">
                           <span className="id-badge">#{displayId ?? '—'}</span>
-                          {item.field_3 && (
-                            <div className="location-pill" title={item.field_3}>
+                          {displayLocation && (
+                            <div className="location-pill" title={displayLocation}>
                               <svg
                                 className="location-icon"
                                 width="12"
@@ -441,18 +461,18 @@ export const WorkItemsTable: React.FC<WorkItemsTableProps> = ({
                                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                                 <circle cx="12" cy="10" r="3" />
                               </svg>
-                              <span>{item.field_3}</span>
+                              <span>{displayLocation}</span>
                             </div>
                           )}
                         </div>
-                        <h3 className="mobile-card-title">{item.Title || '(Untitled)'}</h3>
+                        <h3 className="mobile-card-title">{displayName || '(Untitled)'}</h3>
                       </div>
                     </div>
                   </div>
 
                   {/* Card Details: Phone, Date, Note */}
                   <div className="mobile-card-details">
-                    {item.Phone && (
+                    {displayPhone && (
                       <div className="mobile-card-row">
                         <span className="mobile-row-label">
                           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -460,8 +480,8 @@ export const WorkItemsTable: React.FC<WorkItemsTableProps> = ({
                           </svg>
                           Phone:
                         </span>
-                        <a href={`tel:${item.Phone}`} className="phone-link">
-                          {item.Phone}
+                        <a href={`tel:${displayPhone}`} className="phone-link">
+                          {displayPhone}
                         </a>
                       </div>
                     )}
@@ -479,7 +499,7 @@ export const WorkItemsTable: React.FC<WorkItemsTableProps> = ({
                       <span className="mobile-row-val">{formattedDate}</span>
                     </div>
 
-                    {item.field_4 && (
+                    {displayNote && (
                       <div className="mobile-card-row mobile-note-row">
                         <span className="mobile-row-label">
                           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -490,7 +510,7 @@ export const WorkItemsTable: React.FC<WorkItemsTableProps> = ({
                           </svg>
                           Note:
                         </span>
-                        <span className="mobile-note-text">{item.field_4}</span>
+                        <span className="mobile-note-text">{displayNote}</span>
                       </div>
                     )}
                   </div>
@@ -501,7 +521,7 @@ export const WorkItemsTable: React.FC<WorkItemsTableProps> = ({
                       type="button"
                       className="btn-card-action btn-edit"
                       onClick={() => onEdit(item)}
-                      aria-label={`Edit ${item.Title || 'item'}`}
+                      aria-label={`Edit ${displayName || 'item'}`}
                     >
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M12 20h9" />
@@ -514,7 +534,7 @@ export const WorkItemsTable: React.FC<WorkItemsTableProps> = ({
                       type="button"
                       className="btn-card-action btn-delete"
                       onClick={() => onDelete(item)}
-                      aria-label={`Delete ${item.Title || 'item'}`}
+                      aria-label={`Delete ${displayName || 'item'}`}
                     >
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M3 6h18" />
@@ -560,7 +580,7 @@ export const WorkItemsTable: React.FC<WorkItemsTableProps> = ({
           {/* Column definitions for precise pixel width resizing */}
           <colgroup>
             <col style={{ width: `${columnWidths.id}px` }} />
-            <col style={{ width: `${columnWidths.title}px` }} />
+            <col style={{ width: `${columnWidths.name || columnWidths.title || DEFAULT_COLUMN_WIDTHS.name}px` }} />
             <col style={{ width: `${columnWidths.phone}px` }} />
             <col style={{ width: `${columnWidths.checkin}px` }} />
             <col style={{ width: `${columnWidths.location}px` }} />
@@ -596,18 +616,18 @@ export const WorkItemsTable: React.FC<WorkItemsTableProps> = ({
                 <div className="th-content">
                   <button
                     type="button"
-                    className={`th-sort-btn ${sortConfig.field === 'title' ? 'is-active' : ''}`}
-                    onClick={() => handleSort('title')}
-                    title={getSortTitle('Name', 'title')}
+                    className={`th-sort-btn ${sortConfig.field === 'name' ? 'is-active' : ''}`}
+                    onClick={() => handleSort('name')}
+                    title={getSortTitle('Name', 'name')}
                   >
                     <span>Name</span>
-                    <SortIndicator active={sortConfig.field === 'title'} direction={sortConfig.direction} />
+                    <SortIndicator active={sortConfig.field === 'name'} direction={sortConfig.direction} />
                   </button>
                 </div>
                 <div
-                  className={`col-resizer ${resizingCol === 'title' ? 'is-active' : ''}`}
-                  onMouseDown={(e) => startResize('title', e)}
-                  onDoubleClick={(e) => resetColumnWidth('title', e)}
+                  className={`col-resizer ${resizingCol === 'name' ? 'is-active' : ''}`}
+                  onMouseDown={(e) => startResize('name', e)}
+                  onDoubleClick={(e) => resetColumnWidth('name', e)}
                   title="Drag to resize column (Double-click to reset)"
                 />
               </th>
@@ -706,9 +726,14 @@ export const WorkItemsTable: React.FC<WorkItemsTableProps> = ({
           </thead>
           <tbody>
             {processedItems.map((item, index) => {
-              const displayId = item.field_0 !== undefined ? item.field_0 : item.ID;
-              const formattedDate = formatDateTime(item.field_2);
-              const avatarChar = getAvatarLetter(item.Title);
+              const displayId = getItemDisplayId(item);
+              const displayName = getItemName(item);
+              const displayPhone = getItemPhone(item);
+              const displayCheckin = getItemCheckIn(item);
+              const displayLocation = getItemLocation(item);
+              const displayNote = getItemNote(item);
+              const formattedDate = formatDateTime(displayCheckin);
+              const avatarChar = getAvatarLetter(displayName);
 
               return (
                 <tr key={item.ID ?? `row-${index}`} className="table-row">
@@ -724,8 +749,8 @@ export const WorkItemsTable: React.FC<WorkItemsTableProps> = ({
                     <div className="name-cell">
                       <div className="avatar-chip">{avatarChar}</div>
                       <div className="name-text-group">
-                        <span className="item-title" title={item.Title || '(Untitled)'}>
-                          {item.Title || '(Untitled)'}
+                        <span className="item-title" title={displayName || '(Untitled)'}>
+                          {displayName || '(Untitled)'}
                         </span>
                       </div>
                     </div>
@@ -733,7 +758,7 @@ export const WorkItemsTable: React.FC<WorkItemsTableProps> = ({
 
                   {/* Phone */}
                   <td>
-                    {item.Phone ? (
+                    {displayPhone ? (
                       <div className="phone-cell">
                         <svg
                           className="cell-icon"
@@ -748,8 +773,8 @@ export const WorkItemsTable: React.FC<WorkItemsTableProps> = ({
                         >
                           <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
                         </svg>
-                        <a href={`tel:${item.Phone}`} className="phone-link">
-                          {item.Phone}
+                        <a href={`tel:${displayPhone}`} className="phone-link">
+                          {displayPhone}
                         </a>
                       </div>
                     ) : (
@@ -782,7 +807,7 @@ export const WorkItemsTable: React.FC<WorkItemsTableProps> = ({
 
                   {/* Location */}
                   <td>
-                    <div className="location-pill" title={item.field_3 || 'No location'}>
+                    <div className="location-pill" title={displayLocation || 'No location'}>
                       <svg
                         className="location-icon"
                         width="13"
@@ -797,17 +822,17 @@ export const WorkItemsTable: React.FC<WorkItemsTableProps> = ({
                         <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                         <circle cx="12" cy="10" r="3" />
                       </svg>
-                      <span>{item.field_3 || '—'}</span>
+                      <span>{displayLocation || '—'}</span>
                     </div>
                   </td>
 
                   {/* note */}
                   <td>
                     <span
-                      className={`note-text ${!item.field_4 ? 'is-empty' : ''}`}
-                      title={item.field_4 || undefined}
+                      className={`note-text ${!displayNote ? 'is-empty' : ''}`}
+                      title={displayNote || undefined}
                     >
-                      {item.field_4 || 'No notes provided'}
+                      {displayNote || 'No notes provided'}
                     </span>
                   </td>
 
@@ -819,7 +844,7 @@ export const WorkItemsTable: React.FC<WorkItemsTableProps> = ({
                         className="btn-row-action btn-edit"
                         onClick={() => onEdit(item)}
                         title={`Edit #${displayId}`}
-                        aria-label={`Edit ${item.Title || 'item'}`}
+                        aria-label={`Edit ${displayName || 'item'}`}
                       >
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M12 20h9" />
@@ -833,7 +858,7 @@ export const WorkItemsTable: React.FC<WorkItemsTableProps> = ({
                         className="btn-row-action btn-delete"
                         onClick={() => onDelete(item)}
                         title={`Delete #${displayId}`}
-                        aria-label={`Delete ${item.Title || 'item'}`}
+                        aria-label={`Delete ${displayName || 'item'}`}
                       >
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M3 6h18" />

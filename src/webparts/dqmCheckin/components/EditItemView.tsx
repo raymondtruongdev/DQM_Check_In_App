@@ -1,5 +1,13 @@
 import React, { useState } from 'react';
 import type { Data_checkinRead, Data_checkinWrite } from '../models/DataCheckinModel';
+import {
+  getItemName,
+  getItemDisplayId,
+  getItemCheckIn,
+  getItemLocation,
+  getItemNote,
+  getItemPhone,
+} from '../models/DataCheckinModel';
 
 interface EditItemViewProps {
   item: Data_checkinRead;
@@ -47,30 +55,37 @@ export const EditItemView: React.FC<EditItemViewProps> = ({
   saveError,
 }) => {
   // Form state
-  const [title, setTitle] = useState(item.Title ?? '');
-  const [field0, setField0] = useState<string>(item.field_0 !== undefined ? String(item.field_0) : '');
-  const [phone, setPhone] = useState(item.Phone ?? '');
-  const [field2, setField2] = useState<string>(isoToDatetimeLocal(item.field_2));
-  const [field3, setField3] = useState(item.field_3 ?? '');
-  const [field4, setField4] = useState(item.field_4 ?? '');
+  const initialName = getItemName(item);
+  const initialCustomId = item.Id !== undefined && item.Id !== null ? String(item.Id) : '';
+  const initialPhone = getItemPhone(item);
+  const initialCheckin = isoToDatetimeLocal(getItemCheckIn(item));
+  const initialLocation = getItemLocation(item);
+  const initialNote = getItemNote(item);
+
+  const [name, setName] = useState(initialName);
+  const [customId, setCustomId] = useState<string>(initialCustomId);
+  const [phone, setPhone] = useState(initialPhone);
+  const [checkin, setCheckin] = useState<string>(initialCheckin);
+  const [location, setLocation] = useState(initialLocation);
+  const [note, setNote] = useState(initialNote);
 
   // Track if changes have been made
   const isDirty =
-    title !== (item.Title ?? '') ||
-    field0 !== (item.field_0 !== undefined ? String(item.field_0) : '') ||
-    phone !== (item.Phone ?? '') ||
-    field2 !== isoToDatetimeLocal(item.field_2) ||
-    field3 !== (item.field_3 ?? '') ||
-    field4 !== (item.field_4 ?? '');
+    name !== initialName ||
+    customId !== initialCustomId ||
+    phone !== initialPhone ||
+    checkin !== initialCheckin ||
+    location !== initialLocation ||
+    note !== initialNote;
 
   // Discard action: resets state to item's original values
   const handleDiscard = () => {
-    setTitle(item.Title ?? '');
-    setField0(item.field_0 !== undefined ? String(item.field_0) : '');
-    setPhone(item.Phone ?? '');
-    setField2(isoToDatetimeLocal(item.field_2));
-    setField3(item.field_3 ?? '');
-    setField4(item.field_4 ?? '');
+    setName(initialName);
+    setCustomId(initialCustomId);
+    setPhone(initialPhone);
+    setCheckin(initialCheckin);
+    setLocation(initialLocation);
+    setNote(initialNote);
   };
 
   // Back action: user navigates back (discards changes)
@@ -83,19 +98,48 @@ export const EditItemView: React.FC<EditItemViewProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const changedFields: Partial<Omit<Data_checkinWrite, 'ID'>> = {
-      Title: title.trim(),
-      field_0: field0.trim() !== '' ? Number(field0) : undefined,
-      Phone: phone.trim() !== '' ? phone.trim() : undefined,
-      field_2: datetimeLocalToIso(field2),
-      field_3: field3.trim(),
-      field_4: field4.trim(),
-    };
+    const changedFields: Record<string, unknown> = {};
 
-    await onSave(changedFields);
+    const trimmedName = name.trim();
+    if ('field_1' in item) changedFields.field_1 = trimmedName;
+    if ('Name' in item || !('field_1' in item)) changedFields.Name = trimmedName;
+    if ('Title' in item) changedFields.Title = trimmedName;
+
+    // Id
+    if (customId.trim() !== '') {
+      const idNum = Number(customId);
+      if ('field_0' in item) changedFields.field_0 = idNum;
+      if ('Id' in item || !('field_0' in item)) changedFields.Id = idNum;
+    }
+
+    // Phone
+    if (phone.trim() !== '') {
+      if ('field_5' in item) changedFields.field_5 = phone.trim();
+      if ('Phone' in item || !('field_5' in item)) changedFields.Phone = phone.trim();
+    }
+
+    // Check in
+    const isoDate = datetimeLocalToIso(checkin);
+    if (isoDate) {
+      if ('field_2' in item) changedFields.field_2 = isoDate;
+      if ('Check_x0020_in' in item) changedFields.Check_x0020_in = isoDate;
+      if (!('field_2' in item) && !('Check_x0020_in' in item)) changedFields.Check_x0020_in = isoDate;
+    }
+
+    // Location
+    const trimmedLoc = location.trim();
+    if ('field_3' in item) changedFields.field_3 = trimmedLoc;
+    if ('Location' in item || !('field_3' in item)) changedFields.Location = trimmedLoc;
+
+    // Note
+    const trimmedNote = note.trim();
+    if ('field_4' in item) changedFields.field_4 = trimmedNote;
+    if ('Note' in item || !('field_4' in item)) changedFields.Note = trimmedNote;
+
+    await onSave(changedFields as Partial<Omit<Data_checkinWrite, 'ID'>>);
   };
 
-  const displayId = item.field_0 !== undefined ? item.field_0 : item.ID;
+  const displayId = getItemDisplayId(item);
 
   return (
     <div className="edit-view-container">
@@ -162,25 +206,25 @@ export const EditItemView: React.FC<EditItemViewProps> = ({
         {/* Form Fields */}
         <form className="edit-form" onSubmit={handleSubmit}>
           <div className="form-grid">
-            {/* Field: Name (Title) */}
+            {/* Field: Name */}
             <div className="form-group form-col-full">
-              <label htmlFor="field-title" className="form-label">
+              <label htmlFor="field-name" className="form-label">
                 Name <span className="required-mark">*</span>
               </label>
               <input
-                id="field-title"
+                id="field-name"
                 type="text"
                 className="form-input"
                 placeholder="Enter work item or check-in name"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 required
                 disabled={isSaving}
               />
-              <span className="form-help-text">Mapped to list column <code>Title</code></span>
+              <span className="form-help-text">Mapped to list column <code>Name</code></span>
             </div>
 
-            {/* Field: Id (field_0) */}
+            {/* Field: Id */}
             <div className="form-group form-col-half">
               <label htmlFor="field-id" className="form-label">
                 Id (Code)
@@ -190,11 +234,11 @@ export const EditItemView: React.FC<EditItemViewProps> = ({
                 type="number"
                 className="form-input"
                 placeholder="e.g. 101"
-                value={field0}
-                onChange={(e) => setField0(e.target.value)}
+                value={customId}
+                onChange={(e) => setCustomId(e.target.value)}
                 disabled={isSaving}
               />
-              <span className="form-help-text">Custom numeric identifier (<code>field_0</code>)</span>
+              <span className="form-help-text">Custom numeric identifier (<code>Id</code>)</span>
             </div>
 
             {/* Field: Phone */}
@@ -214,7 +258,7 @@ export const EditItemView: React.FC<EditItemViewProps> = ({
               <span className="form-help-text">Contact phone number (<code>Phone</code>)</span>
             </div>
 
-            {/* Field: Check in (field_2) */}
+            {/* Field: Check in */}
             <div className="form-group form-col-half">
               <label htmlFor="field-checkin" className="form-label">
                 Check in Date & Time
@@ -223,14 +267,14 @@ export const EditItemView: React.FC<EditItemViewProps> = ({
                 id="field-checkin"
                 type="datetime-local"
                 className="form-input"
-                value={field2}
-                onChange={(e) => setField2(e.target.value)}
+                value={checkin}
+                onChange={(e) => setCheckin(e.target.value)}
                 disabled={isSaving}
               />
-              <span className="form-help-text">Timestamp recorded (<code>field_2</code>)</span>
+              <span className="form-help-text">Timestamp recorded (<code>Check in</code>)</span>
             </div>
 
-            {/* Field: Location (field_3) */}
+            {/* Field: Location */}
             <div className="form-group form-col-half">
               <label htmlFor="field-location" className="form-label">
                 Location
@@ -240,14 +284,14 @@ export const EditItemView: React.FC<EditItemViewProps> = ({
                 type="text"
                 className="form-input"
                 placeholder="e.g. Hanoi Logistics Hub or Chu Lai Factory"
-                value={field3}
-                onChange={(e) => setField3(e.target.value)}
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
                 disabled={isSaving}
               />
-              <span className="form-help-text">Site or plant location (<code>field_3</code>)</span>
+              <span className="form-help-text">Site or plant location (<code>Location</code>)</span>
             </div>
 
-            {/* Field: Note (field_4) */}
+            {/* Field: Note */}
             <div className="form-group form-col-full">
               <label htmlFor="field-note" className="form-label">
                 Note
@@ -257,11 +301,11 @@ export const EditItemView: React.FC<EditItemViewProps> = ({
                 className="form-textarea"
                 rows={4}
                 placeholder="Add operational notes, remarks, or observations..."
-                value={field4}
-                onChange={(e) => setField4(e.target.value)}
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
                 disabled={isSaving}
               />
-              <span className="form-help-text">Inspection remarks or audit notes (<code>field_4</code>)</span>
+              <span className="form-help-text">Inspection remarks or audit notes (<code>Note</code>)</span>
             </div>
           </div>
 
@@ -292,7 +336,7 @@ export const EditItemView: React.FC<EditItemViewProps> = ({
               <button
                 type="submit"
                 className="btn-primary"
-                disabled={isSaving || !title.trim()}
+                disabled={isSaving || !name.trim()}
               >
                 {isSaving ? (
                   <>

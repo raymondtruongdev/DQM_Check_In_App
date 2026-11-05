@@ -36,13 +36,14 @@
 `https://thadicodqm.sharepoint.com/sites/DataPortal`
 
 ### 1. `data_checkin` (Main Records List)
-* `ID` (Number): SharePoint item internal ID.
-* `Title` (Single line of text): Name / Subject of the check-in record.
-* `field_0` (Number): Work Item / Sequence ID.
-* `field_2` (DateTime): Check-in timestamp (ISO 8601 string).
-* `field_3` (Single line of text): Location / Station name (e.g., ST5, Sala).
-* `field_4` (Multiple lines of text): Notes / Remarks.
+* `ID` (Number): SharePoint item built-in internal ID.
+* `Id` (Number): Custom Sequence / Work Item ID.
+* `Name` (Single line of text): Name of the check-in person or work item.
+* `Check in` (`Check_x0020_in`) (DateTime): Check-in timestamp (ISO 8601 string).
+* `Location` (Single line of text): Location / Station name (e.g., ST5, Sala).
+* `Note` (Single line of text): Notes / Remarks.
 * `Phone` (Single line of text): Contact phone number.
+* `Title` (Single line of text): Built-in SharePoint title field.
 
 ### 2. `Account` (Custom Authentication List)
 * `Username` (Single line of text): User login identifier.

@@ -16,57 +16,63 @@ import type { Data_checkinRead, Data_checkinWrite } from '../models/DataCheckinM
 const SAMPLE_RECORDS: Data_checkinRead[] = [
   {
     ID: 1,
-    field_0: 101,
+    Id: 101,
+    Name: 'Quarterly Audit Inspection',
     Title: 'Quarterly Audit Inspection',
     Phone: '+84 901 234 567',
-    field_2: '2026-11-03T08:30:00Z',
-    field_3: 'Hanoi Logistics Hub',
-    field_4: 'Passed preliminary safety and compliance standards',
+    Check_x0020_in: '2026-11-03T08:30:00Z',
+    Location: 'Hanoi Logistics Hub',
+    Note: 'Passed preliminary safety and compliance standards',
   },
   {
     ID: 2,
-    field_0: 102,
+    Id: 102,
+    Name: 'Assembly Line #3 Calibration',
     Title: 'Assembly Line #3 Calibration',
     Phone: '+84 912 345 678',
-    field_2: '2026-11-03T09:15:00Z',
-    field_3: 'Chu Lai Manufacturing Plant',
-    field_4: 'Torque sensors recalibrated to 0.05Nm tolerance',
+    Check_x0020_in: '2026-11-03T09:15:00Z',
+    Location: 'Chu Lai Manufacturing Plant',
+    Note: 'Torque sensors recalibrated to 0.05Nm tolerance',
   },
   {
     ID: 3,
-    field_0: 103,
+    Id: 103,
+    Name: 'Inbound Material Quality Review',
     Title: 'Inbound Material Quality Review',
     Phone: '+84 983 456 789',
-    field_2: '2026-11-03T10:00:00Z',
-    field_3: 'Da Nang Warehouse C',
-    field_4: 'Steel sheet batch #ST-449 verified against metallurgy specs',
+    Check_x0020_in: '2026-11-03T10:00:00Z',
+    Location: 'Da Nang Warehouse C',
+    Note: 'Steel sheet batch #ST-449 verified against metallurgy specs',
   },
   {
     ID: 4,
-    field_0: 104,
+    Id: 104,
+    Name: 'Paint Shop Airflow Verification',
     Title: 'Paint Shop Airflow Verification',
     Phone: '+84 908 765 432',
-    field_2: '2026-11-03T11:45:00Z',
-    field_3: 'Chu Lai Main Complex',
-    field_4: 'HEPA filters inspected; next scheduled replacement in 45 days',
+    Check_x0020_in: '2026-11-03T11:45:00Z',
+    Location: 'Chu Lai Main Complex',
+    Note: 'HEPA filters inspected; next scheduled replacement in 45 days',
   },
   {
     ID: 5,
-    field_0: 105,
+    Id: 105,
+    Name: 'Final Vehicle Road Test',
     Title: 'Final Vehicle Road Test',
     Phone: '+84 918 876 543',
-    field_2: '2026-11-03T13:20:00Z',
-    field_3: 'Test Track Alpha',
-    field_4: 'Braking distance and NVH performance within target thresholds',
+    Check_x0020_in: '2026-11-03T13:20:00Z',
+    Location: 'Test Track Alpha',
+    Note: 'Braking distance and NVH performance within target thresholds',
   },
   {
     ID: 6,
-    field_0: 106,
+    Id: 106,
+    Name: 'Chassis Welding Ultrasonic Check',
     Title: 'Chassis Welding Ultrasonic Check',
     Phone: '+84 934 567 890',
-    field_2: '2026-11-03T14:10:00Z',
-    field_3: 'Chu Lai Body Shop',
-    field_4: 'Robotic seam welds ultrasonic testing completed with zero defects',
+    Check_x0020_in: '2026-11-03T14:10:00Z',
+    Location: 'Chu Lai Body Shop',
+    Note: 'Robotic seam welds ultrasonic testing completed with zero defects',
   },
 ];
 
@@ -130,6 +136,11 @@ export const DqmCheckin: React.FC<IDqmCheckinProps> = (props) => {
   const fetchRecords = useCallback(async () => {
     try {
       const data = await spService.getAll(siteUrl);
+      console.log('SP data_checkin raw items:', data);
+      if (data && data.length > 0) {
+        console.log('Sample item keys:', Object.keys(data[0]));
+        console.log('Sample item record:', data[0]);
+      }
       setItems(data);
       setErrorMessage(null);
     } catch (err: unknown) {
@@ -157,6 +168,11 @@ export const DqmCheckin: React.FC<IDqmCheckinProps> = (props) => {
       try {
         const data = await spService.getAll(siteUrl);
         if (ignore) return;
+        console.log('SP data_checkin raw items (init):', data);
+        if (data && data.length > 0) {
+          console.log('Sample item keys (init):', Object.keys(data[0]));
+          console.log('Sample item record (init):', data[0]);
+        }
         setItems(data);
         setErrorMessage(null);
       } catch (err: unknown) {

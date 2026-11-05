@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Data_checkinRead } from '../models/DataCheckinModel';
+import { getItemDisplayId, getItemName } from '../models/DataCheckinModel';
 
 interface DeleteConfirmModalProps {
   item: Data_checkinRead | null;
@@ -18,7 +19,8 @@ export const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
 }) => {
   if (!isOpen || !item) return null;
 
-  const displayId = item.field_0 !== undefined ? item.field_0 : item.ID;
+  const displayId = getItemDisplayId(item);
+  const displayName = getItemName(item);
 
   return (
     <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
@@ -39,7 +41,7 @@ export const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
               Delete Work Item #{displayId}
             </h3>
             <p className="modal-subtitle">
-              This will permanently delete "<strong>{item.Title || 'Untitled'}</strong>" from the SharePoint list.
+              This will permanently delete "<strong>{displayName || 'Untitled'}</strong>" from the SharePoint list.
             </p>
           </div>
         </div>
