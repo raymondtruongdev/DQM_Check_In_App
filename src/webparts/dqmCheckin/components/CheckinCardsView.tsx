@@ -228,14 +228,15 @@ export const CheckinCardsView: React.FC<CheckinCardsViewProps> = ({
         <div className="checkin-cards-grid">
           {filteredItems.map((item, index) => {
             const displayId = getItemDisplayId(item);
-            const displayName = getItemName(item) || '(Chưa đặt tên)';
+            const rawName = getItemName(item);
+            const displayName = rawName || '';
             const displayPhone = getItemPhone(item);
             const displayCheckin = getItemCheckIn(item);
             const displayLocation = getItemLocation(item);
             const displayNote = getItemNote(item);
-            const formattedTime = formatCheckinTime(displayCheckin);
-            const avatarColor = getAvatarColor(displayName);
-            const avatarLetters = getAvatarLetter(displayName);
+            const formattedTime = displayCheckin ? formatCheckinTime(displayCheckin) : '—';
+            const avatarColor = getAvatarColor(displayName || String(displayId));
+            const avatarLetters = getAvatarLetter(displayName || String(displayId));
 
             return (
               <div
@@ -256,7 +257,9 @@ export const CheckinCardsView: React.FC<CheckinCardsViewProps> = ({
                       {displayLocation}
                     </span>
                   ) : (
-                    <span className="card-location-pill is-none">Chưa có vị trí</span>
+                    <span className="card-location-pill is-none" title="Chưa có địa điểm">
+                      —
+                    </span>
                   )}
                 </div>
 
@@ -270,8 +273,8 @@ export const CheckinCardsView: React.FC<CheckinCardsViewProps> = ({
                     {avatarLetters}
                   </div>
                   <div className="card-title-group">
-                    <h3 className="card-person-name" title={displayName}>
-                      {displayName}
+                    <h3 className="card-person-name" title={displayName || 'Chưa có tên'}>
+                      {displayName || <span className="card-text-muted">—</span>}
                     </h3>
                     <span className="card-checkin-time">
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -306,19 +309,19 @@ export const CheckinCardsView: React.FC<CheckinCardsViewProps> = ({
                     )}
                   </div>
 
-                  {/* Note Row */}
-                  {displayNote && (
-                    <div className="card-note-box">
-                      <svg className="card-note-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                        <polyline points="14 2 14 8 20 8" />
-                        <line x1="16" y1="13" x2="8" y2="13" />
-                        <line x1="16" y1="17" x2="8" y2="17" />
-                        <polyline points="10 9 9 9 8 9" />
-                      </svg>
-                      <p className="card-note-content">{displayNote}</p>
-                    </div>
-                  )}
+                  {/* Note Row: Always rendered for uniform layout */}
+                  <div className={`card-note-box ${!displayNote ? 'is-empty' : ''}`}>
+                    <svg className="card-note-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                      <polyline points="14 2 14 8 20 8" />
+                      <line x1="16" y1="13" x2="8" y2="13" />
+                      <line x1="16" y1="17" x2="8" y2="17" />
+                      <polyline points="10 9 9 9 8 9" />
+                    </svg>
+                    <p className="card-note-content">
+                      {displayNote || <span className="card-text-muted">—</span>}
+                    </p>
+                  </div>
                 </div>
 
                 {/* Card Action Footer: ONLY RENDERED FOR ADMIN */}
