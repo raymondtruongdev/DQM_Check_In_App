@@ -48,24 +48,16 @@ export const TopAppBar: React.FC<TopAppBarProps> = ({
             </svg>
           </div>
           <div className="brand-meta">
-            <h1 className="brand-title">Check In App</h1>
-            <span className="brand-badge">SharePoint Portal</span>
+            <span className="brand-badge">Check In App</span>
           </div>
         </div>
 
         {/* Right: Actions & User Meta */}
         <div className="app-bar-actions">
-          {itemCount !== undefined && (
-            <div className="stat-pill" title="Total active work items in list">
-              <span className="stat-dot" />
-              <span className="stat-label">{itemCount} items</span>
-            </div>
-          )}
-
           {onRefresh && (
             <button
               type="button"
-              className={`btn-action ${isLoading ? 'is-loading' : ''}`}
+              className={`btn-action btn-refresh ${isLoading ? 'is-loading' : ''}`}
               onClick={onRefresh}
               disabled={isLoading}
               title="Refresh list data"

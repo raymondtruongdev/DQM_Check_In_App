@@ -172,14 +172,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, spService,
             </svg>
           </div>
           <h1 className="login-app-title">Check In App</h1>
-          <p className="login-app-subtitle">THADICO SharePoint Data Portal</p>
         </div>
 
         {/* Login Form Card */}
         <div className="login-card">
           <div className="login-intro">
             <h2 className="login-card-title">Sign in</h2>
-            <p className="login-card-desc">Đăng nhập bằng tài khoản hệ thống của bạn</p>
           </div>
 
           {/* Error Alert */}
@@ -220,7 +218,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, spService,
                   id="login-username"
                   type="text"
                   className="form-input has-icon"
-                  placeholder="Nhập username"
+                  placeholder="username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   autoComplete="username"
@@ -245,7 +243,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, spService,
                   id="login-password"
                   type={showPassword ? 'text' : 'password'}
                   className="form-input has-icon has-action"
-                  placeholder="Nhập password"
+                  placeholder="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   autoComplete="current-password"

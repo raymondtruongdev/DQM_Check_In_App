@@ -320,8 +320,9 @@ export const WorkItemsTable: React.FC<WorkItemsTableProps> = ({
     <div className="card-container">
       {/* Table Toolbar Header */}
       <div className="table-toolbar">
-        <div className="toolbar-info">
-          <div className="toolbar-title-row">
+        {/* Row 1: Title, Count, Sort Status (Left) & View Switcher, Reset Widths (Right) */}
+        <div className="toolbar-header-row">
+          <div className="toolbar-title-group">
             <h2 className="toolbar-title">Work Items</h2>
             <span className="count-badge">
               {processedItems.length} {processedItems.length === 1 ? 'item' : 'items'}
@@ -335,57 +336,55 @@ export const WorkItemsTable: React.FC<WorkItemsTableProps> = ({
               Sorted by: <strong>{sortConfig.field.toUpperCase()}</strong> ({sortConfig.direction === 'asc' ? '↑ Asc' : '↓ Desc'})
             </span>
           </div>
-          <p className="toolbar-subtitle">
-            Records logged in SharePoint list: <code>data_checkin</code> • Drag column borders to resize • Click headers to sort
-          </p>
+
+          <div className="toolbar-view-controls">
+            {/* View Mode Switcher: Cards vs Table */}
+            <div className="view-mode-toggle" role="group" aria-label="Display mode">
+              <button
+                type="button"
+                className={`view-toggle-btn ${viewMode === 'cards' ? 'is-active' : ''}`}
+                onClick={() => setViewMode('cards')}
+                title="Card view (optimized for mobile)"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="3" width="7" height="7" rx="1" />
+                  <rect x="14" y="3" width="7" height="7" rx="1" />
+                  <rect x="3" y="14" width="7" height="7" rx="1" />
+                  <rect x="14" y="14" width="7" height="7" rx="1" />
+                </svg>
+                <span>Cards</span>
+              </button>
+              <button
+                type="button"
+                className={`view-toggle-btn ${viewMode === 'table' ? 'is-active' : ''}`}
+                onClick={() => setViewMode('table')}
+                title="Table view (full spreadsheet grid)"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                  <line x1="3" y1="9" x2="21" y2="9" />
+                  <line x1="3" y1="15" x2="21" y2="15" />
+                  <line x1="9" y1="3" x2="9" y2="21" />
+                </svg>
+                <span>Table</span>
+              </button>
+            </div>
+
+            {viewMode === 'table' && (
+              <button
+                type="button"
+                className="btn-text-subtle"
+                onClick={resetAllWidths}
+                title="Reset column widths to default layout"
+              >
+                Reset widths
+              </button>
+            )}
+          </div>
         </div>
 
-        {/* Toolbar Controls: View Mode Toggle, Reset Widths & Search */}
-        <div className="toolbar-actions-group">
-          {/* View Mode Switcher: Cards vs Table */}
-          <div className="view-mode-toggle" role="group" aria-label="Display mode">
-            <button
-              type="button"
-              className={`view-toggle-btn ${viewMode === 'cards' ? 'is-active' : ''}`}
-              onClick={() => setViewMode('cards')}
-              title="Card view (optimized for mobile)"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="3" y="3" width="7" height="7" rx="1" />
-                <rect x="14" y="3" width="7" height="7" rx="1" />
-                <rect x="3" y="14" width="7" height="7" rx="1" />
-                <rect x="14" y="14" width="7" height="7" rx="1" />
-              </svg>
-              <span>Cards</span>
-            </button>
-            <button
-              type="button"
-              className={`view-toggle-btn ${viewMode === 'table' ? 'is-active' : ''}`}
-              onClick={() => setViewMode('table')}
-              title="Table view (full spreadsheet grid)"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="3" y="3" width="18" height="18" rx="2" />
-                <line x1="3" y1="9" x2="21" y2="9" />
-                <line x1="3" y1="15" x2="21" y2="15" />
-                <line x1="9" y1="3" x2="9" y2="21" />
-              </svg>
-              <span>Table</span>
-            </button>
-          </div>
-
-          {viewMode === 'table' && (
-            <button
-              type="button"
-              className="btn-text-subtle"
-              onClick={resetAllWidths}
-              title="Reset column widths to default layout"
-            >
-              Reset widths
-            </button>
-          )}
-
-          {/* Search Input */}
+        {/* Row 2: Search Filter Row */}
+        <div className="toolbar-filter-row">
           <div className="search-wrapper">
             <svg
               className="search-icon"
