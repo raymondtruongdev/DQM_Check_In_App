@@ -675,7 +675,7 @@
 
 .landing-container {
   width: 100%;
-  max-width: 520px;
+  max-width: 760px;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -849,6 +849,264 @@
 .landing-records-hint {
   font-size: 12px;
   color: #64748b;
+}
+
+/* ==========================================================================
+   SharePoint Modern Site Contents Tile Grid (Landing Modules)
+   ========================================================================== */
+.landing-modules-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.landing-module-notice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  margin-bottom: 14px;
+  width: 100%;
+  box-sizing: border-box;
+  animation: fadeIn 0.25s ease-out;
+}
+
+.landing-notice-close {
+  margin-left: auto;
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  line-height: 1;
+  color: #166534;
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.landing-notice-close:hover {
+  color: #14532d;
+}
+
+.sp-tiles-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px 20px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 640px) {
+  .sp-tiles-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+/* Solid Blue Grid Button with Icon + Label inside, Lighter Blue Highlight on Hover */
+.app-layout button.landing-grid-btn,
+.landing-grid-btn {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 16px !important;
+  background: #1d4ed8 !important;
+  background-color: #1d4ed8 !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  border-radius: 10px !important;
+  padding: 16px 20px !important;
+  font-family: inherit !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  text-align: left !important;
+  cursor: pointer !important;
+  box-shadow: 0 4px 14px rgba(29, 78, 216, 0.28) !important;
+  transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  text-decoration: none !important;
+  outline: none !important;
+}
+
+.app-layout button.landing-grid-btn:hover,
+.landing-grid-btn:hover {
+  background: #3b82f6 !important; /* Xanh nhạt highlight khi hover */
+  background-color: #3b82f6 !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.45), 0 0 16px rgba(96, 165, 250, 0.3) !important;
+}
+
+.app-layout button.landing-grid-btn:active,
+.landing-grid-btn:active {
+  background: #1e40af !important;
+  background-color: #1e40af !important;
+  transform: translateY(0) !important;
+}
+
+.app-layout button.landing-grid-btn:focus-visible,
+.landing-grid-btn:focus-visible {
+  outline: 2px solid #ffffff !important;
+  outline-offset: 3px !important;
+}
+
+.landing-grid-btn-icon {
+  width: 44px !important;
+  height: 44px !important;
+  min-width: 44px !important;
+  background-color: rgba(255, 255, 255, 0.18) !important;
+  border-radius: 8px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  transition: transform 0.2s ease, background-color 0.2s ease !important;
+}
+
+.landing-grid-btn:hover .landing-grid-btn-icon {
+  background-color: rgba(255, 255, 255, 0.28) !important;
+  transform: scale(1.05) !important;
+}
+
+.landing-grid-btn-text {
+  flex: 1 !important;
+  color: #ffffff !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  line-height: 1.35 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  letter-spacing: 0.01em !important;
+  display: block !important;
+  text-align: left !important;
+}
+
+.landing-grid-btn-arrow {
+  color: #ffffff !important;
+  opacity: 0.8 !important;
+  flex-shrink: 0 !important;
+  transition: transform 0.2s ease, opacity 0.2s ease !important;
+  margin-left: auto !important;
+}
+
+.landing-grid-btn:hover .landing-grid-btn-arrow {
+  opacity: 1 !important;
+  transform: translateX(4px) !important;
+}
+
+.sp-tile-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 14px 16px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  width: 100%;
+  box-sizing: border-box;
+  font-family: inherit;
+  color: inherit;
+}
+
+.sp-tile-card:hover {
+  border-color: #702082;
+  background-color: #faf5ff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(112, 32, 130, 0.12);
+}
+
+.sp-tile-card:active {
+  transform: translateY(0);
+}
+
+.sp-tile-card:focus-visible {
+  outline: 2px solid #702082;
+  outline-offset: 2px;
+}
+
+.sp-tile-icon-box {
+  width: 72px;
+  height: 72px;
+  min-width: 72px;
+  min-height: 72px;
+  background-color: #702082;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.sp-tile-card:hover .sp-tile-icon-box {
+  background-color: #5d176d;
+  transform: scale(1.02);
+}
+
+.sp-tile-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.sp-tile-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.sp-tile-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+  line-height: 1.35;
+}
+
+.sp-tile-card:hover .sp-tile-title {
+  color: #702082;
+}
+
+.sp-tile-badge-new {
+  display: inline-block;
+  background-color: #107c10;
+  color: #ffffff;
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 2.5px 5.5px;
+  border-radius: 2px;
+  letter-spacing: 0.02em;
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+
+.sp-tile-meta-1 {
+  font-size: 12.5px;
+  color: #475569;
+  line-height: 1.35;
+  margin-top: 1px;
+}
+
+.sp-tile-meta-2 {
+  font-size: 11.5px;
+  color: #94a3b8;
+  line-height: 1.35;
 }
 
 /* ==========================================================================

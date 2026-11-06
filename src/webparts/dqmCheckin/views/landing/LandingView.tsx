@@ -6,6 +6,7 @@ import { extractCleanEmail, checkIsAdmin } from '../../utils';
 export interface LandingViewProps {
   currentUser?: UserSession | null;
   onEnterApp: () => void;
+  onNavigateModule?: (moduleKey: string) => void;
   onSelectProfile?: (profile: UserSession) => void;
   spService: SharePointService;
   siteUrl: string;
@@ -18,6 +19,7 @@ export interface LandingViewProps {
 export const LandingView: React.FC<LandingViewProps> = ({
   currentUser,
   onEnterApp,
+  onNavigateModule,
   onSelectProfile,
   spService,
   siteUrl,
@@ -28,6 +30,16 @@ export const LandingView: React.FC<LandingViewProps> = ({
 }) => {
   const [profiles, setProfiles] = useState<UserProfileRecord[]>([]);
   const [showRoleSwitcher, setShowRoleSwitcher] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  // Auto-dismiss module notice after 4 seconds
+  useEffect(() => {
+    if (!notice) return;
+    const timer = setTimeout(() => {
+      setNotice(null);
+    }, 4000);
+    return () => clearTimeout(timer);
+  }, [notice]);
 
   const cleanCurrentEmail = extractCleanEmail(userEmail || userLoginName);
   const activeDisplayName = currentUser?.displayName || userDisplayName;
@@ -63,6 +75,18 @@ export const LandingView: React.FC<LandingViewProps> = ({
       isAdmin: checkIsAdmin(p.role),
     };
     onSelectProfile(session);
+  };
+
+  const handleModuleClick = (key: string, name: string): void => {
+    if (key === 'checkin') {
+      onEnterApp();
+      return;
+    }
+    if (onNavigateModule) {
+      onNavigateModule(key);
+      return;
+    }
+    setNotice(`Chức năng "${name}" đang được kết nối và sẽ sớm khả dụng.`);
   };
 
   const isAuthorized = Boolean(currentUser);
@@ -138,25 +162,113 @@ export const LandingView: React.FC<LandingViewProps> = ({
           {/* Divider */}
           <div className="landing-divider" />
 
-          {/* Primary CTA Button */}
+          {/* Primary Management Modules Grid (SharePoint Tile Style) */}
           {isAuthorized ? (
-            <div className="landing-cta-container">
-              <button
-                type="button"
-                className="landing-cta-btn"
-                onClick={onEnterApp}
-              >
-                <span>Vào Danh Sách Check-in</span>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                  <polyline points="12 5 19 12 12 19" />
-                </svg>
-              </button>
-              {totalRecordsCount > 0 && (
-                <span className="landing-records-hint">
-                  Đang đồng bộ <strong>{totalRecordsCount}</strong> bản ghi check-in
-                </span>
+            <div className="landing-modules-container">
+              {notice && (
+                <div className="landing-module-notice" role="alert">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                  <span>{notice}</span>
+                  <button
+                    type="button"
+                    className="landing-notice-close"
+                    onClick={() => setNotice(null)}
+                    title="Đóng thông báo"
+                  >
+                    ×
+                  </button>
+                </div>
               )}
+
+              <div className="sp-tiles-grid">
+                {/* Module 1: Quản lý Check In */}
+                <button
+                  type="button"
+                  className="landing-grid-btn"
+                  onClick={onEnterApp}
+                  title="Nhấn để truy cập Quản lý Check In"
+                >
+                  <div className="landing-grid-btn-icon">
+                    <svg width="26" height="26" viewBox="0 0 32 32" fill="none">
+                      <rect x="3" y="5" width="26" height="6" fill="#ffffff" rx="1" />
+                      <rect x="3" y="5" width="26" height="22" stroke="#ffffff" strokeWidth="2" rx="1" />
+                      <line x1="10" y1="11" x2="10" y2="27" stroke="#ffffff" strokeWidth="2" />
+                      <line x1="17" y1="11" x2="17" y2="27" stroke="#ffffff" strokeWidth="2" />
+                      <line x1="24" y1="11" x2="24" y2="27" stroke="#ffffff" strokeWidth="2" />
+                    </svg>
+                  </div>
+                  <span className="landing-grid-btn-text">Quản lý Check In</span>
+                  <svg className="landing-grid-btn-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
+                </button>
+
+                {/* Module 2: Quản lý Data */}
+                <button
+                  type="button"
+                  className="landing-grid-btn"
+                  onClick={() => handleModuleClick('data', 'Quản lý Data')}
+                  title="Nhấn để truy cập Quản lý Data"
+                >
+                  <div className="landing-grid-btn-icon">
+                    <svg width="26" height="26" viewBox="0 0 32 32" fill="none">
+                      <path d="M4 7h7l3 3h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1z" stroke="#ffffff" strokeWidth="2" />
+                      <polygon points="23,15 29,18.5 29,25.5 23,29 17,25.5 17,18.5" fill="rgba(255, 255, 255, 0.22)" stroke="#ffffff" strokeWidth="1.8" strokeLinejoin="round" />
+                      <line x1="23" y1="22" x2="23" y2="29" stroke="#ffffff" strokeWidth="1.8" />
+                      <line x1="17" y1="18.5" x2="23" y2="22" stroke="#ffffff" strokeWidth="1.8" />
+                      <line x1="29" y1="18.5" x2="23" y2="22" stroke="#ffffff" strokeWidth="1.8" />
+                    </svg>
+                  </div>
+                  <span className="landing-grid-btn-text">Quản lý Data</span>
+                  <svg className="landing-grid-btn-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
+                </button>
+
+                {/* Module 3: Quản lý tiến độ */}
+                <button
+                  type="button"
+                  className="landing-grid-btn"
+                  onClick={() => handleModuleClick('progress', 'Quản lý tiến độ')}
+                  title="Nhấn để truy cập Quản lý tiến độ"
+                >
+                  <div className="landing-grid-btn-icon">
+                    <svg width="26" height="26" viewBox="0 0 32 32" fill="none">
+                      <path d="M4 7h7l3 3h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1z" stroke="#ffffff" strokeWidth="2" />
+                      <polygon points="18,15 24,15 28,19 28,28 18,28" fill="rgba(255, 255, 255, 0.22)" stroke="#ffffff" strokeWidth="1.8" strokeLinejoin="round" />
+                      <polyline points="24,15 24,19 28,19" fill="none" stroke="#ffffff" strokeWidth="1.8" strokeLinejoin="round" />
+                    </svg>
+                  </div>
+                  <span className="landing-grid-btn-text">Quản lý tiến độ</span>
+                  <svg className="landing-grid-btn-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
+                </button>
+
+                {/* Module 4: Quản lý thiết bị */}
+                <button
+                  type="button"
+                  className="landing-grid-btn"
+                  onClick={() => handleModuleClick('equipment', 'Quản lý thiết bị')}
+                  title="Nhấn để truy cập Quản lý thiết bị"
+                >
+                  <div className="landing-grid-btn-icon">
+                    <svg width="26" height="26" viewBox="0 0 32 32" fill="none">
+                      <path d="M4 7h7l3 3h14a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1z" stroke="#ffffff" strokeWidth="2" />
+                      <polygon points="18,15 24,15 28,19 28,28 18,28" fill="rgba(255, 255, 255, 0.22)" stroke="#ffffff" strokeWidth="1.8" strokeLinejoin="round" />
+                      <polyline points="24,15 24,19 28,19" fill="none" stroke="#ffffff" strokeWidth="1.8" strokeLinejoin="round" />
+                    </svg>
+                  </div>
+                  <span className="landing-grid-btn-text">Quản lý thiết bị</span>
+                  <svg className="landing-grid-btn-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
+                </button>
+              </div>
             </div>
           ) : (
             <div style={{ maxWidth: '480px', textAlign: 'center', marginTop: '8px' }}>
