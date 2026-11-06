@@ -119,7 +119,6 @@ export const DqmCheckin: React.FC<IDqmCheckinProps> = (props) => {
     } catch {
       // Ignore
     }
-    showToast('success', `Chào mừng ${user.displayName} đã đăng nhập!`);
   };
 
   const handleLogout = (): void => {
