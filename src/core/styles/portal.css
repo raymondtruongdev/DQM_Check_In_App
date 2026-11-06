@@ -1227,3 +1227,118 @@
   color: #475569;
   border: 1px solid #e2e8f0;
 }
+
+/* ==========================================================================
+   Responsive Layout (Desktop / Tablet / iPad mini / Phone)
+   ========================================================================== */
+
+/* Constrain content width on wide screens so bars and grids stay aligned */
+.app-bar-container,
+.main-content {
+  max-width: 1440px;
+}
+
+/* Allow grid/flex children to shrink instead of overflowing the card */
+.sp-tiles-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.app-layout button.landing-grid-btn,
+.landing-grid-btn {
+  min-width: 0 !important;
+}
+
+.landing-grid-btn-text {
+  min-width: 0 !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere;
+}
+
+.identity-user-group {
+  min-width: 0;
+}
+
+/* Tablet (iPad mini portrait 768px, iPad landscape) */
+@media (max-width: 1024px) {
+  .landing-wrapper {
+    padding: 24px 16px;
+  }
+
+  .landing-hero-card {
+    padding: 28px 20px 24px 20px;
+  }
+
+  .app-bar-container {
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+
+  .app-bar-left {
+    flex: 1 1 auto;
+  }
+
+  .identity-email-text {
+    max-width: 280px;
+  }
+
+  .identity-dept-text {
+    max-width: 160px;
+  }
+
+  .landing-grid-btn {
+    padding: 14px 16px !important;
+    gap: 12px !important;
+  }
+}
+
+/* Small tablets / large phones */
+@media (max-width: 768px) {
+  .main-content {
+    padding: var(--space-3);
+  }
+
+  .app-bar-container {
+    padding: 8px 12px;
+  }
+
+  .identity-email-text {
+    max-width: 200px;
+  }
+
+  .identity-dept-text {
+    display: none;
+  }
+
+}
+
+/* Phones (full-width view tabs) */
+@media (max-width: 640px) {
+  .view-mode-tabs {
+    width: 100%;
+  }
+
+  .view-tab-btn {
+    flex: 1;
+    justify-content: center;
+  }
+}
+
+/* Phones */
+@media (max-width: 480px) {
+  .landing-wrapper {
+    padding: 16px 10px;
+  }
+
+  .landing-hero-card {
+    padding: 24px 14px 20px 14px;
+  }
+
+  .sp-tiles-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .identity-email-text {
+    max-width: 150px;
+  }
+}
