@@ -54,3 +54,4 @@ export function getItemPhone(item: Data_checkinRead): string {
   const val = item.Phone ?? item.field_5;
   return val !== undefined && val !== null ? String(val).trim() : '';
 }
+

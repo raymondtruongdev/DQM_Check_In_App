@@ -93,3 +93,4 @@ export const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({ rowCount = 5 }) 
     </div>
   );
 };
+

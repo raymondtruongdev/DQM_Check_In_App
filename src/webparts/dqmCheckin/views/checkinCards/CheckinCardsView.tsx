@@ -297,3 +297,4 @@ export const CheckinCardsView: React.FC<CheckinCardsViewProps> = ({
   );
 };
 export default CheckinCardsView;
+

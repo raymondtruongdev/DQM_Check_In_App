@@ -41,3 +41,4 @@ export const ToastAlert: React.FC<ToastAlertProps> = ({ toast, onClose }) => {
     </div>
   );
 };
+

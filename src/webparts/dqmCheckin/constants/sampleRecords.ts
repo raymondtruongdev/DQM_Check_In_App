@@ -62,3 +62,4 @@ export const SAMPLE_RECORDS: Data_checkinRead[] = [
     Note: 'Robotic seam welds ultrasonic testing completed with zero defects',
   },
 ];
+

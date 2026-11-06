@@ -365,3 +365,4 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, spService,
 
 export const LoginPage = LoginView;
 export default LoginView;
+

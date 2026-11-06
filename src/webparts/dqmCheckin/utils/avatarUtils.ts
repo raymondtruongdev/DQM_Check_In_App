@@ -27,3 +27,4 @@ export function getAvatarLetter(name: string): string {
   }
   return trimmed.charAt(0).toUpperCase();
 }
+

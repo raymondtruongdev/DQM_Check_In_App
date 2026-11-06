@@ -17,3 +17,4 @@ export const MIN_COLUMN_WIDTHS: Record<string, number> = {
   location: 95,
   note: 110,
 };
+

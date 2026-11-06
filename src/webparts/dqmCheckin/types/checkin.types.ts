@@ -29,3 +29,4 @@ export interface Data_checkinRead {
 }
 
 export type Data_checkinWrite = Partial<Data_checkinRead>;
+
