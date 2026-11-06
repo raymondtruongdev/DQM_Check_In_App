@@ -1,114 +1,79 @@
 # THADICO DQM - Check In App (SPFx)
+
 ## AI Agent & Developer Reference Guide
 
-> **Project Location:** `/Volumes/DATA/THADICO_local/REPO_DQM/DQM_Check_In_App`  
-> **Target Environment:** SharePoint Online (`https://thadicodqm.sharepoint.com/sites/DataPortal`)  
-> **Architecture Model:** SharePoint Framework (SPFx 1.24.1) Client-Side Web Part  
-> **Licensing Tier:** Free (Standard Microsoft 365 / SharePoint Seeded License - No Power Apps Premium Required)
+> **Project Location:** `/Volumes/DATA/THADICO_local/REPO_DQM/DQM_Check_In_App`
+> **Target Environment:** SharePoint Online (Dev: `https://ytf84.sharepoint.com/sites/metro-checkin-dev`)
+> **Architecture Model:** SharePoint Framework (SPFx 1.24.1) Client-Side Web Part
+> **Licensing Tier:** Free (Standard Microsoft 365 Seeded License - Zero Power Apps Premium cost)
 
 ---
 
 ## 1. Project Background & Architectural Decision
 
 ### Why SPFx Instead of Power Apps Code App?
-* **Problem with Power Apps Code App:** Microsoft automatically enforces a **"License designation: Premium"** policy on all Code Apps created via `@microsoft/power-apps`. Even when connecting solely to standard SharePoint lists, end-users without dedicated Power Apps Premium licenses or trials are blocked with paywall prompts (*"Start a Power Apps trial"*).
-* **The SPFx Solution:** SPFx runs natively within SharePoint Online. It uses the logged-in user's existing Microsoft 365 context and communicates directly via SharePoint REST API (`SPHttpClient`).
-  - **100% Free & Unlimited Users:** Covered entirely by standard Microsoft 365 enterprise licenses.
-  - **Native Performance:** No iframe wrappers or Power Apps Player container latency.
-  - **Single Sign-On (SSO):** Automatic Microsoft Entra ID session pass-through.
+
+* **Tránh rào cản bản quyền:** Power Apps Code App luôn bị Microsoft gán nhãn *"Premium"*, ép người dùng mua license riêng.
+* **Giải pháp SPFx:** Chạy trực tiếp trong SharePoint Online bằng tài khoản Microsoft 365 có sẵn của người dùng:
+  - **Miễn phí 100%:** Sử dụng license M365 tiêu chuẩn, không giới hạn số lượng người dùng.
+  - **Hiệu năng gốc (Native):** Kết nối trực tiếp REST API qua `SPHttpClient`, không có iframe hay container trễ.
+  - **SSO tự động:** Tận dụng phiên đăng nhập Microsoft Entra ID hiện tại.
 
 ---
 
 ## 2. Technology Stack & Tooling
 
 * **Framework:** SharePoint Framework (SPFx) `1.24.1`
-* **UI Library:** React `18.3.1` with React DOM `18.3.1` (Hooks, Functional Components)
+* **UI Library:** React `18.3.1` (Hooks, Functional Components)
 * **Build System:** `@rushstack/heft` `1.3.2` + Webpack `5.105.4` + TypeScript `~5.8.0`
-* **Styling:** Custom Modern SaaS Design System (Pure CSS variables, Indigo/Blue palette `#1d4ed8`, zero external CSS framework bloat)
-* **Icons:** Inline SVG icons (No external icon packages needed)
-* **HTTP Client:** `@microsoft/sp-http` (`SPHttpClient` v1 configuration)
+* **Styling:** Custom Modern SaaS Design System (Pure CSS variables trong `App.css`, palette `#1d4ed8`)
+* **HTTP Client:** `@microsoft/sp-http` (`SPHttpClient` v1)
 
 ---
 
 ## 3. SharePoint Lists & Data Architecture
 
-### Site URL
-`https://thadicodqm.sharepoint.com/sites/DataPortal`
+WebPart tự động nhận diện site hiện hành qua `pageContext.web.absoluteUrl` (hoặc cấu hình `siteUrl` qua Property Pane). Dữ liệu gồm 2 danh sách chính:
 
 ### 1. `data_checkin` (Main Records List)
-* `ID` (Number): SharePoint item built-in internal ID.
-* `Id` (Number): Custom Sequence / Work Item ID.
-* `Name` (Single line of text): Name of the check-in person or work item.
-* `Check in` (`Check_x0020_in`) (DateTime): Check-in timestamp (ISO 8601 string).
-* `Location` (Single line of text): Location / Station name (e.g., ST5, Sala).
-* `Note` (Single line of text): Notes / Remarks.
-* `Phone` (Single line of text): Contact phone number.
-* `Title` (Single line of text): Built-in SharePoint title field.
+* `ID` (Number): ID nội bộ của SharePoint.
+* `Id` (Number): Mã định danh số thứ tự check-in hiển thị (#ID).
+* `Name` (Text): Họ và tên người check-in.
+* `Check in` (`Check_x0020_in`) (DateTime): Thời gian check-in (ISO 8601 string).
+* `Location` (Text): Tên vị trí / trạm (VD: ST5, Sala...).
+* `Note` (Text): Ghi chú công việc.
+* `Phone` (Text): Số điện thoại liên hệ.
+* `Title` (Text): Tiêu đề chuẩn của SharePoint.
 
 ### 2. `Account` (Custom Authentication List)
-* `Username` (Single line of text): User login identifier.
-* `Password` (Single line of text): Plaintext credential for in-app validation.
-* `Title` (Single line of text): Fallback display name or username.
-* `Department` / `DeparmentName`: Department classification.
+* `Username` (Text): Tên đăng nhập.
+* `Password` (Text): Mật khẩu xác thực.
+* `Title` (Text): Tên hiển thị fallback.
+* `Department` / `DeparmentName`: Phân loại phòng ban.
 
 ---
 
 ## 4. Directory & File Structure
 
 ```text
-dqm-spfx-checkin/
-├── config/
-│   ├── package-solution.json    # Solution manifest & sppkg package definition
-│   ├── serve.json               # Localhost HTTPS & SharePoint Workbench routing
-│   └── config.json              # SPFx WebPart bundle entrypoints
-├── sharepoint/
-│   └── solution/
-│       └── dqm-spfx-checkin.sppkg # Production package ready for App Catalog
-├── src/
-│   └── webparts/
-│       └── dqmCheckin/
-│           ├── DqmCheckinWebPart.ts        # BaseClientSideWebPart entrypoint
-│           ├── DqmCheckinWebPart.manifest.json # WebPart metadata & capabilities
-│           ├── types/                      # Domain & UI TypeScript types
-│           │   ├── auth.types.ts
-│           │   ├── checkin.types.ts
-│           │   ├── common.types.ts
-│           │   └── index.ts
-│           ├── constants/                  # Configuration, storage keys, mocks
-│           │   ├── sampleRecords.ts
-│           │   ├── storageKeys.ts
-│           │   ├── tableConfig.ts
-│           │   └── index.ts
-│           ├── utils/                      # Pure helper functions
-│           │   ├── avatarUtils.ts
-│           │   ├── dateUtils.ts
-│           │   ├── fieldParsers.ts
-│           │   └── index.ts
-│           ├── services/
-│           │   └── SharePointService.ts   # CRUD operations via SPHttpClient
-│           ├── views/                      # Feature / Screen modules
-│           │   ├── login/LoginView.tsx
-│           │   ├── checkinCards/CheckinCardsView.tsx
-│           │   ├── checkinTable/CheckinTableView.tsx
-│           │   ├── checkinEdit/CheckinEditView.tsx
-│           │   └── index.ts
-│           ├── components/                 # Shared / Reusable UI components
-│           │   ├── layout/
-│           │   │   ├── TopAppBar.tsx
-│           │   │   └── ToastAlert.tsx
-│           │   ├── modals/
-│           │   │   └── DeleteConfirmModal.tsx
-│           │   ├── feedback/
-│           │   │   ├── SkeletonLoader.tsx
-│           │   │   └── ErrorState.tsx
-│           │   ├── DqmCheckin.tsx         # Main Orchestrator component
-│           │   ├── App.css                # SaaS Design System styles & tokens
-│           │   └── index.ts
-│           └── models/
-│               └── DataCheckinModel.ts    # Re-export bridge for backward compat
-├── AGENTS.md                    # This persistent reference guide
-├── package.json
-└── tsconfig.json
+DQM_Check_In_App/
+├── config/                      # Cấu hình SPFx build, workbench serve & package solution
+├── sharepoint/solution/         # Gói cài đặt thành phẩm (myapp.sppkg) cho App Catalog
+├── src/webparts/dqmCheckin/     # Mã nguồn chính của WebPart
+│   ├── DqmCheckinWebPart.ts     # Entry point kết nối SharePoint BaseClientSideWebPart
+│   ├── views/                   # Màn hình chức năng (views/<feature>/<Feature>View.tsx)
+│   ├── components/              # UI dùng chung phân tầng:
+│   │   ├── layout/              # Khung giao diện (TopAppBar, ToastAlert...)
+│   │   ├── modals/              # Các hộp thoại popup (DeleteConfirmModal...)
+│   │   ├── feedback/            # Trạng thái phản hồi (SkeletonLoader, ErrorState...)
+│   │   ├── DqmCheckin.tsx       # Component điều phối trung tâm (Orchestrator)
+│   │   └── App.css              # Design System CSS tokens & toàn bộ styling
+│   ├── services/                # Tầng kết nối dữ liệu (SharePointService.ts qua SPHttpClient)
+│   ├── types/                   # Định nghĩa TypeScript interfaces & domain types
+│   ├── constants/               # Giá trị cấu hình tĩnh, Mock data & Storage keys
+│   └── utils/                   # Các hàm tiện ích dùng chung (date, avatar, parsers...)
+├── AGENTS.md                    # Tài liệu quy chuẩn kiến trúc & chỉ dẫn cho AI Agent
+└── package.json                 # Cấu hình dependencies & build scripts
 ```
 
 ---
@@ -116,12 +81,14 @@ dqm-spfx-checkin/
 ## 5. Key Components & Behavioral Rules
 
 ### 1. Authentication Flow (`LoginView.tsx` + `DqmCheckin.tsx`)
+
 * The app defaults to showing the `LoginView` if no active session is found in `sessionStorage` (`dqm_spfx_session`).
 * When the user clicks **Đăng Nhập**, `SharePointService.getAccounts()` queries the `Account` list directly via `SPHttpClient`.
 * If credentials match, `currentUser` is saved to `sessionStorage` and the user transitions into the Check-in Management view.
 * Clicking **Đăng xuất** in `TopAppBar` clears the session and resets back to `LoginView`.
 
 ### 2. Data Grid Architecture (`CheckinTableView.tsx`)
+
 * **7 Standard Columns:**
   1. `Id` (`#field_0` or `#ID`)
   2. `Name` (Avatar + `Title`)
@@ -136,6 +103,7 @@ dqm-spfx-checkin/
 * **Table Responsiveness:** Wrapped in `.table-responsive` with `overflow-x: auto !important` so columns maintain their minimum widths and scroll smoothly without text clipping.
 
 ### 3. Data Service (`SharePointService.ts`)
+
 * Uses `SPHttpClient.configurations.v1`.
 * All calls specify `'Accept': 'application/json;odata=nometadata'` to minimize payload overhead.
 * Updates use `POST` with headers `'X-HTTP-Method': 'MERGE'` and `'If-Match': '*'`.
@@ -146,30 +114,38 @@ dqm-spfx-checkin/
 ## 6. Developer Runbook & Common Commands
 
 ### Running Locally (Development Mode)
+
 ```bash
 cd /Volumes/DATA/THADICO_local/REPO_DQM/DQM_Check_In_App
 npm run start
 ```
+
 * Local assets serve at `https://localhost:4321`.
 * If testing on a new browser/machine, trust the SSL certificate once by opening:
   `https://localhost:4321/temp/build/manifests.js` $\rightarrow$ Click **Advanced** $\rightarrow$ **Proceed to localhost (unsafe)**.
-* Test Workbench URL:
-  `https://thadicodqm.sharepoint.com/sites/DataPortal/_layouts/15/workbench.aspx`
+* Test Workbench URLs:
+  - **Khuyến nghị (Live-Reload mượt mà, không bị popup cảnh báo):**
+    `https://ytf84.sharepoint.com/sites/metro-checkin-dev/_layouts/15/workbench.aspx?reset=true`
+  - **Dự phòng (Explicit Manifest - yêu cầu bấm "Load debug scripts"):**
+    `https://ytf84.sharepoint.com/sites/metro-checkin-dev/_layouts/15/workbench.aspx?debugManifestsFile=https%3A%2F%2Flocalhost%3A4321%2Ftemp%2Fbuild%2Fmanifests.js&debug=true&noredir=true`
 
 ### Building for Production Deployment
+
 ```bash
 cd /Volumes/DATA/THADICO_local/REPO_DQM/DQM_Check_In_App
 npm run build
 ```
+
 * Runs Heft test compilation and packages client-side assets directly into:
-  📁 `sharepoint/solution/dqm-spfx-checkin.sppkg`
+  📁 `sharepoint/solution/myapp.sppkg`
 
 ### Deploying to SharePoint
-1. Open the SharePoint App Catalog (e.g., `https://thadicodqm.sharepoint.com/sites/appcatalog` or `sites/apps`).
+
+1. Open the SharePoint App Catalog (e.g., `https://ytf84.sharepoint.com/sites/appcatalog` or tenant app catalog).
 2. Navigate to **Apps for SharePoint**.
-3. Upload `sharepoint/solution/dqm-spfx-checkin.sppkg`.
+3. Upload `sharepoint/solution/myapp.sppkg`.
 4. Check **"Enable this app and add it to all sites"** (or add to specific sites) and click **Deploy**.
-5. On any page in `DataPortal`, click **Edit** $\rightarrow$ Click **`+`** $\rightarrow$ Search and select **DqmCheckin** $\rightarrow$ **Republish**.
+5. On any page in your SharePoint site, click **Edit** $\rightarrow$ Click **`+`** $\rightarrow$ Search and select **DqmCheckin** $\rightarrow$ **Republish**.
 
 ---
 
@@ -180,4 +156,11 @@ npm run build
 3. **Keep the Action Column Clean:** Do not apply `position: sticky; right: 0;` to `.td-actions` or `.th-actions`, as sticky positioning inside flex-clipped containers causes action buttons to overlap adjacent data columns.
 4. **Preserve Column Resizing Contract:** Any added column must be registered in `DEFAULT_COLUMN_WIDTHS`, `MIN_COLUMN_WIDTHS`, and `<colgroup>`.
 5. **Git Commit & Push Policy:** DO NOT automatically run `git commit` or `git push`. Only commit and push when the user explicitly requests or approves it.
-
+6. **Standard Recipe for Adding New Screens & Modules:**
+   - **New Screen / View:** Always place under `src/webparts/dqmCheckin/views/<featureName>/<FeatureName>View.tsx` (e.g. `views/analytics/AnalyticsView.tsx`).
+   - **Views Barrel Export:** Always register and export the new view in `src/webparts/dqmCheckin/views/index.ts`.
+   - **Types & Interfaces:** Place domain types into a dedicated file under `src/webparts/dqmCheckin/types/<domain>.types.ts` and re-export in `src/webparts/dqmCheckin/types/index.ts`. Never use inline interfaces for shared models.
+   - **API / Services:** Add any new SharePoint list queries or mutations as typed methods inside `src/webparts/dqmCheckin/services/SharePointService.ts`.
+   - **Shared UI Components:** If the new feature introduces reusable UI pieces (modals, bars, spinners), place them into appropriate subfolders in `components/` (`layout/`, `modals/`, `feedback/`) and re-export via `components/index.ts`.
+   - **Design Tokens:** Always utilize existing CSS variables in `App.css` to maintain visual consistency.
+   - **Integration:** Wire the new screen into the orchestrator `components/DqmCheckin.tsx` via state-driven view routing or view switcher.
