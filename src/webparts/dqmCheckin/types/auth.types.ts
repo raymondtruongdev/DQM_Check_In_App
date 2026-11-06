@@ -1,17 +1,19 @@
 export interface UserSession {
   username: string;
   displayName: string;
+  email?: string;
   department?: string;
+  departmentCode?: string;
   role?: string;
   isAdmin?: boolean;
 }
 
-export interface AccountRecord {
+export interface UserProfileRecord {
   id: number | string;
+  email: string;
   username: string;
-  password: string;
+  displayName?: string;
   departmentCode?: string;
   departmentName?: string;
   role: string;
 }
-

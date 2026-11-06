@@ -45,11 +45,12 @@ WebPart tự động nhận diện site hiện hành qua `pageContext.web.absolu
 * `Phone` (Text): Số điện thoại liên hệ.
 * `Title` (Text): Tiêu đề chuẩn của SharePoint.
 
-### 2. `Account` (Custom Authentication List)
-* `Username` (Text): Tên đăng nhập.
-* `Password` (Text): Mật khẩu xác thực.
-* `Title` (Text): Tên hiển thị fallback.
-* `Department` / `DeparmentName`: Phân loại phòng ban.
+### 2. `UserProfiles` (Role & Department Authorization List)
+* `Email` / `Title` / `field_1` (Text): Email tài khoản Microsoft 365 (UPN).
+* `Username` / `field_2` (Text): Mã định danh hoặc Tên người dùng.
+* `DepartmentCode` / `field_3` (Text): Mã phòng ban (VD: ADMIN, DIRC...).
+* `DepartmentName` / `field_4` (Text): Tên phòng ban hiển thị (VD: Admin site, Bộ phận Giao diện...).
+* `Role` / `field_5` (Text): Vai trò người dùng (`admin`, `user`).
 
 ---
 
@@ -80,12 +81,15 @@ DQM_Check_In_App/
 
 ## 5. Key Components & Behavioral Rules
 
-### 1. Authentication Flow (`LoginView.tsx` + `DqmCheckin.tsx`)
+### 1. Portal Architecture & Authentication Flow (Landing Page + Zero-Click SSO)
 
-* The app defaults to showing the `LoginView` if no active session is found in `sessionStorage` (`dqm_spfx_session`).
-* When the user clicks **Đăng Nhập**, `SharePointService.getAccounts()` queries the `Account` list directly via `SPHttpClient`.
-* If credentials match, `currentUser` is saved to `sessionStorage` and the user transitions into the Check-in Management view.
-* Clicking **Đăng xuất** in `TopAppBar` clears the session and resets back to `LoginView`.
+* **Portal Landing Page:** On entry, users land on the modern SaaS Welcome Portal (`LandingView.tsx`). It greets the user with their verified Microsoft 365 identity, role badge, department, and an overview of system features.
+* **Call to Action (CTA):** A primary button **"Vào Danh Sách Check-in"** guides the user directly into the active management grid (Cards or Table mode).
+* **Return Home Navigation:** Inside the check-in list, users can click the **"Trang Chủ"** button on `TopAppBar` to return to the Landing page at any time.
+* **Top Header Identity:** Inside the check-in list, the top bar directly displays the user's M365 Email, Role Badge, and Department, omitting redundant app titles and duplicate pills for a clean experience on both desktop and mobile.
+* **Zero-Click SSO & Profile Resolution:** Identity is resolved via Microsoft Entra ID (`pageContext.user.email` / `loginName`) against the `UserProfiles` list.
+  - If a matching email is found, role and department are seamlessly assigned.
+  - In development or QA, the Landing Page includes a testing Profile Switcher to easily toggle between Admin and User (DIRC) accounts without re-authenticating with Microsoft 365.
 
 ### 2. Data Grid Architecture (`CheckinTableView.tsx`)
 

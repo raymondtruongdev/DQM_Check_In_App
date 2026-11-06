@@ -27,6 +27,8 @@ export const CheckinCardsView: React.FC<CheckinCardsViewProps> = ({
   currentUser,
   onEdit,
   onDelete,
+  onRefresh,
+  isLoading,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOption, setSortOption] = useState<SortOption>('newest');
@@ -94,18 +96,49 @@ export const CheckinCardsView: React.FC<CheckinCardsViewProps> = ({
             </span>
           </div>
 
-          <div className="cards-sort-group">
-            <label htmlFor="cards-sort-select" className="cards-sort-label">Sắp xếp:</label>
-            <select
-              id="cards-sort-select"
-              className="cards-sort-select"
-              value={sortOption}
-              onChange={(e) => setSortOption(e.target.value as SortOption)}
-            >
-              <option value="newest">Mới nhất trước</option>
-              <option value="oldest">Cũ nhất trước</option>
-              <option value="name-asc">Tên (A → Z)</option>
-            </select>
+          <div className="cards-header-actions">
+            <div className="cards-sort-group">
+              <label htmlFor="cards-sort-select" className="cards-sort-label">Sắp xếp:</label>
+              <select
+                id="cards-sort-select"
+                className="cards-sort-select"
+                value={sortOption}
+                onChange={(e) => setSortOption(e.target.value as SortOption)}
+              >
+                <option value="newest">Mới nhất trước</option>
+                <option value="oldest">Cũ nhất trước</option>
+                <option value="name-asc">Tên (A → Z)</option>
+              </select>
+            </div>
+
+            {onRefresh && (
+              <button
+                type="button"
+                className={`btn-action btn-refresh ${isLoading ? 'is-loading' : ''}`}
+                onClick={onRefresh}
+                disabled={isLoading}
+                title="Làm mới dữ liệu danh sách"
+                aria-label="Làm mới"
+              >
+                <svg
+                  className={`action-icon ${isLoading ? 'spin' : ''}`}
+                  width="15"
+                  height="15"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                  <path d="M3 3v5h5" />
+                  <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+                  <path d="M16 21h5v-5" />
+                </svg>
+                <span className="btn-label">{isLoading ? 'Đang tải...' : 'Làm Mới'}</span>
+              </button>
+            )}
           </div>
         </div>
 

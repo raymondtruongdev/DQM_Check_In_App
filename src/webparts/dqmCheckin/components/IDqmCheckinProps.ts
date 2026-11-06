@@ -6,6 +6,7 @@ export interface IDqmCheckinProps {
   environmentMessage: string;
   userDisplayName: string;
   userEmail?: string;
+  userLoginName?: string;
   spHttpClient: SPHttpClient;
   siteUrl: string;
 }

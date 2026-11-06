@@ -5,19 +5,23 @@ import type { IDqmCheckinProps } from './IDqmCheckinProps';
 import type { Data_checkinRead, Data_checkinWrite, UserSession, ViewMode, ToastState } from '../types';
 import { SAMPLE_RECORDS, SESSION_STORAGE_KEY } from '../constants';
 import { SharePointService } from '../services/SharePointService';
-import { LoginView, CheckinCardsView, CheckinTableView, CheckinEditView } from '../views';
+import { LandingView, CheckinCardsView, CheckinTableView, CheckinEditView } from '../views';
 import { TopAppBar, ToastAlert, DeleteConfirmModal, SkeletonLoader, ErrorState } from './index';
+import { extractCleanEmail, checkIsAdmin } from '../utils';
 
 export const DqmCheckin: React.FC<IDqmCheckinProps> = (props) => {
-  const { spHttpClient, siteUrl } = props;
+  const { spHttpClient, siteUrl, userDisplayName, userEmail, userLoginName } = props;
 
   // Initialize SharePoint Service
   const spService = useMemo(() => new SharePointService(spHttpClient), [spHttpClient]);
 
+  // Screen state: 'landing' (Portal Home) by default, switching to 'list' on CTA click
+  const [currentScreen, setCurrentScreen] = useState<'landing' | 'list'>('landing');
+
   // View Mode: 'cards' by default as requested (for desktop and mobile)
   const [viewMode, setViewMode] = useState<ViewMode>('cards');
 
-  // Session state: null by default so user is presented with the Login Page first
+  // Session state
   const [currentUser, setCurrentUser] = useState<UserSession | null>(() => {
     try {
       const saved = sessionStorage.getItem(SESSION_STORAGE_KEY);
@@ -26,6 +30,17 @@ export const DqmCheckin: React.FC<IDqmCheckinProps> = (props) => {
       // Ignore
     }
     return null;
+  });
+
+  // State to track auto-SSO resolution on startup
+  const [isResolvingAuth, setIsResolvingAuth] = useState<boolean>(() => {
+    try {
+      const saved = sessionStorage.getItem(SESSION_STORAGE_KEY);
+      if (saved) return false;
+    } catch {
+      // Ignore
+    }
+    return true;
   });
 
   const [items, setItems] = useState<Data_checkinRead[]>([]);
@@ -57,6 +72,69 @@ export const DqmCheckin: React.FC<IDqmCheckinProps> = (props) => {
     return () => clearTimeout(timer);
   }, [toast]);
 
+  // Attempt automatic SSO resolution on component mount
+  useEffect(() => {
+    if (currentUser) {
+      setIsResolvingAuth(false);
+      return;
+    }
+
+    let isMounted = true;
+    const autoResolveSSO = async (): Promise<void> => {
+      const cleanEmail = extractCleanEmail(userEmail || userLoginName);
+      if (!cleanEmail) {
+        if (isMounted) setIsResolvingAuth(false);
+        return;
+      }
+
+      try {
+        console.log(`[DqmCheckin] Attempting auto-SSO resolution for: ${cleanEmail}`);
+        const profiles = await spService.getUserProfiles(siteUrl);
+        const match = profiles.find((p) => {
+          return (
+            p.email.toLowerCase() === cleanEmail ||
+            p.username.toLowerCase() === cleanEmail ||
+            extractCleanEmail(p.email) === cleanEmail
+          );
+        });
+
+        if (match && isMounted) {
+          const session: UserSession = {
+            email: match.email || cleanEmail,
+            username: match.username || match.email,
+            displayName: match.displayName || match.username || userDisplayName,
+            department: match.departmentName || match.departmentCode,
+            departmentCode: match.departmentCode,
+            role: match.role,
+            isAdmin: checkIsAdmin(match.role),
+          };
+          console.log('[DqmCheckin] Auto-SSO success:', session);
+          setCurrentUser(session);
+          try {
+            sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
+          } catch {
+            // Ignore
+          }
+        }
+      } catch (err: unknown) {
+        console.warn('[DqmCheckin] Auto-SSO resolution check:', err);
+      } finally {
+        if (isMounted) {
+          setIsResolvingAuth(false);
+        }
+      }
+    };
+
+    autoResolveSSO().catch((err) => {
+      console.error('[DqmCheckin] autoResolveSSO unhandled error:', err);
+      if (isMounted) setIsResolvingAuth(false);
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [userEmail, userLoginName, userDisplayName, siteUrl, spService, currentUser]);
+
   // Fetch items from SharePoint list
   const loadItems = useCallback(async (): Promise<void> => {
     setIsLoading(true);
@@ -81,7 +159,7 @@ export const DqmCheckin: React.FC<IDqmCheckinProps> = (props) => {
     }
   }, [spService, siteUrl]);
 
-  // Trigger initial load when authenticated
+  // Trigger initial load when authenticated (preload records)
   useEffect(() => {
     if (currentUser) {
       loadItems().catch((err: unknown) => {
@@ -111,24 +189,14 @@ export const DqmCheckin: React.FC<IDqmCheckinProps> = (props) => {
       });
   };
 
-  // Auth Handlers
-  const handleLoginSuccess = (user: UserSession): void => {
+  // Profile selection (SSO dev/qa switcher)
+  const handleSelectProfile = (user: UserSession): void => {
     setCurrentUser(user);
     try {
       sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(user));
     } catch {
       // Ignore
     }
-  };
-
-  const handleLogout = (): void => {
-    setCurrentUser(null);
-    try {
-      sessionStorage.removeItem(SESSION_STORAGE_KEY);
-    } catch {
-      // Ignore
-    }
-    showToast('success', 'Bạn đã đăng xuất.');
   };
 
   const handleUseDemoData = (): void => {
@@ -232,14 +300,38 @@ export const DqmCheckin: React.FC<IDqmCheckinProps> = (props) => {
     }
   };
 
-  // If user is not signed in, show the Login Page first
-  if (!currentUser) {
+  // Loading state while checking M365 SSO
+  if (isResolvingAuth) {
     return (
       <div className="app-layout">
-        <LoginView
-          onLoginSuccess={handleLoginSuccess}
+        <main className="main-content" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+          <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+            <svg className="spin" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.5">
+              <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+            </svg>
+            <p style={{ color: '#475569', fontSize: '15px', fontWeight: 500 }}>
+              Đang xác thực danh tính Microsoft 365...
+            </p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // Show Landing Page first with CTA button to jump into the check-in list
+  if (currentScreen === 'landing') {
+    return (
+      <div className="app-layout">
+        <LandingView
+          currentUser={currentUser}
+          onEnterApp={() => setCurrentScreen('list')}
+          onSelectProfile={handleSelectProfile}
           spService={spService}
           siteUrl={siteUrl}
+          userDisplayName={userDisplayName}
+          userEmail={userEmail}
+          userLoginName={userLoginName}
+          totalRecordsCount={items.length}
         />
       </div>
     );
@@ -247,13 +339,10 @@ export const DqmCheckin: React.FC<IDqmCheckinProps> = (props) => {
 
   return (
     <div className="app-layout">
-      {/* Top App Bar with View Switcher & Logout */}
+      {/* Top App Bar: Home + Email & Role (Left) & View Switcher (Right) */}
       <TopAppBar
         currentUser={currentUser}
-        onRefresh={handleRefresh}
-        isLoading={isLoading}
-        itemCount={items.length}
-        onLogout={handleLogout}
+        onGoHome={() => setCurrentScreen('landing')}
         activeView={viewMode}
         onViewChange={setViewMode}
       />
@@ -297,6 +386,8 @@ export const DqmCheckin: React.FC<IDqmCheckinProps> = (props) => {
             onEdit={handleOpenEdit}
             onDelete={handleOpenDelete}
             isAdmin={currentUser?.isAdmin}
+            onRefresh={handleRefresh}
+            isLoading={isLoading}
           />
         )}
       </main>

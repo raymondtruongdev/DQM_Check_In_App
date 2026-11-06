@@ -25,6 +25,7 @@ export default class DqmCheckinWebPart extends BaseClientSideWebPart<IDqmCheckin
 
   public render(): void {
     const effectiveSiteUrl = this.properties.siteUrl || this.context.pageContext.web.absoluteUrl;
+    const pageUser = this.context.pageContext.user;
 
     const element: React.ReactElement<IDqmCheckinProps> = React.createElement(
       DqmCheckin,
@@ -32,8 +33,9 @@ export default class DqmCheckinWebPart extends BaseClientSideWebPart<IDqmCheckin
         description: this.properties.description,
         isDarkTheme: this._isDarkTheme,
         environmentMessage: this._environmentMessage,
-        userDisplayName: this.context.pageContext.user.displayName || 'User',
-        userEmail: this.context.pageContext.user.email || '',
+        userDisplayName: pageUser.displayName || 'User',
+        userEmail: pageUser.email || '',
+        userLoginName: pageUser.loginName || '',
         spHttpClient: this.context.spHttpClient,
         siteUrl: effectiveSiteUrl
       }

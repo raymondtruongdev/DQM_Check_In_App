@@ -29,6 +29,8 @@ export interface CheckinTableViewProps {
   onEdit: (item: Data_checkinRead) => void;
   onDelete: (item: Data_checkinRead) => void;
   isAdmin?: boolean;
+  onRefresh?: () => void;
+  isLoading?: boolean;
 }
 
 export type WorkItemsTableProps = CheckinTableViewProps;
@@ -64,6 +66,8 @@ export const CheckinTableView: React.FC<CheckinTableViewProps> = ({
   onEdit,
   onDelete,
   isAdmin = true,
+  onRefresh,
+  isLoading,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortConfig, setSortConfig] = useState<SortConfig>({
@@ -308,10 +312,10 @@ export const CheckinTableView: React.FC<CheckinTableViewProps> = ({
     <div className="card-container">
       {/* Table Toolbar Header */}
       <div className="table-toolbar">
-        {/* Row 1: Title, Count, Sort Status (Left) & View Switcher, Reset Widths (Right) */}
+        {/* Row 1: Title, Count, Sort Status (Left) & Refresh, Reset Widths (Right) */}
         <div className="toolbar-header-row">
           <div className="toolbar-title-group">
-            <h2 className="toolbar-title">Work Items</h2>
+            <h2 className="toolbar-title">Danh Sách Check-In</h2>
             <span className="count-badge">
               {processedItems.length} {processedItems.length === 1 ? 'item' : 'items'}
             </span>
@@ -326,38 +330,6 @@ export const CheckinTableView: React.FC<CheckinTableViewProps> = ({
           </div>
 
           <div className="toolbar-view-controls">
-            {/* View Mode Switcher: Cards vs Table */}
-            <div className="view-mode-toggle" role="group" aria-label="Display mode">
-              <button
-                type="button"
-                className={`view-toggle-btn ${viewMode === 'cards' ? 'is-active' : ''}`}
-                onClick={() => setViewMode('cards')}
-                title="Card view (optimized for mobile)"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="3" y="3" width="7" height="7" rx="1" />
-                  <rect x="14" y="3" width="7" height="7" rx="1" />
-                  <rect x="3" y="14" width="7" height="7" rx="1" />
-                  <rect x="14" y="14" width="7" height="7" rx="1" />
-                </svg>
-                <span>Cards</span>
-              </button>
-              <button
-                type="button"
-                className={`view-toggle-btn ${viewMode === 'table' ? 'is-active' : ''}`}
-                onClick={() => setViewMode('table')}
-                title="Table view (full spreadsheet grid)"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="3" y="3" width="18" height="18" rx="2" />
-                  <line x1="3" y1="9" x2="21" y2="9" />
-                  <line x1="3" y1="15" x2="21" y2="15" />
-                  <line x1="9" y1="3" x2="9" y2="21" />
-                </svg>
-                <span>Table</span>
-              </button>
-            </div>
-
             {viewMode === 'table' && (
               <button
                 type="button"
@@ -366,6 +338,35 @@ export const CheckinTableView: React.FC<CheckinTableViewProps> = ({
                 title="Reset column widths to default layout"
               >
                 Reset widths
+              </button>
+            )}
+
+            {onRefresh && (
+              <button
+                type="button"
+                className={`btn-action btn-refresh ${isLoading ? 'is-loading' : ''}`}
+                onClick={onRefresh}
+                disabled={isLoading}
+                title="Làm mới dữ liệu danh sách"
+                aria-label="Làm mới"
+              >
+                <svg
+                  className={`action-icon ${isLoading ? 'spin' : ''}`}
+                  width="15"
+                  height="15"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                  <path d="M3 3v5h5" />
+                  <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+                  <path d="M16 21h5v-5" />
+                </svg>
+                <span className="btn-label">{isLoading ? 'Đang tải...' : 'Làm Mới'}</span>
               </button>
             )}
           </div>

@@ -1,7 +1,7 @@
 import { SPHttpClient, SPHttpClientResponse } from '@microsoft/sp-http';
 import { Data_checkinRead, Data_checkinWrite } from '../models/DataCheckinModel';
-import type { AccountRecord } from '../types';
-import { mapSharePointAccount } from '../utils';
+import type { UserProfileRecord } from '../types';
+import { mapSharePointUserProfile } from '../utils';
 
 export class SharePointService {
   private _spHttpClient: SPHttpClient;
@@ -35,9 +35,9 @@ export class SharePointService {
   }
 
   /**
-   * Fetch all records from Account list mapped to clean AccountRecord domain model
+   * Fetch all user profiles from UserProfiles list
    */
-  public async getAccounts(siteUrl: string, listTitle = 'Account'): Promise<AccountRecord[]> {
+  public async getUserProfiles(siteUrl: string, listTitle = 'UserProfiles'): Promise<UserProfileRecord[]> {
     const url = `${siteUrl}/_api/web/lists/getbytitle('${listTitle}')/items?$top=1000`;
     const response: SPHttpClientResponse = await this._spHttpClient.get(
       url,
@@ -56,7 +56,7 @@ export class SharePointService {
 
     const json = await response.json();
     const rawList = (json.value || []) as Record<string, unknown>[];
-    return rawList.map(mapSharePointAccount);
+    return rawList.map(mapSharePointUserProfile);
   }
 
   /**
@@ -116,4 +116,3 @@ export class SharePointService {
     }
   }
 }
-
