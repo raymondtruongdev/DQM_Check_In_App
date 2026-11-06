@@ -1,57 +1,59 @@
-import type { Data_checkinRead } from '../types';
+import type { Data_checkinRead, AccountRecord } from '../types';
 
 /**
- * Helper to get Name value safely:
- * Priority: Name -> field_1 -> Title
+ * Maps raw SharePoint Account list items to the clean AccountRecord domain model
+ */
+export function mapSharePointAccount(raw: Record<string, unknown>): AccountRecord {
+  return {
+    id: (raw.field_0 as number | string) ?? (raw.ID as number | string) ?? (raw.Id as number | string) ?? '',
+    username: String(raw.field_1 ?? raw.Username ?? '').trim(),
+    password: String(raw.field_2 ?? raw.Password ?? '').trim(),
+    departmentCode: String(raw.field_3 ?? raw.Department ?? raw.DepartmentCode ?? '').trim(),
+    departmentName: String(raw.field_4 ?? raw.DepartmentName ?? '').trim(),
+    role: String(raw.field_5 ?? raw.Role ?? 'user').trim().toLowerCase(),
+  };
+}
+
+/**
+ * Safe accessor for Name: Name -> field_1 -> Title
  */
 export function getItemName(item: Data_checkinRead): string {
-  const val = item.Name ?? item.field_1 ?? item.Title;
-  return val !== undefined && val !== null ? String(val).trim() : '';
+  return String(item.Name ?? item.field_1 ?? item.Title ?? '').trim();
 }
 
 /**
- * Helper to get Id value safely:
- * Priority: Id -> field_0 -> ID
+ * Safe accessor for Id: Id -> field_0 -> ID
  */
 export function getItemDisplayId(item: Data_checkinRead): number | string {
-  if (item.Id !== undefined && item.Id !== null) return item.Id;
-  if (item.field_0 !== undefined && item.field_0 !== null) return item.field_0;
-  return item.ID;
+  return item.Id ?? item.field_0 ?? item.ID;
 }
 
 /**
- * Helper to get Check in timestamp safely:
- * Priority: Check_x0020_in -> field_2 -> CheckIn -> 'Check in'
+ * Safe accessor for Check-in timestamp: Check_x0020_in -> field_2 -> CheckIn
  */
 export function getItemCheckIn(item: Data_checkinRead): string | undefined {
-  const val = item.Check_x0020_in ?? item.field_2 ?? item.CheckIn ?? item['Check in'];
+  const val = item.Check_x0020_in ?? item.field_2 ?? item.CheckIn;
   return val ? String(val) : undefined;
 }
 
 /**
- * Helper to get Location safely:
- * Priority: Location -> field_3
+ * Safe accessor for Location: Location -> field_3
  */
 export function getItemLocation(item: Data_checkinRead): string {
-  const val = item.Location ?? item.field_3;
-  return val !== undefined && val !== null ? String(val).trim() : '';
+  return String(item.Location ?? item.field_3 ?? '').trim();
 }
 
 /**
- * Helper to get Note safely:
- * Priority: Note -> field_4
+ * Safe accessor for Note: Note -> field_4
  */
 export function getItemNote(item: Data_checkinRead): string {
-  const val = item.Note ?? item.field_4;
-  return val !== undefined && val !== null ? String(val).trim() : '';
+  return String(item.Note ?? item.field_4 ?? '').trim();
 }
 
 /**
- * Helper to get Phone safely:
- * Priority: Phone -> field_5
+ * Safe accessor for Phone: Phone -> field_5
  */
 export function getItemPhone(item: Data_checkinRead): string {
-  const val = item.Phone ?? item.field_5;
-  return val !== undefined && val !== null ? String(val).trim() : '';
+  return String(item.Phone ?? item.field_5 ?? '').trim();
 }
 

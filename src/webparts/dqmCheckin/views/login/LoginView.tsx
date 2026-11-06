@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { UserSession } from '../../types';
+import type { UserSession, AccountRecord } from '../../types';
 import { SharePointService } from '../../services/SharePointService';
 
 interface LoginViewProps {
@@ -8,78 +8,9 @@ interface LoginViewProps {
   siteUrl: string;
 }
 
-// Helper to extract role from account item
-function getAccountRole(acc: Record<string, unknown>): string {
-  const possibleKeys = [
-    'Role', 'role', 'RoleName', 'Quyen', 'VaiTro',
-    'field_5',
-    'field_6'
-  ];
-  for (const key of possibleKeys) {
-    const val = acc[key];
-    if (val !== undefined && val !== null && String(val).trim() !== '' && String(val).trim() !== 'null') {
-      return String(val).trim();
-    }
-  }
-  // Check any property containing 'role' or 'quyen'
-  for (const key of Object.keys(acc)) {
-    const lower = key.toLowerCase();
-    if (lower.includes('role') || lower.includes('quyen') || lower.includes('vaitro')) {
-      const val = acc[key];
-      if (val !== undefined && val !== null && String(val).trim() !== '' && String(val).trim() !== 'null') {
-        return String(val).trim();
-      }
-    }
-  }
-  return 'user';
-}
-
 export function checkIsAdmin(role: string): boolean {
   const r = role.toLowerCase().trim();
   return r === 'admin' || r === 'administrator' || r === 'quantri' || r === 'quản trị';
-}
-
-// Helper to extract username from account item
-function getAccountUsername(acc: Record<string, unknown>): string {
-  const possibleKeys = [
-    'Username', 'username', 'UserName', 'User_x0020_Name',
-    'field_1', // Internal name for Username column in Account list
-    'User', 'user', 'Email', 'email', 'Account', 'account',
-    'Title', 'title'
-  ];
-  for (const key of possibleKeys) {
-    const val = acc[key];
-    if (val !== undefined && val !== null && String(val).trim() !== '' && String(val).trim() !== 'null') {
-      return String(val).trim();
-    }
-  }
-  return '';
-}
-
-// Helper to extract password from account item
-function getAccountPassword(acc: Record<string, unknown>): string {
-  const possibleKeys = [
-    'Password', 'password', 'PassWord', 'Pass_x0020_Word',
-    'field_2', // Internal name for Password column in Account list
-    'Pass', 'pass', 'Pwd', 'pwd',
-    'MatKhau', 'matkhau', 'Mat_x0020_khau', 'Mat_x0020_Khau'
-  ];
-  for (const key of possibleKeys) {
-    const val = acc[key];
-    if (val !== undefined && val !== null && String(val).trim() !== '' && String(val).trim() !== 'null') {
-      return String(val).trim();
-    }
-  }
-  for (const key of Object.keys(acc)) {
-    const lower = key.toLowerCase();
-    if (lower.includes('pass') || lower.includes('pwd') || lower.includes('khau')) {
-      const val = acc[key];
-      if (val !== undefined && val !== null && String(val).trim() !== '' && String(val).trim() !== 'null') {
-        return String(val).trim();
-      }
-    }
-  }
-  return '';
 }
 
 export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, spService, siteUrl }) => {
@@ -108,8 +39,8 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, spService,
 
     try {
       console.log('[LoginView] Querying SharePoint Account list via SPHttpClient from site:', siteUrl);
-      const accounts = await spService.getAccounts(siteUrl);
-      console.log(`[LoginView] Found ${accounts.length} accounts in SharePoint:`, accounts);
+      const accounts: AccountRecord[] = await spService.getAccounts(siteUrl);
+      console.log(`[LoginView] Found ${accounts.length} mapped accounts in SharePoint:`, accounts);
 
       if (accounts.length === 0) {
         setErrorMessage(
@@ -119,46 +50,32 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, spService,
       }
 
       // 1. Find account by username
-      const matchedUser = accounts.find((acc) => {
-        const u = getAccountUsername(acc).toLowerCase();
-        return u === trimmedUser.toLowerCase();
-      });
+      const matchedUser = accounts.find((acc) => acc.username.toLowerCase() === trimmedUser.toLowerCase());
 
       if (!matchedUser) {
-        console.warn(`[LoginView] Username "${trimmedUser}" not found. Available usernames:`, accounts.map(a => getAccountUsername(a)));
+        console.warn(`[LoginView] Username "${trimmedUser}" not found. Available usernames:`, accounts.map(a => a.username));
         setErrorMessage(`Không tìm thấy tài khoản "${trimmedUser}" trong danh sách Account trên SharePoint.`);
         return;
       }
 
       console.log(`[LoginView] Found account for "${trimmedUser}":`, matchedUser);
 
-      // 2. Extract password from account
-      const storedPass = getAccountPassword(matchedUser);
-
-      if (!storedPass) {
-        console.warn(`[LoginView] Password column not found or empty on user account:`, matchedUser);
-        const columnNames = Object.keys(matchedUser).filter(k => !k.startsWith('OData_') && !k.startsWith('{')).join(', ');
-        setErrorMessage(`Tài khoản "${trimmedUser}" tồn tại nhưng chưa có mật khẩu trong cột Password. Các cột tìm thấy trong list: [${columnNames}]`);
+      // 2. Validate password
+      if (!matchedUser.password) {
+        setErrorMessage(`Tài khoản "${trimmedUser}" tồn tại nhưng chưa có mật khẩu trong danh sách Account.`);
         return;
       }
 
       // 3. Compare password
-      if (storedPass === trimmedPass || storedPass.trim() === trimmedPass) {
-        const displayName = String(
-          matchedUser.DisplayName ||
-          matchedUser.field_1 ||
-          matchedUser.Username ||
-          matchedUser.Title ||
-          trimmedUser
-        );
-        const role = getAccountRole(matchedUser);
-        const isAdmin = checkIsAdmin(role);
-        console.log(`[LoginView] User authenticated: "${trimmedUser}", role: "${role}", isAdmin: ${isAdmin}`);
+      if (matchedUser.password === trimmedPass) {
+        const isAdmin = checkIsAdmin(matchedUser.role);
+        console.log(`[LoginView] User authenticated: "${trimmedUser}", role: "${matchedUser.role}", isAdmin: ${isAdmin}`);
 
         onLoginSuccess({
-          username: trimmedUser,
-          displayName,
-          role,
+          username: matchedUser.username,
+          displayName: matchedUser.username,
+          department: matchedUser.departmentName,
+          role: matchedUser.role,
           isAdmin,
         });
         return;
