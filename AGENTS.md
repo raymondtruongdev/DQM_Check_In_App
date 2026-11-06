@@ -26,7 +26,7 @@
 * **Framework:** SharePoint Framework (SPFx) `1.24.1`
 * **UI Library:** React `18.3.1` (Hooks, Functional Components)
 * **Build System:** `@rushstack/heft` `1.3.2` + Webpack `5.105.4` + TypeScript `~5.8.0`
-* **Styling:** Custom Modern SaaS Design System (Pure CSS variables trong `App.css`, palette `#1d4ed8`)
+* **Styling:** Custom Modern SaaS Design System (Pure CSS variables trong `src/core/styles/portal.css`, palette `#1d4ed8`)
 * **HTTP Client:** `@microsoft/sp-http` (`SPHttpClient` v1)
 
 ---
@@ -59,23 +59,22 @@ WebPart tự động nhận diện site hiện hành qua `pageContext.web.absolu
 ```text
 DQM_Check_In_App/
 ├── config/                      # Cấu hình SPFx build, workbench serve & package solution
-├── sharepoint/solution/         # Gói cài đặt thành phẩm (myapp.sppkg) cho App Catalog
-├── src/webparts/dqmCheckin/     # Mã nguồn chính của WebPart
-│   ├── DqmCheckinWebPart.ts     # Entry point kết nối SharePoint BaseClientSideWebPart
-│   ├── views/                   # Màn hình chức năng (views/<feature>/<Feature>View.tsx)
-│   ├── components/              # UI dùng chung phân tầng:
-│   │   ├── layout/              # Khung giao diện (TopAppBar, ToastAlert...)
-│   │   ├── modals/              # Các hộp thoại popup (DeleteConfirmModal...)
-│   │   ├── feedback/            # Trạng thái phản hồi (SkeletonLoader, ErrorState...)
-│   │   ├── DqmCheckin.tsx       # Component điều phối trung tâm (Orchestrator)
-│   │   └── App.css              # Design System CSS tokens & toàn bộ styling
-│   ├── services/                # Tầng kết nối dữ liệu (SharePointService.ts qua SPHttpClient)
-│   ├── types/                   # Định nghĩa TypeScript interfaces & domain types
-│   ├── constants/               # Giá trị cấu hình tĩnh, Mock data & Storage keys
-│   └── utils/                   # Các hàm tiện ích dùng chung (date, avatar, parsers...)
-├── AGENTS.md                    # Tài liệu quy chuẩn kiến trúc & chỉ dẫn cho AI Agent
-└── package.json                 # Cấu hình dependencies & build scripts
-```
+├── sharepoint/solution/         # Gói cài đặt thành phẩm (workspace_portal.sppkg)
+├── src/
+│   ├── entry/                   # Điểm vào SPFx: PortalWebPart.ts, manifest, loc/
+│   ├── app/                     # Khung portal: PortalShell.tsx (auth + chọn module), moduleRegistry.tsx, IPortalProps.ts
+│   ├── core/                    # Dùng chung cho mọi module (KHÔNG import từ modules/)
+│   │   ├── auth/                # Session, UserProfileService, extractCleanEmail, checkIsAdmin
+│   │   ├── services/            # SharePointClient (generic CRUD qua SPHttpClient)
+│   │   ├── components/layout/   # TopAppBar, ToastAlert
+│   │   ├── types/ constants/ utils/
+│   │   └── styles/portal.css    # Design System CSS tokens & styling
+│   ├── modules/
+│   │   ├── home/                # HomeView: trang chủ liệt kê module từ registry
+│   │   └── checkin/             # Module 1: CheckinModule, views/, components/, services/, types/, constants/, utils/
+│   └── assets/
+├── AGENTS.md
+└── package.json
 
 ---
 
@@ -83,7 +82,7 @@ DQM_Check_In_App/
 
 ### 1. Portal Architecture & Authentication Flow (Landing Page + Zero-Click SSO)
 
-* **Portal Landing Page:** On entry, users land on the modern SaaS Welcome Portal (`LandingView.tsx`). It greets the user with their verified Microsoft 365 identity, role badge, department, and an overview of system features.
+* **Portal Landing Page:** On entry, users land on the modern SaaS Welcome Portal (`modules/home/HomeView.tsx`). It greets the user with their verified Microsoft 365 identity, role badge, department, and an overview of system features.
 * **Call to Action (CTA):** A primary button **"Vào Danh Sách Check-in"** guides the user directly into the active management grid (Cards or Table mode).
 * **Return Home Navigation:** Inside the check-in list, users can click the **"Trang Chủ"** button on `TopAppBar` to return to the Landing page at any time.
 * **Top Header Identity:** Inside the check-in list, the top bar directly displays the user's M365 Email, Role Badge, and Department, omitting redundant app titles and duplicate pills for a clean experience on both desktop and mobile.
@@ -91,7 +90,7 @@ DQM_Check_In_App/
   - If a matching email is found, role and department are seamlessly assigned.
   - In development or QA, the Landing Page includes a testing Profile Switcher to easily toggle between Admin and User (DIRC) accounts without re-authenticating with Microsoft 365.
 
-### 2. Data Grid Architecture (`CheckinTableView.tsx`)
+### 2. Data Grid Architecture (`modules/checkin/views/CheckinTableView.tsx`)
 
 * **7 Standard Columns:**
   1. `Id` (`#field_0` or `#ID`)
@@ -102,11 +101,11 @@ DQM_Check_In_App/
   6. `Note` (Note text)
   7. `ACTION` (Edit & Delete buttons)
 * **Column Resizing:** Users can drag header borders to resize columns. Double-clicking a border resets that column.
-* **Persistent Widths:** Resized column widths are saved in `localStorage` under `dqm_spfx_col_widths_v2`.
+* **Persistent Widths:** Resized column widths are saved in `localStorage` under `portal_checkin_col_widths_v2`.
 * **Action Column Alignment:** The `ACTION` column is fixed at `130px`, centered, and non-sticky to prevent overlaying the `Note` column.
 * **Table Responsiveness:** Wrapped in `.table-responsive` with `overflow-x: auto !important` so columns maintain their minimum widths and scroll smoothly without text clipping.
 
-### 3. Data Service (`SharePointService.ts`)
+### 3. Data Service (`CheckinService.ts` / `SharePointClient.ts`)
 
 * Uses `SPHttpClient.configurations.v1`.
 * All calls specify `'Accept': 'application/json;odata=nometadata'` to minimize payload overhead.
@@ -141,30 +140,29 @@ npm run build
 ```
 
 * Runs Heft test compilation and packages client-side assets directly into:
-  📁 `sharepoint/solution/myapp.sppkg`
+  📁 `sharepoint/solution/workspace_portal.sppkg`
 
 ### Deploying to SharePoint
 
 1. Open the SharePoint App Catalog (e.g., `https://ytf84.sharepoint.com/sites/appcatalog` or tenant app catalog).
 2. Navigate to **Apps for SharePoint**.
-3. Upload `sharepoint/solution/myapp.sppkg`.
+3. Upload `sharepoint/solution/workspace_portal.sppkg`.
 4. Check **"Enable this app and add it to all sites"** (or add to specific sites) and click **Deploy**.
-5. On any page in your SharePoint site, click **Edit** $\rightarrow$ Click **`+`** $\rightarrow$ Search and select **DqmCheckin** $\rightarrow$ **Republish**.
+5. On any page in your SharePoint site, click **Edit** $\rightarrow$ Click **`+`** $\rightarrow$ Search and select **Workspace Portal** $\rightarrow$ **Republish**.
 
 ---
 
 ## 7. Guidelines for AI Agents Working on This Codebase
 
 1. **Do NOT import `@microsoft/power-apps`:** This project is deliberately detached from Power Apps to eliminate licensing costs.
-2. **Preserve Design Tokens:** Always use CSS variables from `App.css` (`--color-accent`, `--space-*`, `--radius-*`) instead of hardcoding random hex colors.
+2. **Preserve Design Tokens:** Always use CSS variables from `portal.css` (`--color-accent`, `--space-*`, `--radius-*`) instead of hardcoding random hex colors.
 3. **Keep the Action Column Clean:** Do not apply `position: sticky; right: 0;` to `.td-actions` or `.th-actions`, as sticky positioning inside flex-clipped containers causes action buttons to overlap adjacent data columns.
 4. **Preserve Column Resizing Contract:** Any added column must be registered in `DEFAULT_COLUMN_WIDTHS`, `MIN_COLUMN_WIDTHS`, and `<colgroup>`.
 5. **Git Commit & Push Policy:** DO NOT automatically run `git commit` or `git push`. Only commit and push when the user explicitly requests or approves it.
-6. **Standard Recipe for Adding New Screens & Modules:**
-   - **New Screen / View:** Always place under `src/webparts/dqmCheckin/views/<featureName>/<FeatureName>View.tsx` (e.g. `views/analytics/AnalyticsView.tsx`).
-   - **Views Barrel Export:** Always register and export the new view in `src/webparts/dqmCheckin/views/index.ts`.
-   - **Types & Interfaces:** Place domain types into a dedicated file under `src/webparts/dqmCheckin/types/<domain>.types.ts` and re-export in `src/webparts/dqmCheckin/types/index.ts`. Never use inline interfaces for shared models.
-   - **API / Services:** Add any new SharePoint list queries or mutations as typed methods inside `src/webparts/dqmCheckin/services/SharePointService.ts`.
-   - **Shared UI Components:** If the new feature introduces reusable UI pieces (modals, bars, spinners), place them into appropriate subfolders in `components/` (`layout/`, `modals/`, `feedback/`) and re-export via `components/index.ts`.
-   - **Design Tokens:** Always utilize existing CSS variables in `App.css` to maintain visual consistency.
-   - **Integration:** Wire the new screen into the orchestrator `components/DqmCheckin.tsx` via state-driven view routing or view switcher.
+6. **Standard Recipe for Adding a New Module (e.g. `tasks`):**
+   - Create `src/modules/<name>/` with `<Name>Module.tsx` (receives `ModuleProps`), `views/`, `components/`, `services/<Name>Service.ts`, `types/<name>.types.ts`, `constants/`, `utils/`, and `index.ts` exporting a `PortalModule`.
+   - Only files belonging to a module carry that module's name (e.g. `Checkin*`). Shared code in `core/` and `app/` must not contain module names or company names.
+   - Register the module in `src/app/moduleRegistry.tsx`; `HomeView` lists it automatically and `PortalShell` opens it on click.
+   - SharePoint access: build module services on `core/services/SharePointClient`; list names live in the module's service file.
+   - Dependencies are one-way: `modules/*` → `core/*`; `core/` never imports `modules/`; modules never import each other.
+   - Storage keys use the prefix `portal_<module>_...`. Use CSS variables from `core/styles/portal.css`.

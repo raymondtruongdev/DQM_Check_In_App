@@ -1,0 +1,163 @@
+import * as React from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import '../core/styles/portal.css';
+import type { IPortalProps } from './IPortalProps';
+import type { UserSession } from '../core/auth';
+import { UserProfileService, extractCleanEmail, checkIsAdmin } from '../core/auth';
+import { SharePointClient } from '../core/services';
+import { SESSION_STORAGE_KEY } from '../core/constants';
+import { HomeView } from '../modules/home';
+import { PORTAL_MODULES } from './moduleRegistry';
+
+export const PortalShell: React.FC<IPortalProps> = (props) => {
+  const { spHttpClient, siteUrl, userDisplayName, userEmail, userLoginName } = props;
+
+  const profileService = useMemo(() => new UserProfileService(new SharePointClient(spHttpClient)), [spHttpClient]);
+
+  // Active module: null = Home (module launcher)
+  const [activeModuleId, setActiveModuleId] = useState<string | null>(null);
+
+  // Session state
+  const [currentUser, setCurrentUser] = useState<UserSession | null>(() => {
+    try {
+      const saved = sessionStorage.getItem(SESSION_STORAGE_KEY);
+      if (saved) return JSON.parse(saved);
+    } catch {
+      // Ignore
+    }
+    return null;
+  });
+
+  // State to track auto-SSO resolution on startup
+  const [isResolvingAuth, setIsResolvingAuth] = useState<boolean>(() => {
+    try {
+      const saved = sessionStorage.getItem(SESSION_STORAGE_KEY);
+      if (saved) return false;
+    } catch {
+      // Ignore
+    }
+    return true;
+  });
+
+  // Attempt automatic SSO resolution on component mount
+  useEffect(() => {
+    if (currentUser) {
+      setIsResolvingAuth(false);
+      return;
+    }
+
+    let isMounted = true;
+    const autoResolveSSO = async (): Promise<void> => {
+      const cleanEmail = extractCleanEmail(userEmail || userLoginName);
+      if (!cleanEmail) {
+        if (isMounted) setIsResolvingAuth(false);
+        return;
+      }
+
+      try {
+        console.log(`[PortalShell] Attempting auto-SSO resolution for: ${cleanEmail}`);
+        const profiles = await profileService.getUserProfiles(siteUrl);
+        const match = profiles.find((p) => {
+          return (
+            p.email.toLowerCase() === cleanEmail ||
+            p.username.toLowerCase() === cleanEmail ||
+            extractCleanEmail(p.email) === cleanEmail
+          );
+        });
+
+        if (match && isMounted) {
+          const session: UserSession = {
+            email: match.email || cleanEmail,
+            username: match.username || match.email,
+            displayName: match.displayName || match.username || userDisplayName,
+            department: match.departmentName || match.departmentCode,
+            departmentCode: match.departmentCode,
+            role: match.role,
+            isAdmin: checkIsAdmin(match.role),
+          };
+          console.log('[PortalShell] Auto-SSO success:', session);
+          setCurrentUser(session);
+          try {
+            sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
+          } catch {
+            // Ignore
+          }
+        }
+      } catch (err: unknown) {
+        console.warn('[PortalShell] Auto-SSO resolution check:', err);
+      } finally {
+        if (isMounted) {
+          setIsResolvingAuth(false);
+        }
+      }
+    };
+
+    autoResolveSSO().catch((err) => {
+      console.error('[PortalShell] autoResolveSSO unhandled error:', err);
+      if (isMounted) setIsResolvingAuth(false);
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [userEmail, userLoginName, userDisplayName, siteUrl, profileService, currentUser]);
+
+  // Profile selection (SSO dev/qa switcher)
+  const handleSelectProfile = (user: UserSession): void => {
+    setCurrentUser(user);
+    try {
+      sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(user));
+    } catch {
+      // Ignore
+    }
+  };
+
+  // Loading state while checking M365 SSO
+  if (isResolvingAuth) {
+    return (
+      <div className="app-layout">
+        <main className="main-content" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+          <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+            <svg className="spin" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.5">
+              <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+            </svg>
+            <p style={{ color: '#475569', fontSize: '15px', fontWeight: 500 }}>
+              Đang xác thực danh tính Microsoft 365...
+            </p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  const activeModule = PORTAL_MODULES.find((m) => m.id === activeModuleId && m.component);
+  if (activeModule && activeModule.component) {
+    const ModuleComponent = activeModule.component;
+    return (
+      <ModuleComponent
+        currentUser={currentUser ?? undefined}
+        spHttpClient={spHttpClient}
+        siteUrl={siteUrl}
+        onGoHome={() => setActiveModuleId(null)}
+      />
+    );
+  }
+
+  return (
+    <div className="app-layout">
+      <HomeView
+        currentUser={currentUser ?? undefined}
+        modules={PORTAL_MODULES}
+        onOpenModule={setActiveModuleId}
+        onSelectProfile={handleSelectProfile}
+        profileService={profileService}
+        siteUrl={siteUrl}
+        userDisplayName={userDisplayName}
+        userEmail={userEmail}
+        userLoginName={userLoginName}
+      />
+    </div>
+  );
+};
+
+export default PortalShell;

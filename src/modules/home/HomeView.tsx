@@ -1,0 +1,263 @@
+import React, { useState, useEffect } from 'react';
+import type { UserSession, UserProfileRecord } from '../../core/auth';
+import { UserProfileService, extractCleanEmail, checkIsAdmin } from '../../core/auth';
+import type { PortalModule } from '../../core/types';
+
+export interface HomeViewProps {
+  currentUser?: UserSession;
+  modules: PortalModule[];
+  onOpenModule: (moduleId: string) => void;
+  onSelectProfile?: (profile: UserSession) => void;
+  profileService: UserProfileService;
+  siteUrl: string;
+  userDisplayName?: string;
+  userEmail?: string;
+  userLoginName?: string;
+}
+
+export const HomeView: React.FC<HomeViewProps> = ({
+  currentUser,
+  modules,
+  onOpenModule,
+  onSelectProfile,
+  profileService,
+  siteUrl,
+  userDisplayName = 'User',
+  userEmail = '',
+  userLoginName = '',
+}) => {
+  const [profiles, setProfiles] = useState<UserProfileRecord[]>([]);
+  const [showRoleSwitcher, setShowRoleSwitcher] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  // Auto-dismiss module notice after 4 seconds
+  useEffect(() => {
+    if (!notice) return;
+    const timer = setTimeout(() => {
+      setNotice(null);
+    }, 4000);
+    return () => clearTimeout(timer);
+  }, [notice]);
+
+  const cleanCurrentEmail = extractCleanEmail(userEmail || userLoginName);
+  const activeDisplayName = currentUser?.displayName || userDisplayName;
+  const userInitials = activeDisplayName.slice(0, 2).toUpperCase();
+
+  // Load UserProfiles list to provide role switching / diagnostics
+  useEffect(() => {
+    let isMounted = true;
+    const loadProfiles = async (): Promise<void> => {
+      try {
+        const list = await profileService.getUserProfiles(siteUrl);
+        if (isMounted) setProfiles(list);
+      } catch (err: unknown) {
+        console.warn('[HomeView] Could not load UserProfiles:', err);
+      }
+    };
+
+    loadProfiles().catch((e) => console.error(e));
+    return () => {
+      isMounted = false;
+    };
+  }, [profileService, siteUrl]);
+
+  const handleSwitch = (p: UserProfileRecord): void => {
+    if (!onSelectProfile) return;
+    const session: UserSession = {
+      email: p.email || cleanCurrentEmail,
+      username: p.username || p.email,
+      displayName: p.displayName || p.username || userDisplayName,
+      department: p.departmentName || p.departmentCode,
+      departmentCode: p.departmentCode,
+      role: p.role,
+      isAdmin: checkIsAdmin(p.role),
+    };
+    onSelectProfile(session);
+  };
+
+  const handleModuleClick = (module: PortalModule): void => {
+    if (module.status === 'active') {
+      onOpenModule(module.id);
+      return;
+    }
+    setNotice(`Chức năng "${module.title}" đang được kết nối và sẽ sớm khả dụng.`);
+  };
+
+  const isAuthorized = Boolean(currentUser);
+
+  return (
+    <div className="landing-wrapper">
+      <div className="landing-container">
+        {/* Main Hero Card */}
+        <section className="landing-hero-card">
+          {/* Brand Badge */}
+          <div className="landing-brand-badge">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="currentColor" opacity="0.2" />
+              <polyline points="2 17 12 22 22 17" />
+              <polyline points="2 12 12 17 22 12" />
+            </svg>
+            <span>Workspace Portal</span>
+          </div>
+
+          {/* User Identity & Authorization Profile Box */}
+          <div className="landing-profile-box">
+            {/* Centered Avatar */}
+            <div className="landing-avatar-wrapper">
+              <div className="landing-user-avatar">{userInitials}</div>
+              {isAuthorized && <span className="landing-avatar-status" title="Đã xác thực Microsoft 365" />}
+            </div>
+
+            {/* Display Name */}
+            <h2 className="landing-user-name">{activeDisplayName}</h2>
+
+            {/* Email */}
+            <div className="landing-user-email">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                <polyline points="22,6 12,13 2,6" />
+              </svg>
+              <span>{currentUser?.email || cleanCurrentEmail || 'Microsoft 365 Account'}</span>
+            </div>
+
+            {/* Badges Row: Role Badge + Department Badge */}
+            <div className="landing-badges-row">
+              {isAuthorized ? (
+                <span className={currentUser?.isAdmin ? 'sso-badge-admin' : 'sso-badge-user'}>
+                  {currentUser?.isAdmin ? 'ADMIN' : (currentUser?.role?.toUpperCase() || 'USER')}
+                </span>
+              ) : (
+                <span className="badge" style={{ backgroundColor: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca' }}>
+                  Chưa gán quyền
+                </span>
+              )}
+
+              {currentUser?.department && (
+                <span className="landing-dept-badge">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="4" y="2" width="16" height="20" rx="2" ry="2" />
+                    <line x1="9" y1="22" x2="9" y2="22.01" />
+                    <line x1="15" y1="22" x2="15" y2="22.01" />
+                    <line x1="9" y1="18" x2="9" y2="18.01" />
+                    <line x1="15" y1="18" x2="15" y2="18.01" />
+                    <line x1="9" y1="14" x2="9" y2="14.01" />
+                    <line x1="15" y1="14" x2="15" y2="14.01" />
+                    <line x1="9" y1="10" x2="9" y2="10.01" />
+                    <line x1="15" y1="10" x2="15" y2="10.01" />
+                    <line x1="9" y1="6" x2="9" y2="6.01" />
+                    <line x1="15" y1="6" x2="15" y2="6.01" />
+                  </svg>
+                  <span>{currentUser.department}</span>
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div className="landing-divider" />
+
+          {/* Primary Management Modules Grid (SharePoint Tile Style) */}
+          {isAuthorized ? (
+            <div className="landing-modules-container">
+              {notice && (
+                <div className="landing-module-notice" role="alert">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                  <span>{notice}</span>
+                  <button
+                    type="button"
+                    className="landing-notice-close"
+                    onClick={() => setNotice(null)}
+                    title="Đóng thông báo"
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
+
+              <div className="sp-tiles-grid">
+                {modules.map((module) => (
+                  <button
+                    key={module.id}
+                    type="button"
+                    className="landing-grid-btn"
+                    onClick={() => handleModuleClick(module)}
+                    title={`Nhấn để truy cập ${module.title}`}
+                  >
+                    <div className="landing-grid-btn-icon">
+                      <svg width="26" height="26" viewBox="0 0 32 32" fill="none">
+                        {module.icon}
+                      </svg>
+                    </div>
+                    <span className="landing-grid-btn-text">{module.title}</span>
+                    <svg className="landing-grid-btn-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="9 18 15 12 9 6" />
+                    </svg>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div style={{ maxWidth: '480px', textAlign: 'center', marginTop: '8px' }}>
+              <div className="landing-alert-notice" role="status">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                <span>
+                  Tài khoản của bạn chưa có trong danh sách phân quyền <strong>UserProfiles</strong>. Vui lòng liên hệ Admin để được cấp quyền.
+                </span>
+              </div>
+            </div>
+          )}
+        </section>
+
+        {/* Developer & QA Role Switcher */}
+        {profiles.length > 0 && (
+          <div style={{ textAlign: 'center', marginTop: '4px' }}>
+            <button
+              type="button"
+              className="btn-secondary"
+              style={{ fontSize: '12px', padding: '6px 14px', color: '#64748b' }}
+              onClick={() => setShowRoleSwitcher(!showRoleSwitcher)}
+            >
+              {showRoleSwitcher ? '▲ Ẩn bộ chuyển đổi vai trò thử nghiệm' : '▼ Chế độ Thử nghiệm Vai trò (Developer / QA)'}
+            </button>
+
+            {showRoleSwitcher && (
+              <div className="sso-profiles-list" style={{ maxWidth: '480px', margin: '12px auto 0' }}>
+                <p style={{ fontSize: '12px', color: '#64748b', textAlign: 'center', margin: '0 0 8px 0' }}>
+                  Bấm vào hồ sơ bên dưới để thử nghiệm giao diện với vai trò tương ứng:
+                </p>
+                {profiles.map((p, idx) => (
+                  <button
+                    key={`${p.email}-${idx}`}
+                    type="button"
+                    className="sso-profile-item"
+                    onClick={() => handleSwitch(p)}
+                  >
+                    <div className="sso-profile-item-info">
+                      <span className="sso-profile-item-name">
+                        {p.displayName || p.username} • {p.departmentName || p.departmentCode}
+                      </span>
+                      <span className="sso-profile-item-email">{p.email || p.username}</span>
+                    </div>
+                    <span className={checkIsAdmin(p.role) ? 'sso-badge-admin' : 'sso-badge-user'}>
+                      {p.role}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default HomeView;
