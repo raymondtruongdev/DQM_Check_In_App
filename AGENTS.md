@@ -107,7 +107,6 @@ dqm-spfx-checkin/
 │           └── models/
 │               └── DataCheckinModel.ts    # Re-export bridge for backward compat
 ├── AGENTS.md                    # This persistent reference guide
-├── GEMINI.md                    # Antigravity developer reference
 ├── package.json
 └── tsconfig.json
 ```
@@ -180,4 +179,5 @@ npm run build
 2. **Preserve Design Tokens:** Always use CSS variables from `App.css` (`--color-accent`, `--space-*`, `--radius-*`) instead of hardcoding random hex colors.
 3. **Keep the Action Column Clean:** Do not apply `position: sticky; right: 0;` to `.td-actions` or `.th-actions`, as sticky positioning inside flex-clipped containers causes action buttons to overlap adjacent data columns.
 4. **Preserve Column Resizing Contract:** Any added column must be registered in `DEFAULT_COLUMN_WIDTHS`, `MIN_COLUMN_WIDTHS`, and `<colgroup>`.
+5. **Git Commit & Push Policy:** DO NOT automatically run `git commit` or `git push`. Only commit and push when the user explicitly requests or approves it.
 
