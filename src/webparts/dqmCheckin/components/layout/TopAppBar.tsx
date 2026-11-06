@@ -1,24 +1,19 @@
 import React from 'react';
+import type { UserSession, ViewMode } from '../../types';
 
 interface TopAppBarProps {
   onRefresh?: () => void;
   isLoading?: boolean;
   itemCount?: number;
-  currentUser?: {
-    username: string;
-    displayName: string;
-    role?: string;
-    isAdmin?: boolean;
-  } | null;
+  currentUser?: UserSession | null;
   onLogout?: () => void;
-  activeView?: 'cards' | 'table';
-  onViewChange?: (view: 'cards' | 'table') => void;
+  activeView?: ViewMode;
+  onViewChange?: (view: ViewMode) => void;
 }
 
 export const TopAppBar: React.FC<TopAppBarProps> = ({
   onRefresh,
   isLoading,
-  itemCount,
   currentUser,
   onLogout,
   activeView = 'cards',

@@ -69,21 +69,45 @@ dqm-spfx-checkin/
 │       └── dqmCheckin/
 │           ├── DqmCheckinWebPart.ts        # BaseClientSideWebPart entrypoint
 │           ├── DqmCheckinWebPart.manifest.json # WebPart metadata & capabilities
-│           ├── models/
-│           │   └── DataCheckinModel.ts    # TypeScript interfaces (Read/Write)
+│           ├── types/                      # Domain & UI TypeScript types
+│           │   ├── auth.types.ts
+│           │   ├── checkin.types.ts
+│           │   ├── common.types.ts
+│           │   └── index.ts
+│           ├── constants/                  # Configuration, storage keys, mocks
+│           │   ├── sampleRecords.ts
+│           │   ├── storageKeys.ts
+│           │   ├── tableConfig.ts
+│           │   └── index.ts
+│           ├── utils/                      # Pure helper functions
+│           │   ├── avatarUtils.ts
+│           │   ├── dateUtils.ts
+│           │   ├── fieldParsers.ts
+│           │   └── index.ts
 │           ├── services/
 │           │   └── SharePointService.ts   # CRUD operations via SPHttpClient
-│           └── components/
-│               ├── DqmCheckin.tsx         # Main Orchestrator component
-│               ├── LoginPage.tsx          # Credentials authentication form
-│               ├── TopAppBar.tsx          # Header bar with user profile & logout
-│               ├── WorkItemsTable.tsx     # 7-column data grid with resize & sort
-│               ├── EditItemView.tsx       # Record edit modal
-│               ├── DeleteConfirmModal.tsx # Delete confirmation dialog
-│               ├── SkeletonLoader.tsx     # Skeleton loading state
-│               ├── ErrorState.tsx         # Graceful error banner with retry
-│               └── App.css                # SaaS Design System styles & tokens
+│           ├── views/                      # Feature / Screen modules
+│           │   ├── login/LoginView.tsx
+│           │   ├── checkinCards/CheckinCardsView.tsx
+│           │   ├── checkinTable/CheckinTableView.tsx
+│           │   ├── checkinEdit/CheckinEditView.tsx
+│           │   └── index.ts
+│           ├── components/                 # Shared / Reusable UI components
+│           │   ├── layout/
+│           │   │   ├── TopAppBar.tsx
+│           │   │   └── ToastAlert.tsx
+│           │   ├── modals/
+│           │   │   └── DeleteConfirmModal.tsx
+│           │   ├── feedback/
+│           │   │   ├── SkeletonLoader.tsx
+│           │   │   └── ErrorState.tsx
+│           │   ├── DqmCheckin.tsx         # Main Orchestrator component
+│           │   ├── App.css                # SaaS Design System styles & tokens
+│           │   └── index.ts
+│           └── models/
+│               └── DataCheckinModel.ts    # Re-export bridge for backward compat
 ├── AGENTS.md                    # This persistent reference guide
+├── GEMINI.md                    # Antigravity developer reference
 ├── package.json
 └── tsconfig.json
 ```
@@ -92,13 +116,13 @@ dqm-spfx-checkin/
 
 ## 5. Key Components & Behavioral Rules
 
-### 1. Authentication Flow (`LoginPage.tsx` + `DqmCheckin.tsx`)
-* The app defaults to showing the `LoginPage` if no active session is found in `sessionStorage` (`dqm_spfx_session`).
+### 1. Authentication Flow (`LoginView.tsx` + `DqmCheckin.tsx`)
+* The app defaults to showing the `LoginView` if no active session is found in `sessionStorage` (`dqm_spfx_session`).
 * When the user clicks **Đăng Nhập**, `SharePointService.getAccounts()` queries the `Account` list directly via `SPHttpClient`.
 * If credentials match, `currentUser` is saved to `sessionStorage` and the user transitions into the Check-in Management view.
-* Clicking **Đăng xuất** in `TopAppBar` clears the session and resets back to `LoginPage`.
+* Clicking **Đăng xuất** in `TopAppBar` clears the session and resets back to `LoginView`.
 
-### 2. Data Grid Architecture (`WorkItemsTable.tsx`)
+### 2. Data Grid Architecture (`CheckinTableView.tsx`)
 * **7 Standard Columns:**
   1. `Id` (`#field_0` or `#ID`)
   2. `Name` (Avatar + `Title`)

@@ -55,44 +55,35 @@ export const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({ rowCount = 5 }) 
 
               {/* Phone */}
               <td>
-                <div
-                  className="skeleton-shimmer skeleton-line"
-                  style={{ width: `${100 + (index % 2) * 15}px` }}
-                />
+                <div className="skeleton-shimmer skeleton-line" style={{ width: '110px' }} />
               </td>
 
               {/* Check in */}
               <td>
-                <div
-                  className="skeleton-shimmer skeleton-line"
-                  style={{ width: `${120 + (index % 2) * 20}px` }}
-                />
+                <div className="skeleton-shimmer skeleton-line" style={{ width: '130px' }} />
               </td>
 
               {/* Location */}
               <td>
-                <div className="skeleton-cell-group">
-                  <div className="skeleton-shimmer skeleton-icon" />
-                  <div
-                    className="skeleton-shimmer skeleton-line"
-                    style={{ width: `${90 + (index % 3) * 25}px` }}
-                  />
-                </div>
-              </td>
-
-              {/* note */}
-              <td>
                 <div
-                  className="skeleton-shimmer skeleton-line"
-                  style={{ width: `${130 + (index % 4) * 30}px` }}
+                  className="skeleton-shimmer skeleton-badge"
+                  style={{ width: `${80 + (index % 2) * 20}px` }}
                 />
               </td>
 
-              {/* ACTION: Centered skeleton buttons */}
-              <td className="td-actions">
+              {/* Note */}
+              <td>
+                <div
+                  className="skeleton-shimmer skeleton-line"
+                  style={{ width: `${140 + (index % 4) * 25}px` }}
+                />
+              </td>
+
+              {/* Actions */}
+              <td className="td-actions" style={{ textAlign: 'center' }}>
                 <div className="row-actions" style={{ justifyContent: 'center' }}>
-                  <div className="skeleton-shimmer skeleton-line" style={{ width: '50px', height: '28px', borderRadius: '6px' }} />
-                  <div className="skeleton-shimmer skeleton-line" style={{ width: '58px', height: '28px', borderRadius: '6px' }} />
+                  <div className="skeleton-shimmer skeleton-button" style={{ width: '32px', height: '32px' }} />
+                  <div className="skeleton-shimmer skeleton-button" style={{ width: '32px', height: '32px' }} />
                 </div>
               </td>
             </tr>

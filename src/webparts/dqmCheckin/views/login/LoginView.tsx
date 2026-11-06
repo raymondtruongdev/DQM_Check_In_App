@@ -1,14 +1,8 @@
 import React, { useState } from 'react';
-import { SharePointService } from '../services/SharePointService';
+import type { UserSession } from '../../types';
+import { SharePointService } from '../../services/SharePointService';
 
-export interface UserSession {
-  username: string;
-  displayName: string;
-  role: string;
-  isAdmin: boolean;
-}
-
-interface LoginPageProps {
+interface LoginViewProps {
   onLoginSuccess: (user: UserSession) => void;
   spService: SharePointService;
   siteUrl: string;
@@ -47,7 +41,6 @@ export function checkIsAdmin(role: string): boolean {
 
 // Helper to extract username from account item
 function getAccountUsername(acc: Record<string, unknown>): string {
-  // Check exact Username or field_1 (SharePoint internal name for Username in Account list)
   const possibleKeys = [
     'Username', 'username', 'UserName', 'User_x0020_Name',
     'field_1', // Internal name for Username column in Account list
@@ -65,7 +58,6 @@ function getAccountUsername(acc: Record<string, unknown>): string {
 
 // Helper to extract password from account item
 function getAccountPassword(acc: Record<string, unknown>): string {
-  // Check exact Password or field_2 (SharePoint internal name for Password in Account list)
   const possibleKeys = [
     'Password', 'password', 'PassWord', 'Pass_x0020_Word',
     'field_2', // Internal name for Password column in Account list
@@ -78,7 +70,6 @@ function getAccountPassword(acc: Record<string, unknown>): string {
       return String(val).trim();
     }
   }
-  // Check any property name containing pass, pwd, or khau
   for (const key of Object.keys(acc)) {
     const lower = key.toLowerCase();
     if (lower.includes('pass') || lower.includes('pwd') || lower.includes('khau')) {
@@ -91,7 +82,7 @@ function getAccountPassword(acc: Record<string, unknown>): string {
   return '';
 }
 
-export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, spService, siteUrl }) => {
+export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, spService, siteUrl }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -100,7 +91,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, spService,
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Authenticate against SharePoint Account list
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     setErrorMessage(null);
     setStatusMessage(null);
@@ -116,9 +107,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, spService,
     setIsSubmitting(true);
 
     try {
-      console.log('[LoginPage] Querying SharePoint Account list via SPHttpClient from site:', siteUrl);
+      console.log('[LoginView] Querying SharePoint Account list via SPHttpClient from site:', siteUrl);
       const accounts = await spService.getAccounts(siteUrl);
-      console.log(`[LoginPage] Found ${accounts.length} accounts in SharePoint:`, accounts);
+      console.log(`[LoginView] Found ${accounts.length} accounts in SharePoint:`, accounts);
 
       if (accounts.length === 0) {
         setErrorMessage(
@@ -127,26 +118,25 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, spService,
         return;
       }
 
-      // 1. Find account by username (checking Username, Title, etc.)
+      // 1. Find account by username
       const matchedUser = accounts.find((acc) => {
         const u = getAccountUsername(acc).toLowerCase();
         return u === trimmedUser.toLowerCase();
       });
 
       if (!matchedUser) {
-        console.warn(`[LoginPage] Username "${trimmedUser}" not found. Available usernames:`, accounts.map(a => getAccountUsername(a)));
+        console.warn(`[LoginView] Username "${trimmedUser}" not found. Available usernames:`, accounts.map(a => getAccountUsername(a)));
         setErrorMessage(`Không tìm thấy tài khoản "${trimmedUser}" trong danh sách Account trên SharePoint.`);
         return;
       }
 
-      console.log(`[LoginPage] Found account for "${trimmedUser}":`, matchedUser);
-      console.log(`[LoginPage] Available columns on this account:`, Object.keys(matchedUser));
+      console.log(`[LoginView] Found account for "${trimmedUser}":`, matchedUser);
 
       // 2. Extract password from account
       const storedPass = getAccountPassword(matchedUser);
 
       if (!storedPass) {
-        console.warn(`[LoginPage] Password column not found or empty on user account:`, matchedUser);
+        console.warn(`[LoginView] Password column not found or empty on user account:`, matchedUser);
         const columnNames = Object.keys(matchedUser).filter(k => !k.startsWith('OData_') && !k.startsWith('{')).join(', ');
         setErrorMessage(`Tài khoản "${trimmedUser}" tồn tại nhưng chưa có mật khẩu trong cột Password. Các cột tìm thấy trong list: [${columnNames}]`);
         return;
@@ -163,7 +153,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, spService,
         );
         const role = getAccountRole(matchedUser);
         const isAdmin = checkIsAdmin(role);
-        console.log(`[LoginPage] User authenticated: "${trimmedUser}", role: "${role}", isAdmin: ${isAdmin}`);
+        console.log(`[LoginView] User authenticated: "${trimmedUser}", role: "${role}", isAdmin: ${isAdmin}`);
 
         onLoginSuccess({
           username: trimmedUser,
@@ -173,12 +163,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, spService,
         });
         return;
       } else {
-        console.warn(`[LoginPage] Password mismatch for ${trimmedUser}.`);
+        console.warn(`[LoginView] Password mismatch for ${trimmedUser}.`);
         setErrorMessage('Mật khẩu không chính xác. Vui lòng kiểm tra lại (chú ý chữ hoa/thường, khoảng trắng).');
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
-      console.error('[LoginPage] Authentication error:', err);
+      console.error('[LoginView] Authentication error:', err);
       setErrorMessage(`Không thể kết nối đến SharePoint Account: ${msg}`);
       setStatusMessage('Gợi ý: Nếu đang chạy thử nghiệm, bạn có thể dùng nút Đăng nhập Nhanh bên dưới.');
     } finally {
@@ -187,7 +177,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, spService,
   };
 
   // Quick fallback demo login
-  const handleQuickDemo = () => {
+  const handleQuickDemo = (): void => {
     setUsername('admin');
     setPassword('admin123');
     setErrorMessage(null);
@@ -372,4 +362,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, spService,
     </div>
   );
 };
-export default LoginPage;
+
+export const LoginPage = LoginView;
+export default LoginView;

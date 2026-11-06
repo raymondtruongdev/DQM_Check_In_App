@@ -2,92 +2,11 @@ import * as React from 'react';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import './App.css';
 import type { IDqmCheckinProps } from './IDqmCheckinProps';
-import { LoginPage } from './LoginPage';
-import { TopAppBar } from './TopAppBar';
-import { WorkItemsTable } from './WorkItemsTable';
-import { CheckinCardsView } from './CheckinCardsView';
-import { SkeletonLoader } from './SkeletonLoader';
-import { ErrorState } from './ErrorState';
-import { EditItemView } from './EditItemView';
-import { DeleteConfirmModal } from './DeleteConfirmModal';
+import type { Data_checkinRead, Data_checkinWrite, UserSession, ViewMode, ToastState } from '../types';
+import { SAMPLE_RECORDS, SESSION_STORAGE_KEY } from '../constants';
 import { SharePointService } from '../services/SharePointService';
-import type { Data_checkinRead, Data_checkinWrite } from '../models/DataCheckinModel';
-
-// Realistic sample records for instant preview / local development fallback
-const SAMPLE_RECORDS: Data_checkinRead[] = [
-  {
-    ID: 1,
-    Id: 101,
-    Name: 'Quarterly Audit Inspection',
-    Title: 'Quarterly Audit Inspection',
-    Phone: '+84 901 234 567',
-    Check_x0020_in: '2026-11-03T08:30:00Z',
-    Location: 'Hanoi Logistics Hub',
-    Note: 'Passed preliminary safety and compliance standards',
-  },
-  {
-    ID: 2,
-    Id: 102,
-    Name: 'Assembly Line #3 Calibration',
-    Title: 'Assembly Line #3 Calibration',
-    Phone: '+84 912 345 678',
-    Check_x0020_in: '2026-11-03T09:15:00Z',
-    Location: 'Chu Lai Manufacturing Plant',
-    Note: 'Torque sensors recalibrated to 0.05Nm tolerance',
-  },
-  {
-    ID: 3,
-    Id: 103,
-    Name: 'Inbound Material Quality Review',
-    Title: 'Inbound Material Quality Review',
-    Phone: '+84 983 456 789',
-    Check_x0020_in: '2026-11-03T10:00:00Z',
-    Location: 'Da Nang Warehouse C',
-    Note: 'Steel sheet batch #ST-449 verified against metallurgy specs',
-  },
-  {
-    ID: 4,
-    Id: 104,
-    Name: 'Paint Shop Airflow Verification',
-    Title: 'Paint Shop Airflow Verification',
-    Phone: '+84 908 765 432',
-    Check_x0020_in: '2026-11-03T11:45:00Z',
-    Location: 'Chu Lai Main Complex',
-    Note: 'HEPA filters inspected; next scheduled replacement in 45 days',
-  },
-  {
-    ID: 5,
-    Id: 105,
-    Name: 'Final Vehicle Road Test',
-    Title: 'Final Vehicle Road Test',
-    Phone: '+84 918 876 543',
-    Check_x0020_in: '2026-11-03T13:20:00Z',
-    Location: 'Test Track Alpha',
-    Note: 'Braking distance and NVH performance within target thresholds',
-  },
-  {
-    ID: 6,
-    Id: 106,
-    Name: 'Chassis Welding Ultrasonic Check',
-    Title: 'Chassis Welding Ultrasonic Check',
-    Phone: '+84 934 567 890',
-    Check_x0020_in: '2026-11-03T14:10:00Z',
-    Location: 'Chu Lai Body Shop',
-    Note: 'Robotic seam welds ultrasonic testing completed with zero defects',
-  },
-];
-
-interface ToastState {
-  type: 'success' | 'error';
-  text: string;
-}
-
-interface UserSession {
-  username: string;
-  displayName: string;
-  role?: string;
-  isAdmin?: boolean;
-}
+import { LoginView, CheckinCardsView, CheckinTableView, CheckinEditView } from '../views';
+import { TopAppBar, ToastAlert, DeleteConfirmModal, SkeletonLoader, ErrorState } from './index';
 
 export const DqmCheckin: React.FC<IDqmCheckinProps> = (props) => {
   const { spHttpClient, siteUrl } = props;
@@ -96,12 +15,12 @@ export const DqmCheckin: React.FC<IDqmCheckinProps> = (props) => {
   const spService = useMemo(() => new SharePointService(spHttpClient), [spHttpClient]);
 
   // View Mode: 'cards' by default as requested (for desktop and mobile)
-  const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
+  const [viewMode, setViewMode] = useState<ViewMode>('cards');
 
   // Session state: null by default so user is presented with the Login Page first
   const [currentUser, setCurrentUser] = useState<UserSession | null>(() => {
     try {
-      const saved = sessionStorage.getItem('dqm_spfx_session');
+      const saved = sessionStorage.getItem(SESSION_STORAGE_KEY);
       if (saved) return JSON.parse(saved);
     } catch {
       // Ignore
@@ -125,7 +44,7 @@ export const DqmCheckin: React.FC<IDqmCheckinProps> = (props) => {
   // Toast Notification
   const [toast, setToast] = useState<ToastState | null>(null);
 
-  const showToast = useCallback((type: 'success' | 'error', text: string) => {
+  const showToast = useCallback((type: 'success' | 'error', text: string): void => {
     setToast({ type, text });
   }, []);
 
@@ -138,90 +57,82 @@ export const DqmCheckin: React.FC<IDqmCheckinProps> = (props) => {
     return () => clearTimeout(timer);
   }, [toast]);
 
-  // Asynchronous data fetcher using SharePoint REST API
-  const fetchRecords = useCallback(async () => {
+  // Fetch items from SharePoint list
+  const loadItems = useCallback(async (): Promise<void> => {
+    setIsLoading(true);
+    setErrorMessage(null);
+    setIsDemoMode(false);
+
     try {
+      console.log(`[DqmCheckin] Loading items from site: ${siteUrl}`);
       const data = await spService.getAll(siteUrl);
-      console.log('SP data_checkin raw items:', data);
-      if (data && data.length > 0) {
-        console.log('Sample item keys:', Object.keys(data[0]));
-        console.log('Sample item record:', data[0]);
-      }
+      console.log(`[DqmCheckin] Successfully retrieved ${data.length} records.`);
       setItems(data);
-      setErrorMessage(null);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
-      setErrorMessage(msg);
+      console.error('[DqmCheckin] Error retrieving items:', err);
+
+      setErrorMessage(
+        `Không thể kết nối đến SharePoint list "data_checkin": ${msg}. ` +
+        'Hãy kiểm tra lại quyền truy cập hoặc cấu hình site URL.'
+      );
     } finally {
       setIsLoading(false);
     }
   }, [spService, siteUrl]);
 
-  const handleRefresh = useCallback(() => {
-    setIsLoading(true);
-    setErrorMessage(null);
-    setIsDemoMode(false);
-    setEditingItem(null);
-    void fetchRecords();
-  }, [fetchRecords]);
-
-  // Initial load only after user is authenticated
+  // Trigger initial load when authenticated
   useEffect(() => {
-    if (!currentUser) return;
-    let ignore = false;
+    if (currentUser) {
+      loadItems().catch((err: unknown) => {
+        console.error('[DqmCheckin] Error in initial loadItems:', err);
+      });
+    }
+  }, [currentUser, loadItems]);
 
-    async function initialize() {
-      try {
-        const data = await spService.getAll(siteUrl);
-        if (ignore) return;
-        console.log('SP data_checkin raw items (init):', data);
-        if (data && data.length > 0) {
-          console.log('Sample item keys (init):', Object.keys(data[0]));
-          console.log('Sample item record (init):', data[0]);
-        }
-        setItems(data);
-        setErrorMessage(null);
-      } catch (err: unknown) {
-        if (ignore) return;
-        const msg = err instanceof Error ? err.message : String(err);
-        setErrorMessage(msg);
-      } finally {
-        if (!ignore) {
-          setIsLoading(false);
-        }
-      }
+  // Handle manual refresh
+  const handleRefresh = (): void => {
+    if (isDemoMode) {
+      setIsLoading(true);
+      setTimeout(() => {
+        setIsLoading(false);
+        showToast('success', 'Đã làm mới dữ liệu mẫu.');
+      }, 500);
+      return;
     }
 
-    void initialize();
+    loadItems()
+      .then(() => {
+        showToast('success', 'Dữ liệu danh sách đã được đồng bộ mới nhất.');
+      })
+      .catch((err: unknown) => {
+        const msg = err instanceof Error ? err.message : String(err);
+        showToast('error', `Làm mới thất bại: ${msg}`);
+      });
+  };
 
-    return () => {
-      ignore = true;
-    };
-  }, [spService, siteUrl, currentUser]);
-
-  const handleLoginSuccess = (user: UserSession) => {
+  // Auth Handlers
+  const handleLoginSuccess = (user: UserSession): void => {
     setCurrentUser(user);
     try {
-      sessionStorage.setItem('dqm_spfx_session', JSON.stringify(user));
+      sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(user));
     } catch {
       // Ignore
     }
-    showToast('success', `Chào mừng ${user.displayName} đăng nhập thành công!`);
+    showToast('success', `Chào mừng ${user.displayName} đã đăng nhập!`);
   };
 
-  const handleLogout = () => {
+  const handleLogout = (): void => {
     setCurrentUser(null);
-    setEditingItem(null);
-    setDeletingItem(null);
     try {
-      sessionStorage.removeItem('dqm_spfx_session');
+      sessionStorage.removeItem(SESSION_STORAGE_KEY);
     } catch {
       // Ignore
     }
     showToast('success', 'Bạn đã đăng xuất.');
   };
 
-  const handleUseDemoData = () => {
+  const handleUseDemoData = (): void => {
     setItems(SAMPLE_RECORDS);
     setIsDemoMode(true);
     setErrorMessage(null);
@@ -230,18 +141,18 @@ export const DqmCheckin: React.FC<IDqmCheckinProps> = (props) => {
   // =========================================================================
   // Edit Handlers
   // =========================================================================
-  const handleOpenEdit = (item: Data_checkinRead) => {
+  const handleOpenEdit = (item: Data_checkinRead): void => {
     setEditingItem(item);
     setSaveError(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleCloseEdit = () => {
+  const handleCloseEdit = (): void => {
     setEditingItem(null);
     setSaveError(null);
   };
 
-  const handleSaveEdit = async (changedFields: Partial<Omit<Data_checkinWrite, 'ID'>>) => {
+  const handleSaveEdit = async (changedFields: Partial<Omit<Data_checkinWrite, 'ID'>>): Promise<void> => {
     if (!editingItem || editingItem.ID === undefined) return;
 
     setIsSaving(true);
@@ -282,16 +193,16 @@ export const DqmCheckin: React.FC<IDqmCheckinProps> = (props) => {
   // =========================================================================
   // Delete Handlers
   // =========================================================================
-  const handleOpenDelete = (item: Data_checkinRead) => {
+  const handleOpenDelete = (item: Data_checkinRead): void => {
     setDeletingItem(item);
   };
 
-  const handleCloseDelete = () => {
+  const handleCloseDelete = (): void => {
     if (isDeleting) return;
     setDeletingItem(null);
   };
 
-  const handleConfirmDelete = async () => {
+  const handleConfirmDelete = async (): Promise<void> => {
     if (!deletingItem || deletingItem.ID === undefined) return;
 
     setIsDeleting(true);
@@ -326,7 +237,7 @@ export const DqmCheckin: React.FC<IDqmCheckinProps> = (props) => {
   if (!currentUser) {
     return (
       <div className="app-layout">
-        <LoginPage
+        <LoginView
           onLoginSuccess={handleLoginSuccess}
           spService={spService}
           siteUrl={siteUrl}
@@ -351,37 +262,7 @@ export const DqmCheckin: React.FC<IDqmCheckinProps> = (props) => {
       {/* Main Container */}
       <main className="main-content">
         {/* Toast Alert */}
-        {toast && (
-          <div
-            className={`app-toast toast-${toast.type}`}
-            role="status"
-            aria-live="polite"
-          >
-            <div className="toast-icon" aria-hidden="true">
-              {toast.type === 'success' ? (
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                  <polyline points="22 4 12 14.01 9 11.01" />
-                </svg>
-              ) : (
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="12" r="10" />
-                  <line x1="12" y1="8" x2="12" y2="12" />
-                  <line x1="12" y1="16" x2="12.01" y2="16" />
-                </svg>
-              )}
-            </div>
-            <span className="toast-message">{toast.text}</span>
-            <button
-              type="button"
-              className="toast-close-btn"
-              onClick={() => setToast(null)}
-              aria-label="Dismiss notification"
-            >
-              &times;
-            </button>
-          </div>
-        )}
+        <ToastAlert toast={toast} onClose={() => setToast(null)} />
 
         {/* Dynamic State Rendering */}
         {isLoading ? (
@@ -393,7 +274,7 @@ export const DqmCheckin: React.FC<IDqmCheckinProps> = (props) => {
             onUseDemoData={handleUseDemoData}
           />
         ) : editingItem ? (
-          <EditItemView
+          <CheckinEditView
             item={editingItem}
             isSaving={isSaving}
             saveError={saveError}
@@ -411,7 +292,7 @@ export const DqmCheckin: React.FC<IDqmCheckinProps> = (props) => {
             isLoading={isLoading}
           />
         ) : (
-          <WorkItemsTable
+          <CheckinTableView
             items={items}
             isDemoData={isDemoMode}
             onEdit={handleOpenEdit}
@@ -433,4 +314,5 @@ export const DqmCheckin: React.FC<IDqmCheckinProps> = (props) => {
   );
 };
 
+export const DqmCheckinApp = DqmCheckin;
 export default DqmCheckin;

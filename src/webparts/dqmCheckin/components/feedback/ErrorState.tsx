@@ -20,9 +20,9 @@ export const ErrorState: React.FC<ErrorStateProps> = ({ message, onRetry, onUseD
       </div>
 
       <div className="error-content">
-        <h3 className="error-title">Couldn't load check-in items</h3>
+        <h3 className="error-title">Không thể tải dữ liệu check-in</h3>
         <p className="error-description">
-          We encountered an issue connecting to the SharePoint list. This may happen if the local environment is missing session credentials or during network interruptions.
+          Đã xảy ra lỗi khi kết nối với danh sách SharePoint. Điều này có thể do phiên đăng nhập hết hạn hoặc đường truyền mạng gián đoạn.
         </p>
 
         {message && (
@@ -32,7 +32,7 @@ export const ErrorState: React.FC<ErrorStateProps> = ({ message, onRetry, onUseD
               className="error-toggle-btn"
               onClick={() => setShowDetails(!showDetails)}
             >
-              {showDetails ? 'Hide technical details' : 'Show technical details'}
+              {showDetails ? 'Ẩn chi tiết kỹ thuật' : 'Xem chi tiết kỹ thuật'}
             </button>
             {showDetails && (
               <pre className="error-tech-box">{message}</pre>
@@ -46,12 +46,12 @@ export const ErrorState: React.FC<ErrorStateProps> = ({ message, onRetry, onUseD
               <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
               <path d="M3 3v5h5" />
             </svg>
-            Try Again
+            Thử lại
           </button>
 
           {onUseDemoData && (
             <button type="button" className="btn-secondary" onClick={onUseDemoData}>
-              Preview with Sample Data
+              Dùng dữ liệu mẫu (Demo)
             </button>
           )}
         </div>
@@ -59,4 +59,3 @@ export const ErrorState: React.FC<ErrorStateProps> = ({ message, onRetry, onUseD
     </div>
   );
 };
-

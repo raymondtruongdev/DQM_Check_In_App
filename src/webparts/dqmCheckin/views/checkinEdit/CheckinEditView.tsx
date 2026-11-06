@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { Data_checkinRead, Data_checkinWrite } from '../models/DataCheckinModel';
+import type { Data_checkinRead, Data_checkinWrite } from '../../types';
 import {
   getItemName,
   getItemDisplayId,
@@ -7,9 +7,11 @@ import {
   getItemLocation,
   getItemNote,
   getItemPhone,
-} from '../models/DataCheckinModel';
+  isoToDatetimeLocal,
+  datetimeLocalToIso,
+} from '../../utils';
 
-interface EditItemViewProps {
+export interface CheckinEditViewProps {
   item: Data_checkinRead;
   onSave: (changedFields: Partial<Omit<Data_checkinWrite, 'ID'>>) => Promise<void>;
   onBack: () => void;
@@ -17,37 +19,7 @@ interface EditItemViewProps {
   saveError: string | null;
 }
 
-// Helper to convert ISO date string to datetime-local format (YYYY-MM-DDTHH:mm)
-function isoToDatetimeLocal(iso?: string): string {
-  if (!iso) return '';
-  try {
-    const d = new Date(iso);
-    if (isNaN(d.getTime())) return '';
-    const pad = (n: number) => (n < 10 ? '0' + n : String(n));
-    const year = d.getFullYear();
-    const month = pad(d.getMonth() + 1);
-    const day = pad(d.getDate());
-    const hours = pad(d.getHours());
-    const minutes = pad(d.getMinutes());
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
-  } catch {
-    return '';
-  }
-}
-
-// Helper to convert datetime-local format back to ISO string
-function datetimeLocalToIso(val?: string): string | undefined {
-  if (!val) return undefined;
-  try {
-    const d = new Date(val);
-    if (isNaN(d.getTime())) return undefined;
-    return d.toISOString();
-  } catch {
-    return undefined;
-  }
-}
-
-export const EditItemView: React.FC<EditItemViewProps> = ({
+export const CheckinEditView: React.FC<CheckinEditViewProps> = ({
   item,
   onSave,
   onBack,
@@ -363,3 +335,6 @@ export const EditItemView: React.FC<EditItemViewProps> = ({
     </div>
   );
 };
+
+export const EditItemView = CheckinEditView;
+export default CheckinEditView;

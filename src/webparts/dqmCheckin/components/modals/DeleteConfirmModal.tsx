@@ -1,6 +1,6 @@
 import React from 'react';
-import type { Data_checkinRead } from '../models/DataCheckinModel';
-import { getItemDisplayId, getItemName } from '../models/DataCheckinModel';
+import type { Data_checkinRead } from '../../types';
+import { getItemDisplayId, getItemName } from '../../utils';
 
 interface DeleteConfirmModalProps {
   item: Data_checkinRead | null;
@@ -73,7 +73,7 @@ export const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
                 <svg className="spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
                 </svg>
-                Đang xóa...
+                <span>Đang xóa...</span>
               </>
             ) : (
               'Xác nhận xóa'
@@ -84,4 +84,3 @@ export const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
     </div>
   );
 };
-

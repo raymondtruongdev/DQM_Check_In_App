@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import type { Data_checkinRead } from '../models/DataCheckinModel';
+import type { Data_checkinRead } from '../../types';
 import {
   getItemName,
   getItemDisplayId,
@@ -7,7 +7,13 @@ import {
   getItemLocation,
   getItemNote,
   getItemPhone,
-} from '../models/DataCheckinModel';
+} from '../../utils';
+import {
+  ACTIONS_COLUMN_WIDTH,
+  DEFAULT_COLUMN_WIDTHS,
+  MIN_COLUMN_WIDTHS,
+  COL_WIDTHS_STORAGE_KEY,
+} from '../../constants';
 
 export type SortField = 'id' | 'name' | 'phone' | 'checkin' | 'location' | 'note';
 export type SortDirection = 'asc' | 'desc';
@@ -17,7 +23,7 @@ interface SortConfig {
   direction: SortDirection;
 }
 
-interface WorkItemsTableProps {
+export interface CheckinTableViewProps {
   items: Data_checkinRead[];
   isDemoData?: boolean;
   onEdit: (item: Data_checkinRead) => void;
@@ -25,28 +31,7 @@ interface WorkItemsTableProps {
   isAdmin?: boolean;
 }
 
-// Fixed width for the Action column so buttons always remain visible and stable
-const ACTIONS_COLUMN_WIDTH = 130;
-
-// Sensible compact default column widths in pixels so all 7 columns fit on screen
-const DEFAULT_COLUMN_WIDTHS: Record<string, number> = {
-  id: 70,
-  name: 170,
-  phone: 125,
-  checkin: 150,
-  location: 120,
-  note: 150,
-};
-
-// Minimum column widths to ensure usability
-const MIN_COLUMN_WIDTHS: Record<string, number> = {
-  id: 55,
-  name: 120,
-  phone: 95,
-  checkin: 120,
-  location: 95,
-  note: 110,
-};
+export type WorkItemsTableProps = CheckinTableViewProps;
 
 // Visual Sort Indicator Icon component
 const SortIndicator: React.FC<{ active: boolean; direction: SortDirection }> = ({
@@ -73,7 +58,7 @@ const SortIndicator: React.FC<{ active: boolean; direction: SortDirection }> = (
   );
 };
 
-export const WorkItemsTable: React.FC<WorkItemsTableProps> = ({
+export const CheckinTableView: React.FC<CheckinTableViewProps> = ({
   items,
   isDemoData,
   onEdit,
@@ -97,7 +82,7 @@ export const WorkItemsTable: React.FC<WorkItemsTableProps> = ({
   // Resizable column widths with persistent storage in localStorage
   const [columnWidths, setColumnWidths] = useState<Record<string, number>>(() => {
     try {
-      const saved = localStorage.getItem('dqm_spfx_col_widths_v2');
+      const saved = localStorage.getItem(COL_WIDTHS_STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed.title && !parsed.name) {
@@ -148,7 +133,7 @@ export const WorkItemsTable: React.FC<WorkItemsTableProps> = ({
         setColumnWidths((prev) => {
           const next = { ...prev, [columnKey]: newWidth };
           try {
-            localStorage.setItem('dqm_spfx_col_widths_v2', JSON.stringify(next));
+            localStorage.setItem(COL_WIDTHS_STORAGE_KEY, JSON.stringify(next));
           } catch {
             // Ignore storage errors
           }
@@ -177,7 +162,7 @@ export const WorkItemsTable: React.FC<WorkItemsTableProps> = ({
     setColumnWidths((prev) => {
       const next = { ...prev, [columnKey]: DEFAULT_COLUMN_WIDTHS[columnKey] };
       try {
-        localStorage.setItem('dqm_spfx_col_widths_v2', JSON.stringify(next));
+        localStorage.setItem(COL_WIDTHS_STORAGE_KEY, JSON.stringify(next));
       } catch {
         // Ignore storage errors
       }
@@ -189,7 +174,7 @@ export const WorkItemsTable: React.FC<WorkItemsTableProps> = ({
   const resetAllWidths = () => {
     setColumnWidths(DEFAULT_COLUMN_WIDTHS);
     try {
-      localStorage.removeItem('dqm_spfx_col_widths_v2');
+      localStorage.removeItem(COL_WIDTHS_STORAGE_KEY);
       localStorage.removeItem('powerapp1_column_widths');
     } catch {
       // Ignore
@@ -927,3 +912,6 @@ export const WorkItemsTable: React.FC<WorkItemsTableProps> = ({
     </div>
   );
 };
+
+export const WorkItemsTable = CheckinTableView;
+export default CheckinTableView;
