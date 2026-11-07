@@ -1,0 +1,207 @@
+/* ==========================================================================
+   THADICO DQM - Progress Tracking Module Stylesheet
+   Follows SaaS Design System Tokens from core/styles/portal.css
+   ========================================================================== */
+
+.progress-module-container {
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: var(--space-4, 16px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4, 16px);
+  box-sizing: border-box;
+}
+
+/* Module Header */
+.progress-header {
+  display: flex;
+  align-items: center;
+  justifyContent: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3, 12px);
+  padding: var(--space-4, 16px);
+  background: var(--color-bg-card, #ffffff);
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: var(--radius-lg, 12px);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.progress-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.progress-header-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text-primary, #0f172a);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.progress-header-desc {
+  font-size: 13px;
+  color: var(--color-text-secondary, #475569);
+  margin: 0;
+}
+
+.progress-header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3, 12px);
+  flex-wrap: wrap;
+}
+
+/* Navigation Tabs */
+.progress-nav-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--color-bg-secondary, #f1f5f9);
+  padding: 4px;
+  border-radius: var(--radius-md, 8px);
+}
+
+.progress-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary, #475569);
+  border-radius: var(--radius-sm, 6px);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  min-height: 36px;
+}
+
+.progress-tab-btn:hover {
+  color: var(--color-text-primary, #0f172a);
+}
+
+.progress-tab-btn.is-active {
+  background: var(--color-bg-card, #ffffff);
+  color: var(--color-primary, #1d4ed8);
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* Table styles */
+.progress-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.progress-tree-row {
+  transition: background-color 0.15s ease;
+}
+
+.progress-tree-row:hover {
+  background-color: var(--color-bg-hover, #f8fafc) !important;
+}
+
+.progress-tree-row.level-1 {
+  background-color: #f8fafc;
+}
+
+/* Inputs */
+.progress-table input[type="text"],
+.progress-table input[type="number"] {
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.progress-table input[type="text"]:focus,
+.progress-table input[type="number"]:focus {
+  border-color: var(--color-primary, #1d4ed8) !important;
+  box-shadow: 0 0 0 2px rgba(29, 78, 216, 0.15) !important;
+}
+
+/* ==========================================================================
+   Responsive Breakpoints (Placed at the end as required)
+   Breakpoints: <=1024px, <=768px, <=640px, <=480px
+   ========================================================================== */
+
+/* Tablet (<=1024px) */
+@media screen and (max-width: 1024px) {
+  .progress-module-container {
+    padding: var(--space-3, 12px);
+    gap: var(--space-3, 12px);
+  }
+}
+
+/* iPad mini / small tablet portrait (<=768px) */
+@media screen and (max-width: 768px) {
+  .progress-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-3, 12px);
+  }
+
+  .progress-header-right {
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .progress-controls-bar {
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 12px;
+  }
+
+  .progress-controls-bar > div {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+/* Mobile landscape / small screens (<=640px) */
+@media screen and (max-width: 640px) {
+  .progress-module-container {
+    padding: var(--space-2, 8px);
+  }
+
+  .progress-nav-tabs {
+    width: 100%;
+  }
+
+  .progress-tab-btn {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .progress-kpi-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Mobile portrait (<=480px) */
+@media screen and (max-width: 480px) {
+  .progress-header-title {
+    font-size: 16px;
+  }
+
+  .progress-tab-btn {
+    font-size: 12px;
+    padding: 6px 8px;
+    min-height: 40px;
+  }
+
+  .progress-controls-bar input[type="date"] {
+    width: 100%;
+  }
+
+  .progress-table th,
+  .progress-table td {
+    padding: 8px 6px !important;
+  }
+}
+

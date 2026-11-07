@@ -65,15 +65,18 @@ Module chỉ dùng thư viện này và danh sách `UserProfiles` sẵn có (xá
 
 ### 4.1. `Projects_Role.xlsx` – sheet `Role`, Excel Table tên **`tb_role`**
 
-| ID | DocID | Unit | Site manager | Email | Status |
-|---|---|---|---|---|---|
-| 1 | HCM2-DA1-Tuong-vay | ST01 | Trương Quốc Toàn | truongquoctoan1@thadico.com | TRUE |
-| 2 | HCM2-DA1-Tuong-vay | ST02 | Trương Quốc Toàn | truongquoctoan1@thadico.com | TRUE |
+| ID | Unit | DocID | DocTitle | Site manager | Email | Status |
+|---|---|---|---|---|---|---|
+| 1 | ST01 | HCM2-DA1-Tuong-vay | Xây tường vây | Trương Quốc Toàn | truongquoctoan1@thadico.com | TRUE |
+| 2 | ST01 | HCM2-DA2-Phoi-tron-betong | Phối trộn bê tông | Trương Quốc Toàn | truongquoctoan1@thadico.com | TRUE |
+| 3 | ST02 | HCM2-DA1-Tuong-vay | Xây tường vây | Trương Quốc Toàn | truongquoctoan1@thadico.com | TRUE |
 
-- Mỗi dòng = quyền: *Email được cập nhật DocID + Unit này*. Một email có thể có nhiều dòng.
+- Mỗi dòng = quyền: *Email được cập nhật mảng việc DocID tại trạm/vị trí Unit này*.
+- Cột `DocTitle`: Tên tiếng Việt thân thiện của mảng công việc, hiển thị trên các thẻ của Landing page theo Trạm thi công (Unit).
+- Một trạm thi công (`Unit`, VD: ST01) có thể có nhiều mảng công việc (`DocID`). Landing page của module sẽ nhóm theo `Unit` và hiển thị danh sách các thẻ `DocID` tương ứng.
 - Chỉ dòng có `Status` = TRUE (chấp nhận `TRUE`, `true`, `1`, boolean) và đủ DocID, Unit, Email mới có hiệu lực.
 - Email so khớp không phân biệt hoa thường với email đăng nhập M365. Chú ý gõ đúng chính tả và đúng domain.
-- Cột `Site manager` hiển thị trong header giao diện.
+- Cột `Site manager` hiển thị trong header và thẻ mảng việc giao diện.
 
 ### 4.2. Template `_template/<DocID>/<Unit>.xlsx`
 

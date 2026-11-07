@@ -71,7 +71,8 @@ DQM_Check_In_App/
 │   │   └── styles/portal.css    # Design System CSS tokens & styling
 │   ├── modules/
 │   │   ├── home/                # HomeView: trang chủ liệt kê module từ registry
-│   │   └── checkin/             # Module 1: CheckinModule, views/, components/, services/, types/, constants/, utils/
+│   │   ├── checkin/             # Module 1: CheckinModule, views/, components/, services/, types/, constants/, utils/
+│   │   └── progress/            # Module 2: Quản lý tiến độ thi công (Excel SharePoint, tb_role, tree-table, summary pivot)
 │   └── assets/
 ├── AGENTS.md
 └── package.json
@@ -111,6 +112,22 @@ DQM_Check_In_App/
 * All calls specify `'Accept': 'application/json;odata=nometadata'` to minimize payload overhead.
 * Updates use `POST` with headers `'X-HTTP-Method': 'MERGE'` and `'If-Match': '*'`.
 * Deletions use `POST` with headers `'X-HTTP-Method': 'DELETE'` and `'If-Match': '*'`.
+
+### 4. Progress Management Module (`modules/progress`)
+
+* **Storage Model:** No SQL / no custom SharePoint List. Uses a SharePoint Document Library (`CapNhatCongViec`).
+  - Permissions: `Projects_Role.xlsx` (table `tb_role`).
+  - Base Templates: `_template/<DocID>/<Unit>.xlsx` (read-only for level 1 & 2 tasks).
+  - Daily Files: `data/<DocID>/yyMMdd_<DocID>_<Unit>.xlsx` (overwrites within the same day).
+* **Role Authorization:** User email matches `Projects_Role.xlsx` with `Status = TRUE`. Admin (`UserProfiles.Role = admin`) can access all units.
+* **Continuous Daily Loading:** Opening a new date automatically pre-fills tasks and completion rates from the most recent prior day.
+* **Tree-Table & Rate Calculation:**
+  - Parent rates (level 1 & 2) are automatically calculated as the arithmetic average of their direct children (read-only).
+  - Leaf tasks accept user input (0-100%).
+  - Users can add custom level 3 subtasks (`+ Thêm việc con`) under level 2 parents.
+* **Daily Summary Pivot:**
+  - Tab "Tổng hợp tiến độ": aggregates history across multiple dates into a pivot table (Tasks × Dates) with KPI overview and Excel export.
+* **SheetJS Lazy-Loading:** Loaded via dynamic `import(/* webpackChunkName: 'xlsx' */ 'xlsx')` so other modules do not incur bundle overhead.
 
 ---
 
