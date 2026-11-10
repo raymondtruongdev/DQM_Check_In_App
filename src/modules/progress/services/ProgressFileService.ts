@@ -17,12 +17,16 @@ export class ProgressFileService {
    * Get server-relative path for site web, e.g. /sites/metro-checkin-dev
    */
   public getSiteRelativeUrl(): string {
+    if (!this._siteUrl) return '';
     try {
-      const url = new URL(this._siteUrl);
-      return url.pathname.replace(/\/+$/, '');
+      if (this._siteUrl.startsWith('http://') || this._siteUrl.startsWith('https://')) {
+        const url = new URL(this._siteUrl);
+        return url.pathname.replace(/\/+$/, '');
+      }
     } catch {
-      return '';
+      // ignore
     }
+    return '/' + this._siteUrl.replace(/^\/+/, '').replace(/\/+$/, '');
   }
 
   /**

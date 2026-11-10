@@ -72,7 +72,8 @@ DQM_Check_In_App/
 │   ├── modules/
 │   │   ├── home/                # HomeView: trang chủ liệt kê module từ registry
 │   │   ├── checkin/             # Module 1: CheckinModule, views/, components/, services/, types/, constants/, utils/
-│   │   └── progress/            # Module 2: Quản lý tiến độ thi công (Excel SharePoint, tb_role, tree-table, summary pivot)
+│   │   ├── progress/            # Module 2: Quản lý tiến độ thi công (Excel SharePoint, tb_role, tree-table, summary pivot)
+│   │   └── report/              # Module 3: Quản lý Report (Report_Role.xlsx, Daily/Weekly report, tree-table, SharePoint data/<Unit>/<DocID>_<yyyyMMdd>/)
 │   └── assets/
 ├── AGENTS.md
 └── package.json
@@ -128,6 +129,24 @@ DQM_Check_In_App/
 * **Daily Summary Pivot:**
   - Tab "Tổng hợp tiến độ": aggregates history across multiple dates into a pivot table (Tasks × Dates) with KPI overview and Excel export.
 * **SheetJS Lazy-Loading:** Loaded via dynamic `import(/* webpackChunkName: 'xlsx' */ 'xlsx')` so other modules do not incur bundle overhead.
+
+### 5. Report Management Module (`modules/report`)
+
+* **Storage Model:** Uses the same SharePoint Document Library (`CapNhatCongViec`).
+  - Permissions: `Report_Role.xlsx` (sheet `Role`).
+  - Base Templates: `_template/<DocID>_template.xlsx` (e.g. `DailyReport_template.xlsx`, `WeeklyReport_template.xlsx`).
+  - Daily/Weekly Report Folders & Files: `data/<Unit>/<DocID>_<yyyyMMdd>/<DocID>_<yyyyMMdd>.xlsx` (e.g. `data/ST01/DailyReport_20261110/DailyReport_20261110.xlsx`).
+* **Role Authorization:** User email matches `Report_Role.xlsx` with `Status = TRUE` for valid DocIDs (`DailyReport`, `WeeklyReport`). Admin (`UserProfiles.Role = admin`) has access to all active assignments.
+* **Navigation & Tile Buttons:**
+  - Landing page shows tile buttons based on assigned roles (e.g. `ST01 DailyReport`, `ST01 WeeklyReport`, `ST02 DailyReport`), grouped with unit tabs and search filter.
+* **Hierarchical Tasks & Metadata:**
+  - Metadata form displays report info (`DocTile`, `SubTile`, `DocCode`, `Location`, `ReportNo`, `Shift`, `Email`, `UpdateTime`).
+  - Date picker supports backfilling reports for any date.
+  - Tree-table with automatic parent rate calculation (arithmetic average of direct children).
+  - Leaf tasks allow input of completion rate (0-100%) and quantity.
+* **Save & Overwrite:**
+  - Automatically creates subfolder `data/<Unit>/<DocID>_<yyyyMMdd>/` if not present.
+  - Preserves template layout and styling when saving, with ETag concurrency protection.
 
 ---
 

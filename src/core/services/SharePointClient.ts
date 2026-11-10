@@ -187,45 +187,86 @@ export class SharePointClient {
   }
 
   /**
+   * Check if a folder exists at the given server-relative URL.
+   */
+  public async folderExists(siteUrl: string, folderServerRelativeUrl: string): Promise<boolean> {
+    try {
+      const safeUrl = this._escapeUrl(folderServerRelativeUrl);
+      const endpoint = `${siteUrl}/_api/web/GetFolderByServerRelativeUrl('${safeUrl}')?$select=Exists`;
+      const response: SPHttpClientResponse = await this._spHttpClient.get(
+        endpoint,
+        SPHttpClient.configurations.v1,
+        { headers: { 'Accept': 'application/json;odata=nometadata' } }
+      );
+      if (!response.ok) return false;
+      const data = await response.json();
+      if (data && typeof data.Exists === 'boolean') {
+        return data.Exists;
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
    * Ensure a folder hierarchy exists by creating missing folders step by step.
    */
   public async ensureFolder(siteUrl: string, folderServerRelativeUrl: string): Promise<void> {
     // Normalise slashes
     const cleanPath = folderServerRelativeUrl.replace(/\\/g, '/').replace(/\/+/g, '/').replace(/\/$/, '');
-    const parts = cleanPath.split('/').filter(Boolean);
-    if (parts.length === 0) return;
+    if (!cleanPath) return;
 
     // Check if whole folder already exists
-    const safeUrl = this._escapeUrl(cleanPath);
-    const checkRes = await this._spHttpClient.get(
-      `${siteUrl}/_api/web/GetFolderByServerRelativeUrl('${safeUrl}')?$select=Exists`,
-      SPHttpClient.configurations.v1,
-      { headers: { 'Accept': 'application/json;odata=nometadata' } }
-    );
-    if (checkRes.ok) return;
+    if (await this.folderExists(siteUrl, cleanPath)) {
+      return;
+    }
 
-    // Recursively create from top down
+    // Determine the web's server-relative path (e.g. /sites/metro-checkin-dev)
+    let webServerRel = '';
+    try {
+      if (siteUrl.startsWith('http://') || siteUrl.startsWith('https://')) {
+        webServerRel = new URL(siteUrl).pathname.replace(/\/+$/, '').toLowerCase();
+      } else {
+        webServerRel = '/' + siteUrl.replace(/^\/+/, '').replace(/\/+$/, '').toLowerCase();
+      }
+    } catch {
+      webServerRel = '';
+    }
+
+    const parts = cleanPath.split('/').filter(Boolean);
     let currentPath = '';
+
     for (let i = 0; i < parts.length; i++) {
       currentPath += '/' + parts[i];
-      // Skip top-level sites root
-      if (i < 2 && currentPath.toLowerCase().startsWith('/sites/')) {
+
+      // Skip root /sites or the site web itself
+      const currentLower = currentPath.toLowerCase();
+      if (currentLower === '/sites') {
         continue;
       }
-      const safeCurr = this._escapeUrl(currentPath);
-      const res = await this._spHttpClient.get(
-        `${siteUrl}/_api/web/GetFolderByServerRelativeUrl('${safeCurr}')?$select=Exists`,
-        SPHttpClient.configurations.v1,
-        { headers: { 'Accept': 'application/json;odata=nometadata' } }
-      );
-      if (!res.ok) {
-        // Try creating
-        await this._spHttpClient.post(
+      if (webServerRel && (currentLower === webServerRel || webServerRel.startsWith(currentLower + '/'))) {
+        continue;
+      }
+
+      // Check if currentPath already exists
+      const alreadyExists = await this.folderExists(siteUrl, currentPath);
+      if (alreadyExists) {
+        continue;
+      }
+
+      // Create folder at currentPath
+      let created = false;
+      let lastError = '';
+
+      // Method 1: POST /_api/web/folders with verbose metadata
+      try {
+        const res1 = await this._spHttpClient.post(
           `${siteUrl}/_api/web/folders`,
           SPHttpClient.configurations.v1,
           {
             headers: {
-              'Accept': 'application/json;odata=nometadata',
+              'Accept': 'application/json;odata=verbose',
               'Content-Type': 'application/json;odata=verbose'
             },
             body: JSON.stringify({
@@ -234,6 +275,39 @@ export class SharePointClient {
             })
           }
         );
+        if (res1.ok) {
+          created = true;
+        } else {
+          lastError = await res1.text();
+        }
+      } catch (err: unknown) {
+        lastError = err instanceof Error ? err.message : String(err);
+      }
+
+      // Method 2: POST /_api/web/folders/addUsingPath
+      if (!created) {
+        try {
+          const safeCurr = this._escapeUrl(currentPath);
+          const res2 = await this._spHttpClient.post(
+            `${siteUrl}/_api/web/folders/addUsingPath(decodedurl='${safeCurr}',overwrite=true)`,
+            SPHttpClient.configurations.v1,
+            { headers: { 'Accept': 'application/json;odata=nometadata' } }
+          );
+          if (res2.ok) {
+            created = true;
+          } else {
+            lastError = await res2.text();
+          }
+        } catch (err: unknown) {
+          lastError = err instanceof Error ? err.message : String(err);
+        }
+      }
+
+      // Verify that the folder actually exists now
+      const verified = await this.folderExists(siteUrl, currentPath);
+      if (!verified && !created) {
+        console.error(`Không thể tạo thư mục "${currentPath}":`, lastError);
+        throw new Error(`Không thể tạo thư mục "${currentPath}" trên SharePoint: ${lastError}`);
       }
     }
   }

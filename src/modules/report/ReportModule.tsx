@@ -1,0 +1,115 @@
+import * as React from 'react';
+import { ModuleProps, RoleEntry } from '../../core/types';
+import { SharePointClient } from '../../core/services';
+import { REPORT_STORAGE_KEYS } from './constants/reportStorageKeys';
+import {
+  ReportDataService,
+  ReportFileService,
+  ReportRoleService,
+  ReportTemplateService
+} from './services';
+import { ReportLandingView } from './views/ReportLandingView';
+import { ReportEntryView } from './views/ReportEntryView';
+import './report.css';
+
+export const ReportModule: React.FC<ModuleProps> = (props) => {
+  const {
+    currentUser,
+    spHttpClient,
+    siteUrl,
+    onGoHome
+  } = props;
+
+  const isAdmin = !!currentUser?.isAdmin;
+  const effectiveEmail = currentUser?.email || currentUser?.username || '';
+
+  // Initialize services
+  const sharePointClient = React.useMemo(() => new SharePointClient(spHttpClient), [spHttpClient]);
+  const fileService = React.useMemo(() => new ReportFileService(sharePointClient, siteUrl), [sharePointClient, siteUrl]);
+  const roleService = React.useMemo(() => new ReportRoleService(fileService), [fileService]);
+  const templateService = React.useMemo(() => new ReportTemplateService(fileService), [fileService]);
+  const dataService = React.useMemo(() => new ReportDataService(fileService, templateService), [fileService, templateService]);
+
+  // View state
+  const [currentView, setCurrentView] = React.useState<'landing' | 'entry'>('landing');
+  const [selectedRole, setSelectedRole] = React.useState<RoleEntry | null>(null);
+
+  // Unit filter state
+  const [selectedUnit, setSelectedUnit] = React.useState<string>(() => {
+    try {
+      return localStorage.getItem(REPORT_STORAGE_KEYS.LAST_UNIT) || 'ALL';
+    } catch {
+      return 'ALL';
+    }
+  });
+
+  const [isLoadingRoles, setIsLoadingRoles] = React.useState<boolean>(true);
+  const [assignedRoles, setAssignedRoles] = React.useState<RoleEntry[]>([]);
+
+  // Load and resolve roles
+  const loadRoles = React.useCallback(async (): Promise<void> => {
+    setIsLoadingRoles(true);
+    try {
+      const resolution = await roleService.resolveUserRoles(effectiveEmail, isAdmin);
+      setAssignedRoles(resolution.assignedRoles);
+    } catch (err: unknown) {
+      console.error('Error loading report roles:', err);
+    } finally {
+      setIsLoadingRoles(false);
+    }
+  }, [roleService, effectiveEmail, isAdmin]);
+
+  React.useEffect(() => {
+    loadRoles().catch(() => {});
+  }, [loadRoles]);
+
+  const handleSelectUnit = (unit: string): void => {
+    setSelectedUnit(unit);
+    try {
+      localStorage.setItem(REPORT_STORAGE_KEYS.LAST_UNIT, unit);
+    } catch {
+      // Ignore storage errors
+    }
+  };
+
+  const handleSelectReport = (role: RoleEntry): void => {
+    setSelectedRole(role);
+    setCurrentView('entry');
+    try {
+      localStorage.setItem(REPORT_STORAGE_KEYS.LAST_DOC_ID, role.docId);
+      localStorage.setItem(REPORT_STORAGE_KEYS.LAST_UNIT, role.unit);
+    } catch {
+      // Ignore storage errors
+    }
+  };
+
+  const handleBackToLanding = (): void => {
+    setCurrentView('landing');
+    setSelectedRole(null);
+  };
+
+  return (
+    <div className="report-module-root">
+      {currentView === 'entry' && selectedRole ? (
+        <ReportEntryView
+          role={selectedRole}
+          currentUserEmail={effectiveEmail}
+          dataService={dataService}
+          onBack={handleBackToLanding}
+        />
+      ) : (
+        <ReportLandingView
+          assignments={assignedRoles}
+          userEmail={effectiveEmail}
+          selectedUnit={selectedUnit}
+          onSelectUnit={handleSelectUnit}
+          onSelectReport={handleSelectReport}
+          onRefresh={loadRoles}
+          onGoHome={onGoHome}
+          isLoading={isLoadingRoles}
+        />
+      )}
+    </div>
+  );
+};
+

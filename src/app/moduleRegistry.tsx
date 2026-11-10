@@ -2,6 +2,7 @@ import * as React from 'react';
 import type { PortalModule } from '../core/types';
 import { checkinModule } from '../modules/checkin';
 import { progressModule } from '../modules/progress';
+import { reportModule } from '../modules/report';
 
 const FOLDER_PATH = 'M4 7h7l3 3h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1z';
 const FILE_POLYGON = '18,15 24,15 28,19 28,28 18,28';
@@ -31,6 +32,7 @@ const dataIcon = (
 export const PORTAL_MODULES: PortalModule[] = [
   checkinModule,
   progressModule,
+  reportModule,
   { id: 'data', title: 'Quản lý Data', status: 'comingSoon', icon: dataIcon },
   { id: 'equipment', title: 'Quản lý thiết bị', status: 'comingSoon', icon: folderWithFileIcon },
 ];
