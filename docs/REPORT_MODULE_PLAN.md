@@ -5,7 +5,7 @@
 
 ## 0. Mục tiêu
 
-Thêm module **Quản lý Report** vào portal SPFx. Giao diện và kiến trúc dựa trên module `src/modules/progress`.
+Thêm module **Quản lý Report** vào portal SPFx (thay thế module `progress` đã gỡ bỏ khỏi dự án).
 
 Luồng chạy:
 1. Trang Home: user bấm tile **"Quản lý Report"**.
@@ -67,7 +67,7 @@ Nội dung mẫu: `1 Xây tường vây` → `1.1 Đào đất`, `1.2 Làm móng
 | # | Quyết định |
 |---|---|
 | D1 | Module Report dùng file role **riêng**: `CapNhatCongViec/Report_Role.xlsx` (sheet `Role`). Không đọc `Projects_Role.xlsx`. |
-| D2 | Phần role và SharePoint dùng chung được **chuyển lên `core/`**. Cả `progress` và `report` dùng bản trong `core/`. |
+| D2 | Phần role và SharePoint dùng chung được **chuyển lên `core/`**. |
 | D3 | File lưu: `data/<Unit>/<DocID>_<yyyyMMdd>/<DocID>_<yyyyMMdd>.xlsx`, ví dụ `data/ST01/DailyReport_20261110/DailyReport_20261110.xlsx`. Lưu lại cùng ngày thì ghi đè (dùng ETag). |
 | D4 | Tên thư mục theo DocID: `DailyReport_<yyyyMMdd>`, `WeeklyReport_<yyyyMMdd>`. |
 | D5 | Báo cáo tuần dùng **ngày lập báo cáo** trong tên thư mục và tên file. |
@@ -80,10 +80,9 @@ Giả định bổ sung (có thể đổi):
 ## 3. Vấn đề phải xử lý
 
 1. **Quy tắc phụ thuộc một chiều.** `modules/*` → `core/*`. `core/` không import `modules/`. Các module không import lẫn nhau.
-   - Chuyển lên `core/` các phần dùng chung: kiểu `RoleEntry`, `parseRoleBuffer`, logic resolve quyền theo email (tham số hoá tên file role và danh sách DocID nếu cần), và phần thao tác file/folder SharePoint có thể dùng chung.
-   - `progress` phải đổi sang dùng bản trong `core/`, hành vi không đổi. Build và kiểm tra `progress` sau khi chuyển.
-   - Code trong `core/` và `app/` không được chứa tên module hoặc tên công ty.
-2. **Tách role.** `progress` tiếp tục đọc `Projects_Role.xlsx`, `report` đọc `Report_Role.xlsx`. Hai module không còn lọc DocID cho nhau. Cần xoá các dòng `DailyReport`/`WeeklyReport` còn sót trong `Projects_Role.xlsx` (nếu có) để Tiến độ không hiển thị nhầm.
+   - Các phần dùng chung đặt tại `core/`: kiểu `RoleEntry`, `parseRoleBuffer`, logic resolve quyền theo email (`RoleResolutionService`), và các tiện ích đường dẫn (`pathUtils`).
+   - Code trong `core/` và `app/` không chứa tên module hoặc tên công ty.
+2. **Quản lý role.** Module Report đọc `Report_Role.xlsx`.
 3. **Tên thư mục SharePoint.** Dùng lại `sanitizeSharePointPath` cho Unit, DocID và tên file.
 
 ## 4. Cấu trúc file cần tạo
@@ -122,17 +121,17 @@ src/modules/report/
 ```
 
 File ngoài module cần sửa:
-- `src/app/moduleRegistry.tsx`: thêm `reportModule` vào `PORTAL_MODULES` (sau `progressModule`). `HomeView` và `PortalShell` tự hiển thị và mở module.
-- `core/`: thêm role service, role codec và phần SharePoint dùng chung (theo mục 3.1). `src/modules/progress/services/ProgressRoleService.ts` và `excelCodec.ts` trỏ sang bản trong `core/`.
+- `src/app/moduleRegistry.tsx`: thêm `reportModule` vào `PORTAL_MODULES`. `HomeView` và `PortalShell` tự hiển thị và mở module.
+- `core/`: thêm role service, role codec và tiện ích đường dẫn dùng chung.
 
-Tham khảo cách làm hiện có trong `src/modules/progress/`:
-- `ProgressModule.tsx`: nạp role, điều hướng.
-- `views/ProgressSiteLandingView.tsx`: bố cục chọn Unit và gói.
-- `views/ProgressEntryView.tsx` và `components/TaskTreeTable.tsx`: bảng cây nhập liệu.
-- `services/ProgressFileService.ts`: thao tác file/folder SharePoint.
-- `utils/excelCodec.ts` và `utils/taskTree.ts`: đọc/ghi xlsx, tính tỉ lệ.
+Tham khảo các quy chuẩn kiến trúc:
+- `ReportModule.tsx`: nạp role, điều hướng.
+- `views/ReportLandingView.tsx`: bố cục chọn Unit và gói tile.
+- `views/ReportEntryView.tsx` và `components/ReportTaskTable.tsx`: bảng cây nhập liệu.
+- `services/ReportFileService.ts`: thao tác file/folder SharePoint.
+- `utils/reportCodec.ts` và `utils/taskTree.ts`: đọc/ghi xlsx, tính tỉ lệ.
 - `components/NoAccessState.tsx`: trạng thái không có quyền.
-- `core/services/SharePointClient.ts`: các hàm sẵn có `ensureFolder`, `uploadFile`, `getFileBuffer`, `getFileWithMeta`, `getFolderFiles`.
+- `core/services/SharePointClient.ts`: các hàm `ensureFolder`, `uploadFile`, `getFileBuffer`, `getFileWithMeta`, `getFolderFiles`.
 
 ## 5. Chi tiết hành vi
 
@@ -160,15 +159,15 @@ Tham khảo cách làm hiện có trong `src/modules/progress/`:
   5. Hiện `ToastAlert` thành công hoặc thất bại.
 
 ### 5.3 Codec (`reportCodec.ts`)
-- Dùng SheetJS lazy-load: `import(/* webpackChunkName: 'xlsx' */ 'xlsx')`, giống `progress`. Không đưa `xlsx` vào bundle chính.
+- Dùng SheetJS lazy-load: `import(/* webpackChunkName: 'xlsx' */ 'xlsx')`. Không đưa `xlsx` vào bundle chính.
 - Parse metadata: quét cột A cho các key đã biết, lấy giá trị cột B.
 - Parse bảng: tìm dòng header chứa `ID` và `Tên công việc`, đọc đến khi gặp dòng trống.
 - Encode: ghi lại đúng vị trí ô gốc, không làm vỡ các dòng trống phía dưới.
 
 ## 6. Các bước thực hiện (theo thứ tự)
 
-1. **Refactor dùng chung.** Chuyển `RoleEntry`, `parseRoleBuffer`, role resolution và phần SharePoint dùng chung lên `core/`. Cập nhật `progress` dùng bản mới. Build và kiểm tra `progress` không bị hỏng.
-2. **Types, constants, utils.** Viết `reportCodec`, `reportFileNaming`, `taskTree`. Kiểm tra parse với 2 file template mẫu.
+1. **Refactor dùng chung.** Chuyển `RoleEntry`, `parseRoleBuffer`, role resolution (`RoleResolutionService`) và tiện ích đường dẫn lên `core/`.
+2. **Types, constants, utils.** Viết `reportCodec`, `reportFileNaming`, `taskTree`.
 3. **Services.** `ReportFileService`, `ReportTemplateService`, `ReportDataService`.
 4. **UI.** Components, views, `ReportModule.tsx`, `report.css`.
 5. **Đăng ký module** trong `moduleRegistry.tsx`.
@@ -188,10 +187,10 @@ Tham khảo cách làm hiện có trong `src/modules/progress/`:
 
 ## 8. Kiểm tra trước khi báo hoàn thành
 
-- [ ] `npm run build` sạch, 0 cảnh báo lint. Module `progress` và `checkin` vẫn chạy bình thường.
+- [ ] `npm run build` sạch, 0 cảnh báo lint. Module `report` và `checkin` chạy bình thường.
 - [ ] User `truongquoctoan1@minntek.com` thấy đúng 3 tile: `ST01 DailyReport`, `ST01 WeeklyReport`, `ST02 DailyReport`.
 - [ ] User không có trong role thấy `NoAccessState`. Dòng role `Status = FALSE` không sinh tile.
-- [ ] Module Tiến độ vẫn đọc `Projects_Role.xlsx` như cũ và không hiển thị `DailyReport`/`WeeklyReport`. Module Report chỉ đọc `Report_Role.xlsx`.
+- [ ] Module Report chỉ đọc `Report_Role.xlsx`.
 - [ ] Mở form: metadata và cây công việc khớp template. Tỉ lệ cha tính đúng.
 - [ ] Save tạo đúng `data/<Unit>/<DocID>_<yyyyMMdd>/` và file xlsx mở được bằng Excel.
 - [ ] Chọn ngày khác (nhập bù) tạo thư mục và file đúng ngày đó. Save lần 2 trong cùng ngày ghi đè. Mở lại thì nạp đúng dữ liệu đã lưu.

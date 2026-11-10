@@ -72,8 +72,7 @@ DQM_Check_In_App/
 │   ├── modules/
 │   │   ├── home/                # HomeView: trang chủ liệt kê module từ registry
 │   │   ├── checkin/             # Module 1: CheckinModule, views/, components/, services/, types/, constants/, utils/
-│   │   ├── progress/            # Module 2: Quản lý tiến độ thi công (Excel SharePoint, tb_role, tree-table, summary pivot)
-│   │   └── report/              # Module 3: Quản lý Report (Report_Role.xlsx, Daily/Weekly report, tree-table, SharePoint data/<Unit>/<DocID>_<yyyyMMdd>/)
+│   │   └── report/              # Module 2: Quản lý Report (Report_Role.xlsx, Daily/Weekly report, tree-table, SharePoint data/<Unit>/<DocID>_<yyyyMMdd>/)
 │   └── assets/
 ├── AGENTS.md
 └── package.json
@@ -114,25 +113,9 @@ DQM_Check_In_App/
 * Updates use `POST` with headers `'X-HTTP-Method': 'MERGE'` and `'If-Match': '*'`.
 * Deletions use `POST` with headers `'X-HTTP-Method': 'DELETE'` and `'If-Match': '*'`.
 
-### 4. Progress Management Module (`modules/progress`)
+### 4. Report Management Module (`modules/report`)
 
-* **Storage Model:** No SQL / no custom SharePoint List. Uses a SharePoint Document Library (`CapNhatCongViec`).
-  - Permissions: `Projects_Role.xlsx` (table `tb_role`).
-  - Base Templates: `_template/<DocID>/<Unit>.xlsx` (read-only for level 1 & 2 tasks).
-  - Daily Files: `data/<DocID>/yyMMdd_<DocID>_<Unit>.xlsx` (overwrites within the same day).
-* **Role Authorization:** User email matches `Projects_Role.xlsx` with `Status = TRUE`. Admin (`UserProfiles.Role = admin`) can access all units.
-* **Continuous Daily Loading:** Opening a new date automatically pre-fills tasks and completion rates from the most recent prior day.
-* **Tree-Table & Rate Calculation:**
-  - Parent rates (level 1 & 2) are automatically calculated as the arithmetic average of their direct children (read-only).
-  - Leaf tasks accept user input (0-100%).
-  - Users can add custom level 3 subtasks (`+ Thêm việc con`) under level 2 parents.
-* **Daily Summary Pivot:**
-  - Tab "Tổng hợp tiến độ": aggregates history across multiple dates into a pivot table (Tasks × Dates) with KPI overview and Excel export.
-* **SheetJS Lazy-Loading:** Loaded via dynamic `import(/* webpackChunkName: 'xlsx' */ 'xlsx')` so other modules do not incur bundle overhead.
-
-### 5. Report Management Module (`modules/report`)
-
-* **Storage Model:** Uses the same SharePoint Document Library (`CapNhatCongViec`).
+* **Storage Model:** Uses the SharePoint Document Library (`CapNhatCongViec`).
   - Permissions: `Report_Role.xlsx` (sheet `Role`).
   - Base Templates: `_template/<DocID>_template.xlsx` (e.g. `DailyReport_template.xlsx`, `WeeklyReport_template.xlsx`).
   - Daily/Weekly Report Folders & Files: `data/<Unit>/<DocID>_<yyyyMMdd>/<DocID>_<yyyyMMdd>.xlsx` (e.g. `data/ST01/DailyReport_20261110/DailyReport_20261110.xlsx`).
@@ -147,6 +130,7 @@ DQM_Check_In_App/
 * **Save & Overwrite:**
   - Automatically creates subfolder `data/<Unit>/<DocID>_<yyyyMMdd>/` if not present.
   - Preserves template layout and styling when saving, with ETag concurrency protection.
+* **SheetJS Lazy-Loading:** Loaded via dynamic `import(/* webpackChunkName: 'xlsx' */ 'xlsx')` so other modules do not incur bundle overhead.
 
 ---
 
