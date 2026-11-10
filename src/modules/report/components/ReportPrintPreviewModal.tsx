@@ -65,7 +65,7 @@ export const ReportPrintPreviewModal: React.FC<IReportPrintPreviewModalProps> = 
   <style>
     @page {
       size: A4 portrait;
-      margin: 10mm 12mm;
+      margin: 8mm 10mm;
     }
     * {
       box-sizing: border-box;
@@ -76,30 +76,49 @@ export const ReportPrintPreviewModal: React.FC<IReportPrintPreviewModalProps> = 
       margin: 0;
       padding: 0;
       font-family: "Segoe UI", Roboto, Arial, sans-serif;
-      font-size: 11px;
+      font-size: 10.5px;
       color: #111827;
       background: #ffffff;
     }
     .bcn-a4-page {
       width: 100%;
+      padding: 0 2px;
       background: #ffffff;
-      page-break-after: always;
     }
-    .bcn-a4-page:last-child {
-      page-break-after: auto;
+    .bcn-sec-block {
+      page-break-inside: auto;
+      break-inside: auto;
+    }
+    .bcn-keep-together {
+      page-break-inside: avoid;
+      break-inside: avoid;
     }
     .bcn-table {
       width: 100%;
       border-collapse: collapse;
-      margin-bottom: 8px;
-      font-size: 11px;
+      border: 1px solid #9ca3af;
+      margin-bottom: 6px;
+      font-size: 10.5px;
+      page-break-inside: auto;
+      break-inside: auto;
+    }
+    .bcn-table thead {
+      display: table-header-group;
+    }
+    .bcn-table tr {
+      page-break-inside: avoid;
+      break-inside: avoid;
     }
     .bcn-table th,
     .bcn-table td {
       border: 1px solid #9ca3af;
-      padding: 4px 6px;
+      padding: 3px 6px;
       vertical-align: middle;
-      line-height: 1.35;
+      line-height: 1.28;
+    }
+    .bcn-table th:last-child,
+    .bcn-table td:last-child {
+      border-right: 1px solid #9ca3af !important;
     }
     .bcn-header-logo-cell {
       width: 18%;
@@ -111,21 +130,21 @@ export const ReportPrintPreviewModal: React.FC<IReportPrintPreviewModalProps> = 
     .bcn-header-title-cell {
       width: 64%;
       text-align: center;
-      padding: 6px 8px;
+      padding: 4px 8px;
     }
     .bcn-title-vi {
-      font-size: 17px;
+      font-size: 16px;
       font-weight: 800;
       color: #1f4e79;
       margin: 0;
     }
     .bcn-title-en {
-      font-size: 12px;
+      font-size: 11px;
       color: #4b5563;
-      margin: 1px 0 3px;
+      margin: 1px 0 2px;
     }
     .bcn-subtitle {
-      font-size: 10.5px;
+      font-size: 10px;
       color: #374151;
     }
     .bcn-meta-label {
@@ -139,17 +158,23 @@ export const ReportPrintPreviewModal: React.FC<IReportPrintPreviewModalProps> = 
       color: #6b7280;
     }
     .bcn-sec-title {
-      background: #1f4e79;
-      color: #ffffff;
+      background: #1f4e79 !important;
+      color: #ffffff !important;
       font-weight: 700;
-      font-size: 11.5px;
-      padding: 5px 8px;
-      margin-top: 6px;
+      font-size: 11px;
+      padding: 4px 8px;
+      margin-top: 5px;
+      text-align: left;
       border: 1px solid #1f4e79;
+      page-break-after: avoid;
+      break-after: avoid;
+      page-break-inside: avoid;
+      break-inside: avoid;
     }
     .bcn-sec-title span {
       font-weight: 400;
-      opacity: 0.9;
+      color: #e2e8f0 !important;
+      opacity: 0.95;
     }
     .bcn-th-row th {
       background: #d9e2f3;
@@ -172,15 +197,17 @@ export const ReportPrintPreviewModal: React.FC<IReportPrintPreviewModalProps> = 
     .sev-tb { color: #9a3412; font-weight: 700; }
     .bcn-preline { white-space: pre-line; }
     .bcn-sign-box {
-      height: 62px;
+      height: 56px;
       vertical-align: top !important;
       text-align: center;
     }
     .bcn-footer-note {
-      font-size: 9.5px;
+      font-size: 9px;
       color: #4b5563;
-      line-height: 1.4;
-      margin-top: 6px;
+      line-height: 1.35;
+      margin-top: 4px;
+      page-break-inside: avoid;
+      break-inside: avoid;
     }
   </style>
 </head>
@@ -208,7 +235,7 @@ export const ReportPrintPreviewModal: React.FC<IReportPrintPreviewModalProps> = 
         <div className="bcn-preview-toolbar">
           <div className="bcn-preview-toolbar-left">
             <span className="bcn-preview-modal-title">
-              Xem bản in A4 (2 trang) — {m.docCode || `${doc.unit} (${doc.dateStr})`}
+              Xem bản in A4 — {m.docCode || `${doc.unit} (${doc.dateStr})`}
             </span>
           </div>
           <div className="bcn-preview-toolbar-right">
@@ -524,10 +551,7 @@ export const ReportPrintPreviewModal: React.FC<IReportPrintPreviewModalProps> = 
                   )}
                 </tbody>
               </table>
-            </div>
 
-            {/* ==================== PAGE 2 ==================== */}
-            <div className="bcn-a4-page">
               {/* VI. CÔNG VIỆC THỰC HIỆN & KẾ HOẠCH NGÀY MAI */}
               <div className="bcn-sec-title">
                 VI. CÔNG VIỆC THỰC HIỆN &amp; KẾ HOẠCH NGÀY MAI{' '}
@@ -672,76 +696,78 @@ export const ReportPrintPreviewModal: React.FC<IReportPrintPreviewModalProps> = 
               </table>
 
               {/* SIGNATURES TABLE */}
-              <table className="bcn-table" style={{ marginTop: '10px' }}>
-                <thead>
-                  <tr className="bcn-th-row">
-                    <th style={{ width: '25%' }}>
-                      Người lập
-                      <br />
-                      <span>Prepared by</span>
-                    </th>
-                    <th style={{ width: '25%' }}>
-                      Trưởng ga / CHT
-                      <br />
-                      <span>Site manager</span>
-                    </th>
-                    <th style={{ width: '25%' }}>
-                      Đại diện TCJV
-                      <br />
-                      <span>TCJV representative</span>
-                    </th>
-                    <th style={{ width: '25%' }}>
-                      TVGS xác nhận
-                      <br />
-                      <span>Engineer acknowledged</span>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td className="bcn-sign-box">
-                      <div style={{ marginTop: '16px', fontWeight: 600 }}>
-                        {m.preparedBy || m.email || '[Người lập]'}
-                      </div>
-                      {m.updateTime && (
-                        <div style={{ fontSize: '9.5px', color: '#4b5563', marginTop: '4px' }}>
-                          Nộp lúc {formatDateTimeVN(m.updateTime)}
+              <div className="bcn-keep-together">
+                <table className="bcn-table" style={{ marginTop: '8px' }}>
+                  <thead>
+                    <tr className="bcn-th-row">
+                      <th style={{ width: '25%' }}>
+                        Người lập
+                        <br />
+                        <span>Prepared by</span>
+                      </th>
+                      <th style={{ width: '25%' }}>
+                        Trưởng ga / CHT
+                        <br />
+                        <span>Site manager</span>
+                      </th>
+                      <th style={{ width: '25%' }}>
+                        Đại diện TCJV
+                        <br />
+                        <span>TCJV representative</span>
+                      </th>
+                      <th style={{ width: '25%' }}>
+                        TVGS xác nhận
+                        <br />
+                        <span>Engineer acknowledged</span>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className="bcn-sign-box">
+                        <div style={{ marginTop: '14px', fontWeight: 600 }}>
+                          {m.preparedBy || m.email || '[Người lập]'}
                         </div>
-                      )}
-                    </td>
-                    <td className="bcn-sign-box">
-                      <div style={{ marginTop: '16px', fontWeight: 600 }}>
-                        {m.siteManager || '[Trưởng ga]'}
-                      </div>
-                      {m.approvedAt && (
-                        <div style={{ fontSize: '9.5px', color: '#4b5563', marginTop: '4px' }}>
-                          Duyệt {formatDateTimeVN(m.approvedAt)}
+                        {m.updateTime && (
+                          <div style={{ fontSize: '9px', color: '#4b5563', marginTop: '4px' }}>
+                            Nộp lúc {formatDateTimeVN(m.updateTime)}
+                          </div>
+                        )}
+                      </td>
+                      <td className="bcn-sign-box">
+                        <div style={{ marginTop: '14px', fontWeight: 600 }}>
+                          {m.siteManager || '[Trưởng ga]'}
                         </div>
-                      )}
-                    </td>
-                    <td className="bcn-sign-box">
-                      <div style={{ marginTop: '16px', fontWeight: 600 }}>{m.tcjvRep || ''}</div>
-                    </td>
-                    <td className="bcn-sign-box">
-                      <div style={{ marginTop: '16px', fontWeight: 600 }}>{m.engineerAck || ''}</div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+                        {m.approvedAt && (
+                          <div style={{ fontSize: '9px', color: '#4b5563', marginTop: '4px' }}>
+                            Duyệt {formatDateTimeVN(m.approvedAt)}
+                          </div>
+                        )}
+                      </td>
+                      <td className="bcn-sign-box">
+                        <div style={{ marginTop: '14px', fontWeight: 600 }}>{m.tcjvRep || ''}</div>
+                      </td>
+                      <td className="bcn-sign-box">
+                        <div style={{ marginTop: '14px', fontWeight: 600 }}>{m.engineerAck || ''}</div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
 
-              {/* FOOTER NOTE */}
-              <div className="bcn-footer-note">
-                {m.approvalComment && (
+                {/* FOOTER NOTE */}
+                <div className="bcn-footer-note">
+                  {m.approvalComment && (
+                    <div>
+                      <strong>Ý kiến duyệt:</strong> {m.approvalComment}
+                    </div>
+                  )}
                   <div>
-                    <strong>Ý kiến duyệt:</strong> {m.approvalComment}
+                    Sinh tự động từ Microsoft 365 (SharePoint) – không sửa số liệu trên PDF. Bản chính thức lưu
+                    trên CDE BIC (zone A) theo TMP-001.
                   </div>
-                )}
-                <div>
-                  Sinh tự động từ Microsoft 365 (SharePoint) – không sửa số liệu trên PDF. Bản chính thức lưu
-                  trên CDE BIC (zone A) theo TMP-001.
-                </div>
-                <div>
-                  Ảnh: <code>{m.photosFolder || `BCN_AnhHienTruong/${doc.unit}/${doc.dateStr}`}</code>
+                  <div>
+                    Ảnh: <code>{m.photosFolder || `BCN_AnhHienTruong/${doc.unit}/${doc.dateStr}`}</code>
+                  </div>
                 </div>
               </div>
             </div>
