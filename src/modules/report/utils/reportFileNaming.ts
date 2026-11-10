@@ -94,6 +94,20 @@ export function getReportFileRelativePath(
 }
 
 /**
+ * Server relative path for the report photos subfolder:
+ * <libraryPath>/data/<Unit>/<DocID>_<yyyyMMdd>/photos
+ */
+export function getReportPhotosFolderRelativePath(
+  libraryPath: string,
+  unit: string,
+  docId: string,
+  date: string | Date
+): string {
+  const folderPath = getReportFolderRelativePath(libraryPath, unit, docId, date);
+  return `${folderPath}/photos`;
+}
+
+/**
  * Server relative path for template file:
  * <libraryPath>/_template/<DocID>_template.xlsx
  */

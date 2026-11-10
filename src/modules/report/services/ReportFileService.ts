@@ -5,6 +5,7 @@ import {
   getReportFileName,
   getReportFolderRelativePath,
   getReportFileRelativePath,
+  getReportPhotosFolderRelativePath,
   getTemplateFileRelativePath,
   getUnitFolderRelativePath
 } from '../utils/reportFileNaming';
@@ -138,6 +139,60 @@ export class ReportFileService {
    */
   public async listFolderFiles(folderRelativePath: string): Promise<ISharePointFileInfo[]> {
     return await this._client.getFolderFiles(this._siteUrl, folderRelativePath);
+  }
+
+  /**
+   * Path to photos subfolder:
+   * <libraryPath>/data/<Unit>/<DocID>_<yyyyMMdd>/photos
+   */
+  public getReportPhotosFolderPath(unit: string, docId: string, dateStr: string): string {
+    return getReportPhotosFolderRelativePath(this.getLibraryPath(), unit, docId, dateStr);
+  }
+
+  /**
+   * List uploaded photos in data/<Unit>/<DocID>_<yyyyMMdd>/photos
+   */
+  public async listReportPhotos(unit: string, docId: string, dateStr: string): Promise<ISharePointFileInfo[]> {
+    const photosFolder = this.getReportPhotosFolderPath(unit, docId, dateStr);
+    const exists = await this._client.folderExists(this._siteUrl, photosFolder);
+    if (!exists) return [];
+    const files = await this._client.getFolderFiles(this._siteUrl, photosFolder);
+    return files.sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  /**
+   * Upload a photo file into data/<Unit>/<DocID>_<yyyyMMdd>/photos/
+   */
+  public async uploadReportPhoto(
+    unit: string,
+    docId: string,
+    dateStr: string,
+    fileName: string,
+    buffer: ArrayBuffer
+  ): Promise<ISharePointFileInfo> {
+    await this.ensureUnitFolder(unit);
+    const reportFolder = getReportFolderRelativePath(this.getLibraryPath(), unit, docId, dateStr);
+    await this._client.ensureFolder(this._siteUrl, reportFolder);
+
+    const photosFolder = this.getReportPhotosFolderPath(unit, docId, dateStr);
+    await this._client.ensureFolder(this._siteUrl, photosFolder);
+
+    const safeName = sanitizeSharePointPath(fileName) || `photo_${Date.now()}.jpg`;
+    const res = await this._client.uploadFile(this._siteUrl, photosFolder, safeName, buffer, true);
+    return {
+      name: safeName,
+      serverRelativeUrl: res.serverRelativeUrl,
+      timeLastModified: new Date().toISOString(),
+      length: buffer.byteLength,
+      eTag: res.eTag
+    };
+  }
+
+  /**
+   * Delete an uploaded photo
+   */
+  public async deleteReportPhoto(serverRelativeUrl: string): Promise<void> {
+    await this._client.deleteFile(this._siteUrl, serverRelativeUrl);
   }
 }
 

@@ -187,6 +187,30 @@ export class SharePointClient {
   }
 
   /**
+   * Delete a file at the given server-relative URL.
+   */
+  public async deleteFile(siteUrl: string, serverRelativeUrl: string): Promise<void> {
+    const safeUrl = this._escapeUrl(serverRelativeUrl);
+    const endpoint = `${siteUrl}/_api/web/GetFileByServerRelativeUrl('${safeUrl}')`;
+    const response: SPHttpClientResponse = await this._spHttpClient.post(
+      endpoint,
+      SPHttpClient.configurations.v1,
+      {
+        headers: {
+          'Accept': 'application/json;odata=nometadata',
+          'X-HTTP-Method': 'DELETE',
+          'If-Match': '*'
+        }
+      }
+    );
+
+    if (!response.ok && response.status !== 404) {
+      const errText = await response.text();
+      throw new Error(`Failed to delete file (${response.status}): ${errText}`);
+    }
+  }
+
+  /**
    * Check if a folder exists at the given server-relative URL.
    */
   public async folderExists(siteUrl: string, folderServerRelativeUrl: string): Promise<boolean> {

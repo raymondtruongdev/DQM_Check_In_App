@@ -2,11 +2,21 @@ import * as React from 'react';
 import { RoleEntry, ToastState } from '../../../core/types';
 import { ToastAlert } from '../../../core/components/layout/ToastAlert';
 import { formatDateToYYYYMMDD } from '../../../core/utils';
-import { ReportDoc, ReportMetadata } from '../types/report.types';
+import {
+  EquipmentRow,
+  IssueRow,
+  ManpowerRow,
+  MaterialRow,
+  ReportDoc,
+  ReportMetadata,
+  WorkQtyRow
+} from '../types/report.types';
 import { ReportDataService } from '../services/ReportDataService';
 import { recalculateAllRates } from '../utils/reportTaskTree';
 import { ReportMetaForm } from '../components/ReportMetaForm';
 import { ReportTaskTable } from '../components/ReportTaskTable';
+import { ReportSectionsEditor } from '../components/ReportSectionsEditor';
+import { ReportPrintPreviewModal } from '../components/ReportPrintPreviewModal';
 
 export interface IReportEntryViewProps {
   role: RoleEntry;
@@ -14,6 +24,18 @@ export interface IReportEntryViewProps {
   dataService: ReportDataService;
   onBack: () => void;
 }
+
+const SECTION_NAV_ITEMS = [
+  { id: 'report-sec-1', label: 'I. Thời tiết' },
+  { id: 'report-sec-2', label: 'II. Nhân lực' },
+  { id: 'report-sec-3', label: 'III. Thiết bị' },
+  { id: 'report-sec-4', label: 'IV. Khối lượng' },
+  { id: 'report-sec-5', label: 'V. Vật tư' },
+  { id: 'report-sec-6', label: 'VI. Công việc' },
+  { id: 'report-sec-7', label: 'VII. Vướng mắc' },
+  { id: 'report-sec-8', label: 'VIII. HSE & Ảnh' },
+  { id: 'report-sec-9', label: 'IX. Ký duyệt' }
+];
 
 export const ReportEntryView: React.FC<IReportEntryViewProps> = ({
   role,
@@ -26,7 +48,9 @@ export const ReportEntryView: React.FC<IReportEntryViewProps> = ({
   const [templateBuffer, setTemplateBuffer] = React.useState<ArrayBuffer | undefined>(undefined);
   const [isLoading, setIsLoading] = React.useState<boolean>(true);
   const [isSaving, setIsSaving] = React.useState<boolean>(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = React.useState<boolean>(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = React.useState<boolean>(false);
+  const [showPrintPreview, setShowPrintPreview] = React.useState<boolean>(false);
   const [toast, setToast] = React.useState<ToastState | null>(null);
 
   // Load report data for selected date
@@ -38,7 +62,8 @@ export const ReportEntryView: React.FC<IReportEntryViewProps> = ({
           role.docId,
           role.unit,
           targetDate,
-          currentUserEmail
+          currentUserEmail,
+          role.siteManager
         );
         setDoc(result.doc);
         setTemplateBuffer(result.templateBuffer);
@@ -51,7 +76,7 @@ export const ReportEntryView: React.FC<IReportEntryViewProps> = ({
         setIsLoading(false);
       }
     },
-    [dataService, role.docId, role.unit, currentUserEmail]
+    [dataService, role.docId, role.unit, role.siteManager, currentUserEmail]
   );
 
   React.useEffect(() => {
@@ -81,8 +106,11 @@ export const ReportEntryView: React.FC<IReportEntryViewProps> = ({
     onBack();
   };
 
-  // Metadata change handler
-  const handleMetadataChange = (field: keyof ReportMetadata, value: string): void => {
+  // Generic metadata change handler
+  const handleMetadataChange = <K extends keyof ReportMetadata>(
+    field: K,
+    value: ReportMetadata[K]
+  ): void => {
     if (!doc) return;
     setDoc({
       ...doc,
@@ -94,7 +122,38 @@ export const ReportEntryView: React.FC<IReportEntryViewProps> = ({
     setHasUnsavedChanges(true);
   };
 
-  // Task change handler (completionRate or quantity)
+  // Dynamic table handlers
+  const handleManpowerChange = (manpower: ManpowerRow[]): void => {
+    if (!doc) return;
+    setDoc({ ...doc, manpower });
+    setHasUnsavedChanges(true);
+  };
+
+  const handleEquipmentChange = (equipment: EquipmentRow[]): void => {
+    if (!doc) return;
+    setDoc({ ...doc, equipment });
+    setHasUnsavedChanges(true);
+  };
+
+  const handleWorkItemsChange = (workItems: WorkQtyRow[]): void => {
+    if (!doc) return;
+    setDoc({ ...doc, workItems });
+    setHasUnsavedChanges(true);
+  };
+
+  const handleMaterialsChange = (materials: MaterialRow[]): void => {
+    if (!doc) return;
+    setDoc({ ...doc, materials });
+    setHasUnsavedChanges(true);
+  };
+
+  const handleIssuesChange = (issues: IssueRow[]): void => {
+    if (!doc) return;
+    setDoc({ ...doc, issues });
+    setHasUnsavedChanges(true);
+  };
+
+  // Task change handler (for WeeklyReport or legacy task hierarchy)
   const handleTaskChange = (
     taskId: string,
     field: 'completionRate' | 'quantity',
@@ -112,9 +171,7 @@ export const ReportEntryView: React.FC<IReportEntryViewProps> = ({
       return t;
     });
 
-    // Re-evaluate parent completion rates across hierarchy
     const recalculated = recalculateAllRates(updatedTasks);
-
     setDoc({
       ...doc,
       tasks: recalculated
@@ -122,7 +179,112 @@ export const ReportEntryView: React.FC<IReportEntryViewProps> = ({
     setHasUnsavedChanges(true);
   };
 
-  // Save report
+  // Upload photos directly to data/<Unit>/<DocID>_<yyyyMMdd>/photos/
+  const handleUploadPhotos = async (files: FileList): Promise<void> => {
+    if (!doc || files.length === 0) return;
+    setIsUploadingPhoto(true);
+    try {
+      const uploadedList = [...(doc.photos || [])];
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const buf = await file.arrayBuffer();
+        const uploaded = await dataService.uploadPhoto(
+          role.unit,
+          role.docId,
+          dateStr,
+          file.name,
+          buf
+        );
+        const existingIdx = uploadedList.findIndex(
+          (p) => p.name.toLowerCase() === uploaded.name.toLowerCase()
+        );
+        if (existingIdx >= 0) {
+          uploadedList[existingIdx] = uploaded;
+        } else {
+          uploadedList.push(uploaded);
+        }
+      }
+
+      setDoc((prev) =>
+        prev
+          ? {
+              ...prev,
+              photos: uploadedList,
+              metadata: {
+                ...prev.metadata,
+                photosCount: uploadedList.length
+              }
+            }
+          : null
+      );
+      setHasUnsavedChanges(true);
+      setToast({
+        type: 'success',
+        text: `Đã tải lên ${files.length} ảnh vào thư mục data/${role.unit}/${role.docId}_${dateStr.replace(/-/g, '')}/photos/!`
+      });
+    } catch (err: unknown) {
+      console.error('Error uploading photo:', err);
+      const msg = err instanceof Error ? err.message : 'Lỗi khi tải ảnh lên SharePoint';
+      setToast({ type: 'error', text: msg });
+    } finally {
+      setIsUploadingPhoto(false);
+    }
+  };
+
+  // Delete an uploaded photo
+  const handleDeletePhoto = async (serverRelativeUrl: string, name: string): Promise<void> => {
+    if (!doc) return;
+    if (!window.confirm(`Bạn có chắc chắn muốn xoá ảnh "${name}" khỏi SharePoint?`)) return;
+    setIsUploadingPhoto(true);
+    try {
+      await dataService.deletePhoto(serverRelativeUrl);
+      const remaining = (doc.photos || []).filter((p) => p.serverRelativeUrl !== serverRelativeUrl);
+      setDoc((prev) =>
+        prev
+          ? {
+              ...prev,
+              photos: remaining,
+              metadata: {
+                ...prev.metadata,
+                photosCount: remaining.length
+              }
+            }
+          : null
+      );
+      setHasUnsavedChanges(true);
+      setToast({
+        type: 'success',
+        text: `Đã xoá ảnh "${name}" khỏi thư mục photos.`
+      });
+    } catch (err: unknown) {
+      console.error('Error deleting photo:', err);
+      const msg = err instanceof Error ? err.message : 'Lỗi khi xoá ảnh trên SharePoint';
+      setToast({ type: 'error', text: msg });
+    } finally {
+      setIsUploadingPhoto(false);
+    }
+  };
+
+  // Site manager approve timestamp
+  const handleApproveReport = (): void => {
+    if (!doc) return;
+    const nowIso = new Date().toISOString();
+    setDoc({
+      ...doc,
+      metadata: {
+        ...doc.metadata,
+        approvedAt: nowIso,
+        siteManager: doc.metadata.siteManager || role.siteManager || currentUserEmail
+      }
+    });
+    setHasUnsavedChanges(true);
+    setToast({
+      type: 'success',
+      text: 'Đã ghi nhận thời gian Trưởng ga / CHT duyệt. Hãy bấm "Lưu báo cáo" để lưu lên SharePoint.'
+    });
+  };
+
+  // Save report (6-sheet workbook)
   const handleSave = async (): Promise<void> => {
     if (!doc) return;
     setIsSaving(true);
@@ -132,7 +294,7 @@ export const ReportEntryView: React.FC<IReportEntryViewProps> = ({
       setHasUnsavedChanges(false);
       setToast({
         type: 'success',
-        text: `Đã lưu báo cáo thành công vào thư viện SharePoint (${role.unit} - ${dateStr})!`
+        text: `Đã lưu báo cáo 6 sheets thành công vào thư viện SharePoint (${role.unit} - ${dateStr})!`
       });
     } catch (err: unknown) {
       console.error('Error saving report:', err);
@@ -143,15 +305,21 @@ export const ReportEntryView: React.FC<IReportEntryViewProps> = ({
     }
   };
 
+  const scrollToSection = (sectionId: string): void => {
+    const el = document.getElementById(sectionId);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   const isWeekly = role.docId.toLowerCase().includes('week');
   const reportMainTitle = doc?.metadata.docTitle || (isWeekly ? 'Báo cáo tuần' : 'Báo cáo ngày');
 
   return (
     <div className="report-entry-container">
-      {/* 1. Top Header Bar (Matching Exact User Reference) */}
+      {/* 1. Top Header Bar */}
       <div className="report-entry-header-card">
         <div className="report-header-left">
-          {/* Square Back Button */}
           <button
             type="button"
             className="report-back-square-btn"
@@ -177,7 +345,6 @@ export const ReportEntryView: React.FC<IReportEntryViewProps> = ({
 
           <div className="report-header-divider" />
 
-          {/* Title & Status Group */}
           <div className="report-header-title-block">
             <div className="report-header-title-row">
               <h2 className="report-header-main-title">{reportMainTitle}</h2>
@@ -187,7 +354,16 @@ export const ReportEntryView: React.FC<IReportEntryViewProps> = ({
             <div className="report-header-status-row">
               {doc?.isExisting ? (
                 <span className="report-status-text-saved">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
                     <circle cx="12" cy="12" r="10" />
                     <polyline points="9 12 11 14 15 10" />
                   </svg>
@@ -195,12 +371,19 @@ export const ReportEntryView: React.FC<IReportEntryViewProps> = ({
                 </span>
               ) : (
                 <span className="report-status-text-new">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                  >
                     <circle cx="12" cy="12" r="10" />
                     <line x1="12" y1="8" x2="12" y2="12" />
                     <line x1="12" y1="16" x2="12.01" y2="16" />
                   </svg>
-                  Tạo mới từ template
+                  Tạo mới từ template (6 sheets)
                 </span>
               )}
             </div>
@@ -214,6 +397,31 @@ export const ReportEntryView: React.FC<IReportEntryViewProps> = ({
               Chưa lưu
             </span>
           )}
+
+          {/* Xem bản in / Xuất PDF Button */}
+          <button
+            type="button"
+            className="report-btn-print-preview"
+            onClick={() => setShowPrintPreview(true)}
+            disabled={isLoading || !doc}
+            title="Xem bản in 2 trang A4 và xuất PDF"
+          >
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.1"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="6 9 6 2 18 2 18 9" />
+              <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+              <rect x="6" y="14" width="12" height="8" />
+            </svg>
+            <span>Xem bản in / Xuất PDF</span>
+          </button>
 
           {/* Làm mới Button */}
           <button
@@ -278,21 +486,34 @@ export const ReportEntryView: React.FC<IReportEntryViewProps> = ({
         </div>
       </div>
 
-      {/* 2. Toast Alert */}
-      {toast && (
-        <div style={{ marginBottom: '16px' }}>
-          <ToastAlert
-            toast={toast}
-            onClose={() => setToast(null)}
-          />
+      {/* 2. Quick Section Navigation Pills */}
+      {!isLoading && doc && (
+        <div className="report-sec-jump-bar" role="navigation" aria-label="Mục báo cáo">
+          {SECTION_NAV_ITEMS.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              className="report-sec-jump-pill"
+              onClick={() => scrollToSection(item.id)}
+            >
+              {item.label}
+            </button>
+          ))}
         </div>
       )}
 
-      {/* 3. Main Content: Metadata & Task Table */}
+      {/* 3. Toast Alert */}
+      {toast && (
+        <div style={{ marginBottom: '16px' }}>
+          <ToastAlert toast={toast} onClose={() => setToast(null)} />
+        </div>
+      )}
+
+      {/* 4. Main Content */}
       {isLoading ? (
         <div className="report-loading-state">
           <div className="loading-spinner" />
-          <p>Đang chuẩn bị mẫu báo cáo và nạp dữ liệu...</p>
+          <p>Đang chuẩn bị mẫu báo cáo 6 sheets và nạp dữ liệu...</p>
         </div>
       ) : doc ? (
         <div className="report-entry-content">
@@ -305,16 +526,38 @@ export const ReportEntryView: React.FC<IReportEntryViewProps> = ({
             disabled={isSaving}
           />
 
-          <ReportTaskTable
-            tasks={doc.tasks}
-            onTaskChange={handleTaskChange}
+          <ReportSectionsEditor
+            doc={doc}
             disabled={isSaving}
+            isUploadingPhoto={isUploadingPhoto}
+            onMetadataChange={handleMetadataChange}
+            onManpowerChange={handleManpowerChange}
+            onEquipmentChange={handleEquipmentChange}
+            onWorkItemsChange={handleWorkItemsChange}
+            onMaterialsChange={handleMaterialsChange}
+            onIssuesChange={handleIssuesChange}
+            onUploadPhotos={handleUploadPhotos}
+            onDeletePhoto={handleDeletePhoto}
+            onApproveReport={handleApproveReport}
           />
+
+          {isWeekly && doc.tasks && doc.tasks.length > 0 && (
+            <ReportTaskTable
+              tasks={doc.tasks}
+              onTaskChange={handleTaskChange}
+              disabled={isSaving}
+            />
+          )}
         </div>
       ) : (
         <div className="report-empty-state">
           <p>Không thể nạp dữ liệu mẫu báo cáo</p>
         </div>
+      )}
+
+      {/* 5. Print / Export PDF A4 Preview Modal */}
+      {showPrintPreview && doc && (
+        <ReportPrintPreviewModal doc={doc} onClose={() => setShowPrintPreview(false)} />
       )}
     </div>
   );
