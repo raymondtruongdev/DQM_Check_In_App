@@ -30,6 +30,52 @@ function parseInputNum(val: string): number | undefined {
   return isNaN(n) ? undefined : n;
 }
 
+interface IPhotoCardProps {
+  url: string;
+  name: string;
+  disabled: boolean;
+  onDelete: () => void;
+}
+
+/** Ảnh hiện trường: hình thu nhỏ (bấm để mở ảnh gốc) + tên file + nút xoá. */
+const PhotoCard: React.FC<IPhotoCardProps> = ({ url, name, disabled, onDelete }) => {
+  const [failed, setFailed] = React.useState(false);
+  return (
+    <figure className="report-photo-card">
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="report-photo-thumb"
+        title={`Mở ảnh: ${name}`}
+      >
+        {failed ? (
+          <span className="report-photo-fallback">
+            <Icon name="image" size={24} />
+          </span>
+        ) : (
+          <img src={url} alt={name} loading="lazy" onError={() => setFailed(true)} />
+        )}
+      </a>
+      <figcaption className="report-photo-caption">
+        <span className="report-photo-name" title={name}>
+          {name}
+        </span>
+        <button
+          type="button"
+          className="btn btn--ghost-danger btn--icon btn--sm"
+          onClick={onDelete}
+          disabled={disabled}
+          title="Xoá ảnh này khỏi SharePoint"
+          aria-label={`Xoá ảnh ${name}`}
+        >
+          <Icon name="dismiss" size={16} />
+        </button>
+      </figcaption>
+    </figure>
+  );
+};
+
 export const ReportSectionsEditor: React.FC<IReportSectionsEditorProps> = ({
   doc,
   disabled = false,
@@ -1059,27 +1105,13 @@ export const ReportSectionsEditor: React.FC<IReportSectionsEditorProps> = ({
             {photos.length > 0 && (
               <div className="report-photos-list">
                 {photos.map((p) => (
-                  <div key={p.serverRelativeUrl} className="report-photo-chip">
-                    <a
-                      href={p.serverRelativeUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="report-photo-link"
-                      title={p.name}
-                    >
-                      <Icon name="image" size={16} />
-                      <span>{p.name}</span>
-                    </a>
-                    <button
-                      type="button"
-                      className="btn btn--ghost-danger btn--icon btn--sm"
-                      onClick={() => onDeletePhoto(p.serverRelativeUrl, p.name)}
-                      disabled={disabled || isUploadingPhoto}
-                      title="Xoá ảnh này khỏi SharePoint"
-                    >
-                      <Icon name="dismiss" size={16} />
-                    </button>
-                  </div>
+                  <PhotoCard
+                    key={p.serverRelativeUrl}
+                    url={p.serverRelativeUrl}
+                    name={p.name}
+                    disabled={disabled || isUploadingPhoto}
+                    onDelete={() => onDeletePhoto(p.serverRelativeUrl, p.name)}
+                  />
                 ))}
               </div>
             )}

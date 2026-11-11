@@ -114,6 +114,7 @@ DQM_Check_In_App/
 * **A4 Print Preview & PDF Export (`ReportPrintPreviewModal.tsx`):**
   - Renders the bilingual report (Sections I $\rightarrow$ VIII + 4-column Signature block) in A4 portrait layout (`Mau_BCN_ST06_20261025.pdf` standard) with continuous page flow (no blank page gaps when dynamic rows are added) and full table borders.
   - Ngắt trang: tiêu đề mục + hàng tiêu đề + 2 dòng đầu luôn đi cùng nhau, 2 dòng cuối không bị bỏ lẻ (`break-after: avoid` trên `thead tr`, `tbody tr:first-child`, `tbody tr:nth-last-child(2)`); phần giữa chảy liên tục. Trên điện thoại khung xem trước giữ bề rộng A4 tối thiểu và cuộn ngang.
+  - Ảnh hiện trường: nếu có ảnh trong `photos/`, bản in thêm một dòng cuối bảng mục VIII, dưới "Kế hoạch ngày mai (tóm tắt)" (2 ảnh/hàng, mỗi ảnh có tên file; ảnh không bị ngắt giữa hai trang). `handlePrint` đợi mọi ảnh tải xong (tối đa 20s) rồi mới gọi `window.print()`; URL ảnh là tuyệt đối để iframe in tải được bằng phiên SharePoint.
 * **Save & Overwrite:**
   - Automatically ensures `data/<Unit>` and `data/<Unit>/<DocID>_<yyyyMMdd>/` exist before saving, with ETag concurrency protection.
 * **SheetJS Lazy-Loading:** Loaded via dynamic `import(/* webpackChunkName: 'xlsx' */ 'xlsx')` so other modules do not incur bundle overhead.

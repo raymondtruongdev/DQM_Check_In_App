@@ -24,6 +24,11 @@ export const ReportPrintPreviewModal: React.FC<IReportPrintPreviewModalProps> = 
 
   const totalNos = doc.manpower.reduce((acc, r) => acc + (r.nos || 0), 0);
   const totalManHrs = doc.manpower.reduce((acc, r) => acc + (r.manHrs || 0), 0);
+  // URL tuyệt đối để iframe in tải được ảnh (cùng phiên đăng nhập SharePoint)
+  const photoItems = (doc.photos || []).map((ph) => ({
+    name: ph.name,
+    url: new URL(ph.serverRelativeUrl, window.location.href).href
+  }));
   const photosCount = doc.photos && doc.photos.length > 0 ? doc.photos.length : m.photosCount ?? 0;
 
   const handlePrint = (): void => {
@@ -207,6 +212,37 @@ export const ReportPrintPreviewModal: React.FC<IReportPrintPreviewModalProps> = 
       text-align: center;
       padding-bottom: 8px;
     }
+    .bcn-table tr.bcn-photo-row {
+      page-break-inside: auto;
+      break-inside: auto;
+    }
+    .bcn-photo-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 5px;
+    }
+    .bcn-photo-item {
+      width: calc(50% - 4px);
+      margin: 0;
+      border: 1px solid #9ca3af;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+    .bcn-photo-item img {
+      display: block;
+      width: 100%;
+      height: 62mm;
+      object-fit: contain;
+      background: #f3f4f6;
+    }
+    .bcn-photo-cap {
+      padding: 3px 6px;
+      font-size: 9px;
+      color: #4b5563;
+      border-top: 1px solid #9ca3af;
+      overflow-wrap: anywhere;
+    }
     .bcn-footer-note {
       font-size: 9px;
       color: #4b5563;
@@ -223,30 +259,54 @@ export const ReportPrintPreviewModal: React.FC<IReportPrintPreviewModalProps> = 
 </html>`);
     iframeDoc.close();
 
-    setTimeout(() => {
-      // Chrome/Edge lấy tên file PDF từ tiêu đề của TRANG CHÍNH (không phải iframe):
-      // đặt tạm document.title rồi trả lại sau khi in xong.
-      const previousTitle = document.title;
-      let restored = false;
-      const restoreTitle = (): void => {
-        if (restored) return;
-        restored = true;
-        document.title = previousTitle;
-        window.removeEventListener('afterprint', restoreTitle);
-      };
-      document.title = pdfFileName;
-      window.addEventListener('afterprint', restoreTitle);
-      iframe.contentWindow?.addEventListener('afterprint', restoreTitle);
-      window.setTimeout(restoreTitle, 120000); // dự phòng nếu trình duyệt không bắn afterprint
-
-      iframe.contentWindow?.focus();
-      iframe.contentWindow?.print();
-      setTimeout(() => {
-        if (document.body.contains(iframe)) {
-          document.body.removeChild(iframe);
+    // Đợi mọi ảnh (phụ lục ảnh hiện trường) tải xong rồi mới mở hộp thoại in
+    const waitForImages = (): Promise<void> =>
+      new Promise<void>((resolve) => {
+        const pending = Array.from(iframeDoc.images).filter((img) => !img.complete);
+        if (pending.length === 0) {
+          resolve();
+          return;
         }
-      }, 1500);
-    }, 250);
+        let left = pending.length;
+        const done = (): void => {
+          left -= 1;
+          if (left <= 0) resolve();
+        };
+        pending.forEach((img) => {
+          img.addEventListener('load', done);
+          img.addEventListener('error', done);
+        });
+        window.setTimeout(resolve, 20000); // không chờ quá 20s
+      });
+
+    waitForImages()
+      .then(() => {
+        window.setTimeout(() => {
+          // Chrome/Edge lấy tên file PDF từ tiêu đề của TRANG CHÍNH (không phải iframe):
+          // đặt tạm document.title rồi trả lại sau khi in xong.
+          const previousTitle = document.title;
+          let restored = false;
+          const restoreTitle = (): void => {
+            if (restored) return;
+            restored = true;
+            document.title = previousTitle;
+            window.removeEventListener('afterprint', restoreTitle);
+          };
+          document.title = pdfFileName;
+          window.addEventListener('afterprint', restoreTitle);
+          iframe.contentWindow?.addEventListener('afterprint', restoreTitle);
+          window.setTimeout(restoreTitle, 120000); // dự phòng nếu trình duyệt không bắn afterprint
+
+          iframe.contentWindow?.focus();
+          iframe.contentWindow?.print();
+          setTimeout(() => {
+            if (document.body.contains(iframe)) {
+              document.body.removeChild(iframe);
+            }
+          }, 1500);
+        }, 150);
+      })
+      .catch((err: unknown) => console.error('[print] image wait failed:', err));
   };
 
   return (
@@ -721,6 +781,21 @@ export const ReportPrintPreviewModal: React.FC<IReportPrintPreviewModalProps> = 
                       <strong>Kế hoạch ngày mai (tóm tắt) | Plan summary:</strong> {m.planSummary}
                     </td>
                   </tr>
+                  {photoItems.length > 0 && (
+                    <tr className="bcn-photo-row">
+                      <td colSpan={5}>
+                        <strong>Ảnh hiện trường | Site photos ({photoItems.length}):</strong>
+                        <div className="bcn-photo-grid">
+                          {photoItems.map((ph) => (
+                            <figure key={ph.url} className="bcn-photo-item">
+                              <img src={ph.url} alt={ph.name} />
+                              <figcaption className="bcn-photo-cap">{ph.name}</figcaption>
+                            </figure>
+                          ))}
+                        </div>
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
 
