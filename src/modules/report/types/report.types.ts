@@ -2,11 +2,20 @@ import { RoleEntry } from '../../../core/types';
 
 export type ReportRoleAssignment = RoleEntry;
 
+export interface TemplateVersionInfo {
+  fileName: string;          // e.g. "template_ST01_20261109.xlsx"
+  version: string;           // e.g. "template_ST01_20261109"
+  versionDate: string;       // e.g. "20261109"
+  serverRelativeUrl: string;
+  timeLastModified?: string;
+}
+
 export interface ReportMetadata {
   docTitle: string;             // e.g. "BÁO CÁO NGÀY" or "BÁO CÁO TUẦN"
   docTitleEn: string;           // e.g. "DAILY REPORT"
   subTitle: string;             // e.g. "Tuyến Metro số 2 – Gói thầu M2.1..."
   docCode: string;              // e.g. "HCM2_1-23_CS-MAUR_TCJV-CPZZ-ST06-CWS-RP-041-S3-C01_BCN"
+  templateVersion?: string;     // e.g. "template_ST01_20261109"
   location: string;             // e.g. "ST06 – Ga ST06"
   reportNo: string;             // e.g. "041"
   shift: string;                // e.g. "Cả ngày (2 ca)"
@@ -34,7 +43,7 @@ export interface ReportMetadata {
   inspectionRequests?: number;
   newNCR?: number;
   photosCount?: number;
-  photosFolder: string;
+  photosFolder?: string;
   incidentDetails: string;
   engineerInstructions: string;
   planSummary: string;
@@ -139,4 +148,8 @@ export interface ReportDoc {
   eTag?: string;
   isExisting?: boolean;
   copiedFromDate?: string; // e.g. "2026-11-10" when pre-filled from previous day
+  latestTemplateInfo?: TemplateVersionInfo;
+  templateUpdateRequired?: boolean;
+  outdatedSourceType?: 'existing' | 'previous_day';
+  outdatedTemplateVersion?: string;
 }

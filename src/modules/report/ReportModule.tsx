@@ -45,6 +45,7 @@ export const ReportModule: React.FC<ModuleProps> = (props) => {
 
   const [isLoadingRoles, setIsLoadingRoles] = React.useState<boolean>(true);
   const [assignedRoles, setAssignedRoles] = React.useState<RoleEntry[]>([]);
+  const [allRoles, setAllRoles] = React.useState<RoleEntry[]>([]);
 
   // Load and resolve roles
   const loadRoles = React.useCallback(async (): Promise<void> => {
@@ -52,6 +53,7 @@ export const ReportModule: React.FC<ModuleProps> = (props) => {
     try {
       const resolution = await roleService.resolveUserRoles(effectiveEmail, isAdmin);
       setAssignedRoles(resolution.assignedRoles);
+      setAllRoles(resolution.allRoles);
     } catch (err: unknown) {
       console.error('Error loading report roles:', err);
     } finally {
@@ -100,6 +102,7 @@ export const ReportModule: React.FC<ModuleProps> = (props) => {
       ) : (
         <ReportLandingView
           assignments={assignedRoles}
+          allRoles={allRoles}
           userEmail={effectiveEmail}
           selectedUnit={selectedUnit}
           onSelectUnit={handleSelectUnit}

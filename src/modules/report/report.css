@@ -1649,6 +1649,189 @@
 }
 
 /* ==========================================================================
+   Template Version Badges & Template Upgrade Prompt Card
+   ========================================================================== */
+.report-template-ver-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: var(--radius-full, 9999px);
+  line-height: 1.4;
+}
+
+.report-template-ver-pill.is-current {
+  background: #f0fdf4;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+.report-template-ver-pill.is-outdated {
+  background: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+.report-info-badges-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.report-info-template-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  font-size: 12px;
+  color: #1e40af;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: var(--radius-sm, 6px);
+  line-height: 1.3;
+}
+
+.report-info-template-badge strong {
+  font-weight: 700;
+  color: #1d4ed8;
+}
+
+.report-template-upgrade-card {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 24px;
+  background: var(--color-bg-card, #ffffff);
+  border: 1.5px solid #f59e0b;
+  border-radius: var(--radius-lg, 12px);
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.08);
+}
+
+.report-template-upgrade-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.report-template-upgrade-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: #fef3c7;
+  color: #d97706;
+  flex-shrink: 0;
+}
+
+.report-template-upgrade-title-wrap {
+  flex: 1 1 320px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.report-template-upgrade-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--color-text-primary, #0f172a);
+  line-height: 1.35;
+}
+
+.report-template-upgrade-subtitle {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--color-text-secondary, #475569);
+  line-height: 1.5;
+}
+
+.report-template-version-compare {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: #f8fafc;
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: var(--radius-md, 8px);
+}
+
+.report-template-ver-box {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm, 6px);
+  min-width: 0;
+}
+
+.report-template-ver-box.is-old {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+}
+
+.report-template-ver-box.is-new {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
+
+.report-template-ver-box-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--color-text-secondary, #475569);
+}
+
+.report-template-ver-box-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text-primary, #0f172a);
+  word-break: break-word;
+}
+
+.report-template-ver-box.is-old .report-template-ver-box-value {
+  color: #b45309;
+}
+
+.report-template-ver-box.is-new .report-template-ver-box-value {
+  color: #15803d;
+}
+
+.report-template-ver-box-file {
+  font-size: 12px;
+  color: #166534;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.report-template-ver-arrow {
+  font-size: 20px;
+  font-weight: 700;
+  color: #64748b;
+  padding: 0 4px;
+}
+
+.report-template-upgrade-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.report-btn-load-new-template {
+  min-height: 40px;
+  padding: 0 18px !important;
+}
+
+/* ==========================================================================
    States & Spinners
    ========================================================================== */
 .report-loading-state,
@@ -1776,6 +1959,16 @@
   .bcn-a4-page {
     padding: 18px 16px;
   }
+
+  .report-template-version-compare {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .report-template-ver-arrow {
+    text-align: center;
+    transform: rotate(90deg);
+  }
 }
 
 @media (max-width: 640px) {
@@ -1805,7 +1998,8 @@
   .report-meta-card,
   .report-info-card,
   .report-task-section,
-  .report-section-body {
+  .report-section-body,
+  .report-template-upgrade-card {
     padding: 14px 16px;
     border-radius: var(--radius-md, 8px);
   }

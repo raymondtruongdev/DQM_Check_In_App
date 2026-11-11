@@ -1,5 +1,6 @@
-import { ReportDoc, ReportPhotoFile } from '../types/report.types';
+import { ReportDoc, ReportPhotoFile, TemplateVersionInfo } from '../types/report.types';
 import { parseReportDocFromBuffer, encodeReportDocToBuffer, formatDataChecksString } from '../utils/reportCodec';
+import { isTemplateVersionOutdated } from '../utils/reportFileNaming';
 import { ReportFileService } from './ReportFileService';
 import { ReportTemplateService } from './ReportTemplateService';
 
@@ -20,9 +21,12 @@ export class ReportDataService {
 
   /**
    * Load report for unit, docId and dateStr.
-   * If existing file is found in data/<Unit>/<DocID>_<yyyyMMdd>/, loads it.
-   * Otherwise loads fresh from template.
-   * Also lists uploaded photos in data/<Unit>/<DocID>_<yyyyMMdd>/photos/.
+   * 1. Checks latest template in _template/ (e.g. template_ST01_20261109.xlsx).
+   * 2. If existing file is found in data/<Unit>/<DocID>_<yyyyMMdd>/, loads it and checks if its templateVersion is outdated.
+   * 3. Otherwise checks adjacent / closest previous day's report:
+   *    - If previous report's templateVersion matches the latest template -> loads previous day's data directly without prompting.
+   *    - If previous report's templateVersion is older than the latest template -> sets templateUpdateRequired = true so the UI prompts the user to load the new template first.
+   * 4. If no previous report exists, loads fresh from the latest unit template.
    */
   public async loadReport(
     docId: string,
@@ -31,17 +35,16 @@ export class ReportDataService {
     currentUserEmail: string,
     siteManager?: string
   ): Promise<LoadedReportResult> {
-    const [existingFile, photosList] = await Promise.all([
+    const [existingFile, photosList, latestTemplate] = await Promise.all([
       this._fileService.getReportFileWithMeta(unit, docId, dateStr),
-      this._fileService.listReportPhotos(unit, docId, dateStr).catch(() => [])
+      this._fileService.listReportPhotos(unit, docId, dateStr).catch(() => []),
+      this._fileService
+        .findLatestTemplateForUnit(unit, docId)
+        .catch((): { info?: TemplateVersionInfo; buffer?: ArrayBuffer } => ({}))
     ]);
 
-    let templateBuffer: ArrayBuffer | undefined;
-    try {
-      templateBuffer = await this._fileService.getTemplateBuffer(docId);
-    } catch {
-      // Handled gracefully
-    }
+    const templateBuffer = latestTemplate.buffer;
+    const latestTemplateInfo = latestTemplate.info;
 
     const photos: ReportPhotoFile[] = photosList.map((f) => ({
       name: f.name,
@@ -55,12 +58,26 @@ export class ReportDataService {
       doc.eTag = existingFile.eTag;
       doc.isExisting = true;
       doc.photos = photos;
+      doc.latestTemplateInfo = latestTemplateInfo;
       if (photos.length > 0) {
         doc.metadata.photosCount = photos.length;
       }
       if (siteManager && !doc.metadata.siteManager) {
         doc.metadata.siteManager = siteManager;
       }
+
+      const isOutdated = isTemplateVersionOutdated(doc.metadata.templateVersion, latestTemplateInfo);
+      if (isOutdated) {
+        doc.templateUpdateRequired = true;
+        doc.outdatedSourceType = 'existing';
+        doc.outdatedTemplateVersion = doc.metadata.templateVersion || '';
+      } else {
+        doc.templateUpdateRequired = false;
+        if (latestTemplateInfo?.version && !doc.metadata.templateVersion) {
+          doc.metadata.templateVersion = latestTemplateInfo.version;
+        }
+      }
+
       return {
         doc,
         templateBuffer,
@@ -77,8 +94,8 @@ export class ReportDataService {
       doc.eTag = undefined;
       doc.copiedFromDate = prevReport.sourceDateStr;
       doc.photos = photos;
+      doc.latestTemplateInfo = latestTemplateInfo;
       doc.metadata.photosCount = photos.length;
-      doc.metadata.photosFolder = `BCN_AnhHienTruong/${unit}/${dateStr}`;
       doc.metadata.email = currentUserEmail;
       if (!doc.metadata.preparedBy) {
         doc.metadata.preparedBy = currentUserEmail;
@@ -88,6 +105,19 @@ export class ReportDataService {
       }
       doc.metadata.updateTime = new Date().toISOString();
       doc.metadata.approvedAt = '';
+
+      const isOutdated = isTemplateVersionOutdated(doc.metadata.templateVersion, latestTemplateInfo);
+      if (isOutdated) {
+        doc.templateUpdateRequired = true;
+        doc.outdatedSourceType = 'previous_day';
+        doc.outdatedTemplateVersion = doc.metadata.templateVersion || '';
+      } else {
+        doc.templateUpdateRequired = false;
+        if (latestTemplateInfo?.version) {
+          doc.metadata.templateVersion = latestTemplateInfo.version;
+        }
+      }
+
       doc.metadata.dataChecks = formatDataChecksString(doc);
 
       return {
@@ -102,7 +132,8 @@ export class ReportDataService {
       unit,
       dateStr,
       currentUserEmail,
-      siteManager
+      siteManager,
+      latestTemplate
     );
 
     templateResult.doc.photos = photos;
@@ -114,6 +145,44 @@ export class ReportDataService {
       doc: templateResult.doc,
       templateBuffer: templateResult.templateBuffer,
       isExisting: false
+    };
+  }
+
+  /**
+   * Explicitly load the latest unit template from _template/ when the user confirms upgrading from an outdated template
+   */
+  public async loadLatestTemplateForReport(
+    docId: string,
+    unit: string,
+    dateStr: string,
+    currentUserEmail: string,
+    siteManager?: string,
+    currentDoc?: ReportDoc
+  ): Promise<LoadedReportResult> {
+    const templateResult = await this._templateService.getTemplate(
+      docId,
+      unit,
+      dateStr,
+      currentUserEmail,
+      siteManager
+    );
+
+    const newDoc = templateResult.doc;
+    if (currentDoc) {
+      newDoc.eTag = currentDoc.eTag;
+      newDoc.isExisting = currentDoc.isExisting;
+      if (currentDoc.photos && currentDoc.photos.length > 0) {
+        newDoc.photos = currentDoc.photos;
+        newDoc.metadata.photosCount = currentDoc.photos.length;
+      }
+    }
+    newDoc.templateUpdateRequired = false;
+    newDoc.copiedFromDate = undefined;
+
+    return {
+      doc: newDoc,
+      templateBuffer: templateResult.templateBuffer,
+      isExisting: Boolean(currentDoc?.isExisting)
     };
   }
 

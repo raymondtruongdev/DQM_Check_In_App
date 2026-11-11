@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { ReportDoc } from '../types/report.types';
+import { formatTemplateVersionDisplay } from '../utils/reportFileNaming';
 
 export interface IReportPrintPreviewModalProps {
   doc: ReportDoc;
@@ -289,8 +290,14 @@ export const ReportPrintPreviewModal: React.FC<IReportPrintPreviewModalProps> = 
                     <td className="bcn-meta-label">
                       Mã tài liệu <span>| Doc. code</span>
                     </td>
-                    <td colSpan={3} className="font-bold">
+                    <td className="font-bold" style={{ width: '48%' }}>
                       {m.docCode}
+                    </td>
+                    <td className="bcn-meta-label" style={{ width: '17%' }}>
+                      Phiên bản mẫu <span>| Template</span>
+                    </td>
+                    <td style={{ width: '18%', fontWeight: 600 }}>
+                      {m.templateVersion || doc.latestTemplateInfo?.version || `default_${doc.unit}`}
                     </td>
                   </tr>
                   <tr>
@@ -766,7 +773,10 @@ export const ReportPrintPreviewModal: React.FC<IReportPrintPreviewModalProps> = 
                     trên CDE BIC (zone A) theo TMP-001.
                   </div>
                   <div>
-                    Ảnh: <code>{m.photosFolder || `BCN_AnhHienTruong/${doc.unit}/${doc.dateStr}`}</code>
+                    Ảnh: <code>{`data/${doc.unit}/${doc.docId}_${doc.dateStr.replace(/-/g, '')}/photos/`}</code>
+                    {' | '}
+                    Template version:{' '}
+                    <code>{formatTemplateVersionDisplay(m.templateVersion || doc.latestTemplateInfo?.version)}</code>
                   </div>
                 </div>
               </div>

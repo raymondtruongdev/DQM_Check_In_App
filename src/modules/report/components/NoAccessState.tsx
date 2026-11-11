@@ -1,11 +1,16 @@
 import * as React from 'react';
+import { RoleEntry } from '../../../core/types';
 
 export interface INoAccessStateProps {
   userEmail: string;
+  allRoles?: RoleEntry[];
   onRefresh?: () => void;
 }
 
-export const NoAccessState: React.FC<INoAccessStateProps> = ({ userEmail, onRefresh }) => {
+export const NoAccessState: React.FC<INoAccessStateProps> = ({
+  userEmail,
+  onRefresh
+}) => {
   return (
     <div
       style={{
@@ -58,37 +63,28 @@ export const NoAccessState: React.FC<INoAccessStateProps> = ({ userEmail, onRefr
           margin: '0 0 16px 0'
         }}
       >
-        Tài khoản <strong>{userEmail || 'của bạn'}</strong> hiện chưa được phân công báo cáo (DailyReport / WeeklyReport) trong file <code>Report_Role.xlsx</code> hoặc trạng thái đang bị tắt (Status = FALSE).
+        Tài khoản <strong>{userEmail || 'của bạn'}</strong> chưa được phân công báo cáo (DailyReport / WeeklyReport) trong <code>Report_Role</code> hoặc (Status = FALSE).
       </p>
       <p
         style={{
           fontSize: '13px',
-          color: 'var(--color-text-tertiary, #94a3b8)',
+          color: 'var(--color-text-tertiary, #f20c0cff)',
           margin: '0 0 24px 0'
         }}
       >
-        Vui lòng liên hệ Quản trị viên để kiểm tra và phân quyền trong thư viện tài liệu SharePoint <code>CapNhatCongViec</code>.
+        Vui lòng liên hệ Quản trị viên để phân quyền trong SharePoint
       </p>
       {onRefresh && (
         <button
           type="button"
           onClick={onRefresh}
-          className="portal-btn portal-btn-secondary"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '8px 16px',
-            fontSize: '13px',
-            fontWeight: 500,
-            cursor: 'pointer'
-          }}
+          className="btn-action portal-btn-primary"
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="23 4 23 10 17 10" />
             <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
           </svg>
-          Kiểm tra lại quyền
+          <span>Kiểm tra lại quyền</span>
         </button>
       )}
     </div>

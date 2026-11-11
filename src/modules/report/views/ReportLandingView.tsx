@@ -5,6 +5,7 @@ import { NoAccessState } from '../components/NoAccessState';
 
 export interface IReportLandingViewProps {
   assignments: RoleEntry[];
+  allRoles?: RoleEntry[];
   userEmail: string;
   selectedUnit: string;
   onSelectUnit: (unit: string) => void;
@@ -16,6 +17,7 @@ export interface IReportLandingViewProps {
 
 export const ReportLandingView: React.FC<IReportLandingViewProps> = ({
   assignments,
+  allRoles = [],
   userEmail,
   selectedUnit,
   onSelectUnit,
@@ -64,7 +66,60 @@ export const ReportLandingView: React.FC<IReportLandingViewProps> = ({
   if (!isLoading && assignments.length === 0) {
     return (
       <div className="report-landing-container">
-        <NoAccessState userEmail={userEmail} onRefresh={onRefresh} />
+        <div className="report-landing-header">
+          <div className="report-landing-header-left">
+            <button
+              type="button"
+              className="btn-action btn-nav-home"
+              onClick={onGoHome}
+              title="Quay về trang chủ Portal"
+              aria-label="Về Trang Chủ"
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                <polyline points="9 22 9 12 15 12 15 22" />
+              </svg>
+              <span>Trang Chủ</span>
+            </button>
+            <div className="header-text-group">
+              <h2 className="report-landing-title">Quản lý Báo cáo thi công</h2>
+            </div>
+          </div>
+
+          <div className="report-landing-header-right">
+            <button
+              type="button"
+              className={`btn-action btn-refresh ${isLoading ? 'is-loading' : ''}`}
+              onClick={onRefresh}
+              disabled={isLoading}
+              title="Tải lại danh sách phân quyền"
+              aria-label="Làm mới"
+            >
+              <svg
+                className={`action-icon ${isLoading ? 'spin' : ''}`}
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                <path d="M3 3v5h5" />
+                <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+                <path d="M16 21h5v-5" />
+              </svg>
+              <span className="btn-label">{isLoading ? 'Đang tải...' : 'Làm mới'}</span>
+            </button>
+          </div>
+        </div>
+        <NoAccessState
+          userEmail={userEmail}
+          allRoles={allRoles}
+          onRefresh={onRefresh}
+        />
       </div>
     );
   }

@@ -118,7 +118,13 @@ export class SharePointClient {
     const endpoint = `${siteUrl}/_api/web/GetFileByServerRelativeUrl('${safeUrl}')/$value`;
     const response: SPHttpClientResponse = await this._spHttpClient.get(
       endpoint,
-      SPHttpClient.configurations.v1
+      SPHttpClient.configurations.v1,
+      {
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache'
+        }
+      }
     );
 
     if (response.status === 404) {
@@ -345,7 +351,13 @@ export class SharePointClient {
     const response: SPHttpClientResponse = await this._spHttpClient.get(
       endpoint,
       SPHttpClient.configurations.v1,
-      { headers: { 'Accept': 'application/json;odata=nometadata' } }
+      {
+        headers: {
+          'Accept': 'application/json;odata=nometadata',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache'
+        }
+      }
     );
 
     if (response.status === 404) {

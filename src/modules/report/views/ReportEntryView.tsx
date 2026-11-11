@@ -12,6 +12,7 @@ import {
   WorkQtyRow
 } from '../types/report.types';
 import { ReportDataService } from '../services/ReportDataService';
+import { formatTemplateVersionDisplay } from '../utils/reportFileNaming';
 import { recalculateAllRates } from '../utils/reportTaskTree';
 import { ReportMetaForm } from '../components/ReportMetaForm';
 import { ReportTaskTable } from '../components/ReportTaskTable';
@@ -284,6 +285,45 @@ export const ReportEntryView: React.FC<IReportEntryViewProps> = ({
     });
   };
 
+  // Load new template when existing / previous-day report uses an outdated template
+  const handleLoadLatestTemplate = async (): Promise<void> => {
+    if (!doc) return;
+    setIsLoading(true);
+    try {
+      const result = await dataService.loadLatestTemplateForReport(
+        role.docId,
+        role.unit,
+        dateStr,
+        currentUserEmail,
+        role.siteManager,
+        doc
+      );
+      setDoc(result.doc);
+      setTemplateBuffer(result.templateBuffer);
+      setHasUnsavedChanges(true);
+      setToast({
+        type: 'success',
+        text: `Đã nạp biểu mẫu mới nhất (${formatTemplateVersionDisplay(
+          result.doc.metadata.templateVersion
+        )}). Bạn có thể tiếp tục nhập thông tin báo cáo!`
+      });
+    } catch (err: unknown) {
+      console.error('Error loading latest template:', err);
+      const msg = err instanceof Error ? err.message : 'Lỗi khi tải template mới từ SharePoint';
+      setToast({ type: 'error', text: msg });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleKeepCurrentTemplate = (): void => {
+    if (!doc) return;
+    setDoc({
+      ...doc,
+      templateUpdateRequired: false
+    });
+  };
+
   // Save report (6-sheet workbook)
   const handleSave = async (): Promise<void> => {
     if (!doc) return;
@@ -388,6 +428,17 @@ export const ReportEntryView: React.FC<IReportEntryViewProps> = ({
                     : 'Tạo mới từ template (6 sheets)'}
                 </span>
               )}
+
+              {doc && (
+                <span
+                  className={`report-template-ver-pill ${
+                    doc.templateUpdateRequired ? 'is-outdated' : 'is-current'
+                  }`}
+                  title="Phiên bản biểu mẫu (Template Version)"
+                >
+                  📋 Template: {formatTemplateVersionDisplay(doc.metadata.templateVersion)}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -405,7 +456,7 @@ export const ReportEntryView: React.FC<IReportEntryViewProps> = ({
             type="button"
             className="report-btn-print-preview"
             onClick={() => setShowPrintPreview(true)}
-            disabled={isLoading || !doc}
+            disabled={isLoading || !doc || Boolean(doc.templateUpdateRequired)}
             title="Xem bản in 2 trang A4 và xuất PDF"
           >
             <svg
@@ -458,7 +509,7 @@ export const ReportEntryView: React.FC<IReportEntryViewProps> = ({
             type="button"
             className="report-btn-save-primary"
             onClick={handleSave}
-            disabled={isLoading || isSaving || !doc}
+            disabled={isLoading || isSaving || !doc || Boolean(doc.templateUpdateRequired)}
           >
             {isSaving ? (
               <>
@@ -489,7 +540,7 @@ export const ReportEntryView: React.FC<IReportEntryViewProps> = ({
       </div>
 
       {/* 2. Quick Section Navigation Pills */}
-      {!isLoading && doc && (
+      {!isLoading && doc && !doc.templateUpdateRequired && (
         <div className="report-sec-jump-bar" role="navigation" aria-label="Mục báo cáo">
           {SECTION_NAV_ITEMS.map((item) => (
             <button
@@ -515,7 +566,128 @@ export const ReportEntryView: React.FC<IReportEntryViewProps> = ({
       {isLoading ? (
         <div className="report-loading-state">
           <div className="loading-spinner" />
-          <p>Đang chuẩn bị mẫu báo cáo 6 sheets và nạp dữ liệu...</p>
+          <p>Đang kiểm tra phiên bản biểu mẫu (template) và nạp dữ liệu...</p>
+        </div>
+      ) : doc && doc.templateUpdateRequired ? (
+        <div className="report-template-upgrade-card">
+          <div className="report-template-upgrade-header">
+            <div className="report-template-upgrade-icon">
+              <svg
+                width="26"
+                height="26"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="12" y1="18" x2="12" y2="12" />
+                <polyline points="9 15 12 12 15 15" />
+              </svg>
+            </div>
+            <div className="report-template-upgrade-title-wrap">
+              <h3 className="report-template-upgrade-title">
+                Yêu cầu cập nhật Biểu mẫu (Template) mới cho trạm {role.unit}
+              </h3>
+              <p className="report-template-upgrade-subtitle">
+                {doc.outdatedSourceType === 'previous_day'
+                  ? `Báo cáo ngày liền trước (${
+                      doc.copiedFromDate ? doc.copiedFromDate.split('-').reverse().join('/') : ''
+                    }) đang sử dụng phiên bản template cũ. Vui lòng tải template mới nhất từ thư mục _template trên SharePoint để tiếp tục nhập báo cáo ngày ${dateStr
+                      .split('-')
+                      .reverse()
+                      .join('/')}.`
+                  : `File báo cáo ngày ${dateStr
+                      .split('-')
+                      .reverse()
+                      .join('/')} hiện tại đang sử dụng phiên bản template cũ. Vui lòng tải template mới nhất từ thư mục _template trên SharePoint trước khi tiếp tục cập nhật.`}
+              </p>
+            </div>
+            <div className="report-info-date-group">
+              <label htmlFor="upgrade-date-picker" className="report-info-field-label">
+                Ngày báo cáo
+              </label>
+              <div className="report-info-date-input-wrap">
+                <input
+                  id="upgrade-date-picker"
+                  type="date"
+                  className="report-info-date-input"
+                  value={dateStr}
+                  onChange={(e) => handleDateChange(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="report-template-version-compare">
+            <div className="report-template-ver-box is-old">
+              <span className="report-template-ver-box-label">
+                {doc.outdatedSourceType === 'previous_day'
+                  ? 'Phiên bản của báo cáo ngày liền trước'
+                  : 'Phiên bản của file báo cáo hiện tại'}
+              </span>
+              <strong className="report-template-ver-box-value">
+                {formatTemplateVersionDisplay(doc.outdatedTemplateVersion || doc.metadata.templateVersion)}
+              </strong>
+            </div>
+
+            <div className="report-template-ver-arrow" aria-hidden="true">
+              ➔
+            </div>
+
+            <div className="report-template-ver-box is-new">
+              <span className="report-template-ver-box-label">
+                Phiên bản mới nhất trên SharePoint (_template)
+              </span>
+              <strong className="report-template-ver-box-value">
+                {formatTemplateVersionDisplay(doc.latestTemplateInfo?.version)}
+              </strong>
+              {doc.latestTemplateInfo?.fileName && (
+                <span className="report-template-ver-box-file">
+                  File: _template/{doc.latestTemplateInfo.fileName}
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="report-template-upgrade-actions">
+            <button
+              type="button"
+              className="report-btn-save-primary report-btn-load-new-template"
+              onClick={handleLoadLatestTemplate}
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              <span>
+                Tải Template Mới ({doc.latestTemplateInfo?.fileName || doc.latestTemplateInfo?.version}) &amp; Tiếp Tục Nhập
+              </span>
+            </button>
+
+            {doc.isExisting && (
+              <button
+                type="button"
+                className="report-btn-refresh"
+                onClick={handleKeepCurrentTemplate}
+              >
+                Xem dữ liệu cũ (không đổi template)
+              </button>
+            )}
+          </div>
         </div>
       ) : doc ? (
         <div className="report-entry-content">
@@ -525,6 +697,7 @@ export const ReportEntryView: React.FC<IReportEntryViewProps> = ({
             onDateChange={handleDateChange}
             onMetadataChange={handleMetadataChange}
             isExisting={!!doc.isExisting}
+            latestTemplateVersion={doc.latestTemplateInfo?.version}
             disabled={isSaving}
           />
 

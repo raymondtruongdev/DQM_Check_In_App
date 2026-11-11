@@ -1,13 +1,15 @@
 import { ISharePointFileInfo, SharePointClient } from '../../../core/services';
 import { sanitizeSharePointPath } from '../../../core/utils';
 import { REPORT_CONFIG } from '../constants/reportConfig';
+import { TemplateVersionInfo } from '../types/report.types';
 import {
   getReportFileName,
   getReportFolderRelativePath,
   getReportFileRelativePath,
   getReportPhotosFolderRelativePath,
   getTemplateFileRelativePath,
-  getUnitFolderRelativePath
+  getUnitFolderRelativePath,
+  matchUnitTemplateFileName
 } from '../utils/reportFileNaming';
 
 function getPreviousCalendarDateStr(dateStr: string): string {
@@ -65,11 +67,39 @@ export class ReportFileService {
   }
 
   /**
-   * Fetch Report_Role.xlsx buffer
+   * Fetch Report_Role.xlsx buffer (searches library root and _template fallback)
    */
   public async getRoleFileBuffer(): Promise<ArrayBuffer | undefined> {
     const path = this.getRoleFilePath();
-    return await this._client.getFileBuffer(this._siteUrl, path);
+    try {
+      const direct = await this._client.getFileBuffer(this._siteUrl, path);
+      if (direct) return direct;
+    } catch {
+      // Fallback to folder listing below
+    }
+
+    const searchFolders = [this.getLibraryPath(), this.getTemplateFolderPath()];
+    for (let i = 0; i < searchFolders.length; i++) {
+      try {
+        const files = await this._client.getFolderFiles(this._siteUrl, searchFolders[i]);
+        const matched = files.find((f) => /^report[_-]?role.*\.xlsx$/i.test(f.name.trim()));
+        if (matched) {
+          const buf = await this._client.getFileBuffer(this._siteUrl, matched.serverRelativeUrl);
+          if (buf) return buf;
+        }
+      } catch {
+        // Ignore and continue
+      }
+    }
+
+    return undefined;
+  }
+
+  /**
+   * Path to _template folder
+   */
+  public getTemplateFolderPath(): string {
+    return `${this.getLibraryPath()}/${REPORT_CONFIG.TEMPLATE_FOLDER}`;
   }
 
   /**
@@ -77,6 +107,89 @@ export class ReportFileService {
    */
   public getTemplateFilePath(docId: string): string {
     return getTemplateFileRelativePath(this.getLibraryPath(), docId);
+  }
+
+  /**
+   * Find the latest template file for a specific Unit inside _template/
+   * e.g. _template/template_ST01_20261109.xlsx
+   * Falls back to _template/<DocID>_template.xlsx if no unit-specific template is found.
+   */
+  public async findLatestTemplateForUnit(
+    unit: string,
+    docId: string
+  ): Promise<{ info?: TemplateVersionInfo; buffer?: ArrayBuffer }> {
+    const primaryFolder = this.getTemplateFolderPath();
+    const fallbackFolder = `${this.getLibraryPath()}/template`;
+
+    let files: ISharePointFileInfo[] = [];
+    try {
+      files = await this._client.getFolderFiles(this._siteUrl, primaryFolder);
+    } catch {
+      files = [];
+    }
+
+    if (files.length === 0) {
+      try {
+        files = await this._client.getFolderFiles(this._siteUrl, fallbackFolder);
+      } catch {
+        files = [];
+      }
+    }
+
+    const matchedCandidates: TemplateVersionInfo[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const f = files[i];
+      const match = matchUnitTemplateFileName(f.name, unit, docId);
+      if (match) {
+        matchedCandidates.push({
+          fileName: match.fileName,
+          version: match.version,
+          versionDate: match.versionDate,
+          serverRelativeUrl: f.serverRelativeUrl,
+          timeLastModified: f.timeLastModified
+        });
+      }
+    }
+
+    if (matchedCandidates.length > 0) {
+      matchedCandidates.sort((a, b) => {
+        if (a.versionDate !== b.versionDate) {
+          return b.versionDate.localeCompare(a.versionDate);
+        }
+        return (b.timeLastModified || '').localeCompare(a.timeLastModified || '');
+      });
+
+      const best = matchedCandidates[0];
+      try {
+        const buffer = await this._client.getFileBuffer(this._siteUrl, best.serverRelativeUrl);
+        if (buffer) {
+          return { info: best, buffer };
+        }
+      } catch {
+        // Fallback below
+      }
+    }
+
+    // Fallback to generic <DocID>_template.xlsx if no unit-specific template exists
+    try {
+      const genericBuffer = await this.getTemplateBuffer(docId);
+      if (genericBuffer) {
+        const genericFileName = `${sanitizeSharePointPath(docId)}_template.xlsx`;
+        return {
+          info: {
+            fileName: genericFileName,
+            version: `${sanitizeSharePointPath(docId)}_template`,
+            versionDate: '',
+            serverRelativeUrl: this.getTemplateFilePath(docId)
+          },
+          buffer: genericBuffer
+        };
+      }
+    } catch {
+      // Ignore
+    }
+
+    return {};
   }
 
   /**

@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { ReportMetadata } from '../types/report.types';
+import { formatTemplateVersionDisplay } from '../utils/reportFileNaming';
 
 export interface IReportMetaFormProps {
   metadata: ReportMetadata;
@@ -7,6 +8,7 @@ export interface IReportMetaFormProps {
   onDateChange: (newDate: string) => void;
   onMetadataChange: <K extends keyof ReportMetadata>(field: K, value: ReportMetadata[K]) => void;
   isExisting: boolean;
+  latestTemplateVersion?: string;
   disabled?: boolean;
 }
 
@@ -15,19 +17,29 @@ export const ReportMetaForm: React.FC<IReportMetaFormProps> = ({
   dateStr,
   onDateChange,
   onMetadataChange,
+  latestTemplateVersion,
   disabled = false
 }) => {
   return (
     <>
       <div className="report-info-card">
-        {/* 1. Top Section: Doc Code + Subtitle on Left, Date Picker on Right */}
+        {/* 1. Top Section: Doc Code + Template Version + Subtitle on Left, Date Picker on Right */}
         <div className="report-info-top-row">
           <div className="report-info-left-group">
-            {metadata.docCode && (
-              <div className="report-info-code-badge" title={metadata.docCode}>
-                {metadata.docCode}
+            <div className="report-info-badges-inline">
+              {metadata.docCode && (
+                <div className="report-info-code-badge" title={metadata.docCode}>
+                  {metadata.docCode}
+                </div>
+              )}
+              <div
+                className="report-info-template-badge"
+                title={`Phiên bản biểu mẫu: ${metadata.templateVersion || latestTemplateVersion || ''}`}
+              >
+                <span>Biểu mẫu (Template):</span>{' '}
+                <strong>{formatTemplateVersionDisplay(metadata.templateVersion || latestTemplateVersion)}</strong>
               </div>
-            )}
+            </div>
             {metadata.subTitle && (
               <div className="report-info-subtitle">
                 {metadata.subTitle}
@@ -76,7 +88,8 @@ export const ReportMetaForm: React.FC<IReportMetaFormProps> = ({
               type="text"
               className="report-info-input"
               placeholder="VD: 041"
-              value={metadata.reportNo || ''}
+              // value={metadata.reportNo || ''}
+              value={''}
               onChange={(e) => onMetadataChange('reportNo', e.target.value)}
               disabled={disabled}
             />

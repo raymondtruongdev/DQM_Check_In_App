@@ -126,12 +126,54 @@ export function getDefaultDailyReportSections(unit: string): {
   materials: MaterialRow[];
   issues: IssueRow[];
 } {
-  const cleanUnit = unit || 'ST06';
+  const cleanUnit = (unit || 'ST01').toUpperCase();
+
+  if (cleanUnit === 'ST02') {
+    return {
+      manpower: [
+        { id: 'mp-1', org: 'TCJV', category: 'Ban chỉ huy Ga ST02', nos: 7, hrs: 10, manHrs: 70, isLocked: true },
+        { id: 'mp-2', org: 'TCJV', category: 'Kỹ sư Địa kỹ thuật & Quan trắc', nos: 12, hrs: 10, manHrs: 120, isLocked: true },
+        { id: 'mp-3', org: 'NTP-TV01', category: 'Công nhân khoan cọc & kết cấu ST02', nos: 38, hrs: 10, manHrs: 380, isLocked: true },
+        { id: 'mp-4', org: 'NTP-TV01', category: 'Lao động phổ thông', nos: 20, hrs: 10, manHrs: 200, isLocked: true },
+        { id: 'mp-5', org: 'TCJV', category: 'An toàn viên (HSE)', nos: 4, hrs: 10, manHrs: 40, isLocked: true },
+        { id: 'mp-6', org: 'NTP-CD02', category: 'Đội di dời điện/viễn thông', nos: 8, hrs: 8, manHrs: 64, isLocked: false }
+      ],
+      equipment: [
+        { id: 'eq-1', equipment: 'Máy khoan cọc nhồi Bauer BG28', qty: 1, hrs: 10, status: 'Hoạt động', remark: 'Khoan cọc KP-08', isLocked: false },
+        { id: 'eq-2', equipment: 'Cẩu phục vụ 55T', qty: 1, hrs: 9, status: 'Hoạt động', remark: '', isLocked: false },
+        { id: 'eq-3', equipment: 'Máy đào bánh xích 1,2 m³', qty: 2, hrs: 8.5, status: 'Hoạt động', remark: 'Đào hố móng trục 1–3', isLocked: false },
+        { id: 'eq-4', equipment: 'Máy nén khí & rửa lỗ khoan', qty: 1, hrs: 6, status: 'Hoạt động', remark: '', isLocked: false }
+      ],
+      workItems: [
+        { id: 'wq-1', activityId: 'ST02-DW-1120', item: 'Cọc khoan nhồi D1500 – khoan tạo lỗ', unit: 'm', plan: 42, actual: 42, percent: 100, remark: 'Cọc KP-08', isLocked: true },
+        { id: 'wq-2', activityId: 'ST02-DW-1130', item: 'Gia công & hạ lồng thép cọc KP-08', unit: 'tấn', plan: 18, actual: 18, percent: 100, remark: '', isLocked: true },
+        { id: 'wq-3', activityId: 'ST02-GW-2010', item: 'Đổ bê tông tường dẫn trục 6–8', unit: 'm3', plan: 65, actual: 65, percent: 100, remark: '', isLocked: false },
+        { id: 'wq-4', activityId: 'ST02-EX-3010', item: 'Đào đất mở lớp 1 (trục 1–3)', unit: 'm3', plan: 320, actual: 290, percent: 91, remark: '', isLocked: false }
+      ],
+      materials: [
+        { id: 'mat-1', material: 'Bê tông C30/37 cọc khoan nhồi', unit: 'm3', recv: 82, used: 82, mirMar: 'MIR-ST02-0064' },
+        { id: 'mat-2', material: 'Thép D28/D25 cọc nhồi', unit: 'tấn', recv: 22, used: 18, mirMar: 'MIR-ST02-0065' }
+      ],
+      issues: [
+        {
+          id: 'iss-1',
+          issueId: 'VM-ST02-004',
+          description: 'Chờ cắt điện tuyến cáp trung thế 22kV trục 7 Ga ST02',
+          severity: 'Cao',
+          criticalPath: 'Có',
+          owner: 'EVNHCMC / TCJV',
+          dueDate: '14/11',
+          status: 'Đang xử lý'
+        }
+      ]
+    };
+  }
+
   return {
     manpower: [
-      { id: 'mp-1', org: 'TCJV', category: 'Quản lý', nos: 8, hrs: 10, manHrs: 80, isLocked: true },
+      { id: 'mp-1', org: 'TCJV', category: `Quản lý hiện trường ${cleanUnit}`, nos: 8, hrs: 10, manHrs: 80, isLocked: true },
       { id: 'mp-2', org: 'TCJV', category: 'Kỹ sư/Kỹ thuật', nos: 14, hrs: 10, manHrs: 140, isLocked: true },
-      { id: 'mp-3', org: 'NTP-TV01', category: 'Công nhân kỹ thuật', nos: 52, hrs: 10, manHrs: 520, isLocked: true },
+      { id: 'mp-3', org: 'NTP-TV01', category: `Công nhân kỹ thuật ${cleanUnit}`, nos: 52, hrs: 10, manHrs: 520, isLocked: true },
       { id: 'mp-4', org: 'NTP-TV01', category: 'Lao động phổ thông', nos: 30, hrs: 10, manHrs: 300, isLocked: true },
       { id: 'mp-5', org: 'TCJV', category: 'An toàn viên', nos: 6, hrs: 10, manHrs: 60, isLocked: true },
       { id: 'mp-6', org: 'NTP-TB02', category: 'Vận hành máy', nos: 4, hrs: 8, manHrs: 32, isLocked: false }
@@ -239,47 +281,40 @@ export async function parseReportDocFromBuffer(
     docTitleEn: docId === 'WeeklyReport' ? 'WEEKLY REPORT' : 'DAILY REPORT',
     subTitle: 'Tuyến Metro số 2 – Gói thầu M2.1 Tham Lương – Bến Thành | HCMC Metro Line 2 – Package M2.1',
     docCode: `HCM2_1-23_CS-MAUR_TCJV-CPZZ-${unit}-CWS-RP-041-S3-C01_BCN`,
-    location: `${unit} – Ga ${unit} (tên theo DM_ViTri)`,
-    reportNo: '041',
+    templateVersion: '',
+    location: `${unit} – Ga ${unit}`,
+    reportNo: '001',
     shift: 'Cả ngày (2 ca)',
     email: '',
     updateTime: '',
     weatherAM: 'Nắng',
-    weatherPM: 'Mưa to',
+    weatherPM: 'Nắng',
     maxTemp: '33 °C',
-    hrsLost: 1.5,
+    hrsLost: 0,
     progressEval: 'Đạt',
-    summary:
-      'Thi công tường vây tấm P-12 (đào, hạ lồng thép, đổ bê tông); đào gầu ngoạm tấm P-13; tiếp tục tường dẫn đoạn trục 8–10. Mưa to 14:30–16:00 dừng đào 1,5 giờ. Giải trình K02: VM-' +
-      unit +
-      '-007 và 009 chưa ảnh hưởng sản lượng hôm nay; bentonite còn đủ 4 ngày.',
+    summary: '',
     manpowerSummary: '',
     equipmentSummary: '',
     workQtySummary: '',
     materialsSummary: '',
     worksPlanSummary: '',
     issuesSummary: '',
-    worksToday:
-      '• Đổ bê tông tấm P-12 từ 06:30 đến 13:10, 214 m³, thí nghiệm 6 tổ mẫu (Trục 6–7, P-12)\n• Đào gầu ngoạm tấm P-13 đến cốt -18,4 m (P-13)\n• Gia công lồng thép tấm P-14 tại bãi (Bãi gia công)',
-    planTomorrow:
-      '• Đào hoàn thành P-13 đến cốt -32,5 m; kiểm tra độ thẳng đứng (Koden) (P-13)\n• Nghiệm thu cốt thép lồng P-14 với TVGS 09:00 (Bãi gia công)',
+    worksToday: '',
+    planTomorrow: '',
     hseIncidents: 0,
-    hseInspections: 3,
-    inspectionRequests: 2,
+    hseInspections: 0,
+    inspectionRequests: 0,
     newNCR: 0,
     photosCount: 0,
-    photosFolder: `BCN_AnhHienTruong/${unit}/${dateStr}`,
     incidentDetails: 'Không có | None',
-    engineerInstructions:
-      'TVGS yêu cầu bổ sung biên bản kiểm tra dung dịch bentonite tấm P-12 trước 08:00 ngày tiếp theo.',
-    planSummary:
-      'Hoàn thành đào tấm P-13, hạ lồng thép P-13; đổ bê tông tường dẫn trục 8–9; nghiệm thu cốt thép lồng P-14 với TVGS.',
+    engineerInstructions: '',
+    planSummary: '',
     preparedBy: '',
-    siteManager: 'Trương Quốc Toàn',
+    siteManager: '',
     approvedAt: '',
     tcjvRep: '',
     engineerAck: '',
-    approvalComment: 'Đồng ý; giải trình K02 đã ghi trong tóm tắt',
+    approvalComment: '',
     dataChecks: ''
   };
 
@@ -301,6 +336,7 @@ export async function parseReportDocFromBuffer(
         else if (key === 'doctileen' || key === 'doctitleen') metadata.docTitleEn = val || metadata.docTitleEn;
         else if (key === 'subtile' || key === 'subtitle') metadata.subTitle = val || metadata.subTitle;
         else if (key === 'doccode') metadata.docCode = val || metadata.docCode;
+        else if (key === 'templateversion' || key === 'template_version' || key === 'templatefile') metadata.templateVersion = val;
         else if (key === 'location') metadata.location = val || metadata.location;
         else if (key === 'reportno') metadata.reportNo = val;
         else if (key === 'shift') metadata.shift = val || metadata.shift;
@@ -463,11 +499,11 @@ export async function parseReportDocFromBuffer(
       unit,
       dateStr,
       metadata,
-      manpower: manpower.length > 0 ? manpower : defaults.manpower,
-      equipment: equipment.length > 0 ? equipment : defaults.equipment,
-      workItems: workItems.length > 0 ? workItems : defaults.workItems,
-      materials: materials.length > 0 ? materials : defaults.materials,
-      issues: issues.length > 0 ? issues : defaults.issues,
+      manpower,
+      equipment,
+      workItems,
+      materials,
+      issues,
       tasks: []
     };
     doc.metadata.dataChecks = formatDataChecksString(doc);
@@ -608,6 +644,7 @@ export async function encodeReportDocToBuffer(
     ['DocTileEn', m.docTitleEn || 'DAILY REPORT', 'Tiêu đề chính (EN)'],
     ['SubTile', m.subTitle || '', 'Tên dự án / gói thầu'],
     ['DocCode', m.docCode || '', 'Mã tài liệu'],
+    ['TemplateVersion', m.templateVersion || '', 'Phiên bản biểu mẫu (Template Version)'],
     ['Location', m.location || doc.unit, 'Vị trí / Trạm'],
     ['ReportNo', m.reportNo || '', 'Số BCN'],
     ['ReportDate', doc.dateStr || '', 'Ngày báo cáo'],
@@ -631,7 +668,6 @@ export async function encodeReportDocToBuffer(
     ['InspectionRequests', m.inspectionRequests ?? 0, 'VIII. Nghiệm thu (IR)'],
     ['NewNCR', m.newNCR ?? 0, 'VIII. NCR mới'],
     ['PhotosCount', m.photosCount ?? 0, 'VIII. Số ảnh hiện trường'],
-    ['PhotosFolder', m.photosFolder || `BCN_AnhHienTruong/${doc.unit}/${doc.dateStr}`, 'Đường dẫn thư mục ảnh'],
     ['IncidentDetails', m.incidentDetails || 'Không có | None', 'VIII. Mô tả sự cố'],
     ['EngineerInstructions', m.engineerInstructions || '', 'VIII. Chỉ thị/ý kiến TVGS'],
     ['PlanSummary', m.planSummary || '', 'VIII. Kế hoạch ngày mai (tóm tắt)'],

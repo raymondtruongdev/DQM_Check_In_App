@@ -6,9 +6,16 @@ import type { UserProfileRecord } from './auth.types';
  */
 export function extractCleanEmail(rawEmailOrLoginName?: string): string {
   if (!rawEmailOrLoginName) return '';
-  const parts = rawEmailOrLoginName.split('|');
-  const clean = parts[parts.length - 1].trim();
-  return clean.toLowerCase();
+  const normalized = String(rawEmailOrLoginName)
+    .replace(/[\u200B-\u200D\uFEFF\u00A0]/g, ' ')
+    .trim();
+  const parts = normalized.split('|');
+  const candidate = parts[parts.length - 1].trim();
+  const emailMatch = candidate.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+  if (emailMatch) {
+    return emailMatch[1].toLowerCase();
+  }
+  return candidate.replace(/^mailto:/i, '').trim().toLowerCase();
 }
 
 /**
