@@ -105,6 +105,7 @@ DQM_Check_In_App/
   - `05_Materials`: `Material | Unit | Recv | Used | MirMar | IsLocked`.
   - `06_Issues`: `IssueID | Description | Severity | CriticalPath | Owner | DueDate | Status | IsLocked`.
   - `07_Tasks` (optional, used for `WeeklyReport` tree-table with automatic parent rate calculation).
+* **⚠️ WeeklyReport hiện chỉ là placeholder:** tile `WeeklyReport`, file template tuần tạm và code module tuần (`ReportTaskTable`, sheet `07_Tasks`, tính tỉ lệ cha/con) chỉ dùng để hiển thị UI, chưa phải tính năng hoàn chỉnh. Chủ dự án sẽ làm phần báo cáo tuần sau. Không test, sửa logic hay mở rộng phần riêng của weekly (task tree, template/data tuần) và không coi đó là việc tồn đọng cho tới khi được yêu cầu; chỉ giữ UI dùng chung (nút, icon, token) nhất quán.
 * **Locked Predefined Template Rows (`IsLocked`):**
   - Rows with `IsLocked = TRUE` in the template (by default `TCJV` and `NTP-TV01` in `02_Manpower`, and `<Unit>-DW-1120` / `<Unit>-DW-1130` in `04_WorkQty`) cannot be deleted (`🔒` badge replaces `×` button) and their key identifier columns (`Org`, `Category`, `ActivityID`, `Item`, `Unit`) are `readOnly`. Users can still edit quantities/hours and add/delete custom rows (`IsLocked = FALSE`).
 * **Smart Data Loading & Previous-Day Prefill (`ReportDataService.loadReport`):**
