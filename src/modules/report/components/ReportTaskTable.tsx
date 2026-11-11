@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { ReportTaskRow } from '../types/report.types';
+import { Icon } from '../../../core/components/Icon';
 
 export interface IReportTaskTableProps {
   tasks: ReportTaskRow[];
@@ -102,17 +103,7 @@ export const ReportTaskTable: React.FC<IReportTaskTableProps> = ({
                         style={{ paddingLeft: `${indentPx}px` }}
                       >
                         {isParent && (
-                          <svg
-                            width="14"
-                            height="14"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2.5"
-                            className="parent-icon"
-                          >
-                            <polyline points="6 9 12 15 18 9" />
-                          </svg>
+                          <Icon name="chevron-down" size={16} className="parent-icon" />
                         )}
                         <span className={`task-name-text ${isParent ? 'font-parent' : ''}`}>
                           {task.taskName}

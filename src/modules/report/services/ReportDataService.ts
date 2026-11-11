@@ -1,5 +1,5 @@
 import { ReportDoc, ReportPhotoFile, TemplateVersionInfo } from '../types/report.types';
-import { parseReportDocFromBuffer, encodeReportDocToBuffer, formatDataChecksString } from '../utils/reportCodec';
+import { parseReportDocFromBuffer, encodeReportDocToBuffer } from '../utils/reportCodec';
 import { isTemplateVersionOutdated } from '../utils/reportFileNaming';
 import { ReportFileService } from './ReportFileService';
 import { ReportTemplateService } from './ReportTemplateService';
@@ -104,7 +104,6 @@ export class ReportDataService {
         doc.metadata.siteManager = siteManager;
       }
       doc.metadata.updateTime = new Date().toISOString();
-      doc.metadata.approvedAt = '';
 
       const isOutdated = isTemplateVersionOutdated(doc.metadata.templateVersion, latestTemplateInfo);
       if (isOutdated) {
@@ -117,8 +116,6 @@ export class ReportDataService {
           doc.metadata.templateVersion = latestTemplateInfo.version;
         }
       }
-
-      doc.metadata.dataChecks = formatDataChecksString(doc);
 
       return {
         doc,
@@ -194,7 +191,6 @@ export class ReportDataService {
     templateBuffer?: ArrayBuffer
   ): Promise<{ serverRelativeUrl: string; eTag?: string }> {
     doc.metadata.updateTime = new Date().toISOString();
-    doc.metadata.dataChecks = formatDataChecksString(doc);
 
     const buffer = await encodeReportDocToBuffer(doc, templateBuffer);
     return await this._fileService.saveReportFile(

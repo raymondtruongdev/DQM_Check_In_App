@@ -15,107 +15,6 @@ async function getXlsx(): Promise<typeof XLSXTypes> {
   return await import(/* webpackChunkName: 'xlsx' */ 'xlsx');
 }
 
-export interface DataCheckItem {
-  code: string;
-  label: string;
-  status: 'OK' | 'Cảnh báo';
-}
-
-/**
- * Evaluate K01..K12 data checks automatically from ReportDoc
- */
-export function evaluateDataChecks(doc: ReportDoc): DataCheckItem[] {
-  const m = doc.metadata;
-  const hasCriticalIssue = doc.issues.some(
-    (iss) =>
-      iss.status !== 'Đóng' &&
-      (iss.severity.toLowerCase().includes('cao') || iss.criticalPath.toLowerCase() === 'có')
-  );
-  const totalManpower = doc.manpower.reduce((acc, r) => acc + (r.nos || 0), 0);
-  const allManpowerHasHrs = doc.manpower.every((r) => !r.nos || (r.hrs !== undefined && r.hrs > 0));
-  const hasWorkItems = doc.workItems.length > 0;
-  const validWorkQty = doc.workItems.every(
-    (w) => (w.plan === undefined || w.plan >= 0) && (w.actual === undefined || w.actual >= 0)
-  );
-  const allMaterialsHaveMir = doc.materials.every(
-    (mat) => (!mat.recv && !mat.used) || Boolean(mat.mirMar && mat.mirMar.trim())
-  );
-  const hasTodayAndTomorrow = Boolean(m.worksToday.trim() && m.planTomorrow.trim());
-  const hseOk =
-    !m.hseIncidents ||
-    m.hseIncidents === 0 ||
-    (Boolean(m.incidentDetails.trim()) && !m.incidentDetails.toLowerCase().includes('không có'));
-
-  return [
-    {
-      code: 'K01',
-      label: 'Thời tiết & Giờ mất do thời tiết có giải trình',
-      status: m.hrsLost && m.hrsLost > 0 && !m.summary.trim() ? 'Cảnh báo' : 'OK'
-    },
-    {
-      code: 'K02',
-      label: 'Vướng mắc đường găng / Mức độ Cao đang mở',
-      status: hasCriticalIssue ? 'Cảnh báo' : 'OK'
-    },
-    {
-      code: 'K03',
-      label: 'Tổng nhân lực hiện trường > 0',
-      status: totalManpower > 0 ? 'OK' : 'Cảnh báo'
-    },
-    {
-      code: 'K04',
-      label: 'Giờ công nhân lực hợp lệ',
-      status: allManpowerHasHrs ? 'OK' : 'Cảnh báo'
-    },
-    {
-      code: 'K05',
-      label: 'Danh mục thiết bị & trạng thái vận hành',
-      status: doc.equipment.length > 0 ? 'OK' : 'Cảnh báo'
-    },
-    {
-      code: 'K06',
-      label: 'Khối lượng thực hiện trong ngày',
-      status: hasWorkItems ? 'OK' : 'Cảnh báo'
-    },
-    {
-      code: 'K07',
-      label: 'Tỉ lệ hoàn thành & số liệu khối lượng hợp lệ',
-      status: validWorkQty ? 'OK' : 'Cảnh báo'
-    },
-    {
-      code: 'K08',
-      label: 'Vật tư nhập/xuất có phiếu MIR/MAR',
-      status: allMaterialsHaveMir ? 'OK' : 'Cảnh báo'
-    },
-    {
-      code: 'K09',
-      label: 'Công việc hôm nay & Kế hoạch ngày mai',
-      status: hasTodayAndTomorrow ? 'OK' : 'Cảnh báo'
-    },
-    {
-      code: 'K10',
-      label: 'An toàn HSE & Mô tả sự cố',
-      status: hseOk ? 'OK' : 'Cảnh báo'
-    },
-    {
-      code: 'K11',
-      label: 'Chỉ thị TVGS & Kế hoạch tóm tắt',
-      status: m.planSummary.trim() ? 'OK' : 'Cảnh báo'
-    },
-    {
-      code: 'K12',
-      label: 'Đồng bộ hồ sơ & Ảnh hiện trường',
-      status: 'OK'
-    }
-  ];
-}
-
-export function formatDataChecksString(doc: ReportDoc): string {
-  return evaluateDataChecks(doc)
-    .map((item) => `${item.code}:${item.status}`)
-    .join('; ');
-}
-
 /**
  * Default seed data for a new Daily Report (based on Mau_BCN_ST06_20261025.pdf)
  */
@@ -311,11 +210,9 @@ export async function parseReportDocFromBuffer(
     planSummary: '',
     preparedBy: '',
     siteManager: '',
-    approvedAt: '',
     tcjvRep: '',
     engineerAck: '',
     approvalComment: '',
-    dataChecks: ''
   };
 
   const hasMultiSheet = wb.SheetNames.some((s) => s === '01_General' || s === '02_Manpower');
@@ -367,11 +264,9 @@ export async function parseReportDocFromBuffer(
         else if (key === 'plansummary') metadata.planSummary = val;
         else if (key === 'preparedby') metadata.preparedBy = val;
         else if (key === 'sitemanager') metadata.siteManager = val;
-        else if (key === 'approvedat') metadata.approvedAt = val;
         else if (key === 'tcjvrep') metadata.tcjvRep = val;
         else if (key === 'engineerack') metadata.engineerAck = val;
         else if (key === 'approvalcomment') metadata.approvalComment = val;
-        else if (key === 'datachecks') metadata.dataChecks = val;
       }
     }
 
@@ -506,7 +401,6 @@ export async function parseReportDocFromBuffer(
       issues,
       tasks: []
     };
-    doc.metadata.dataChecks = formatDataChecksString(doc);
     return doc;
   }
 
@@ -619,7 +513,6 @@ export async function parseReportDocFromBuffer(
     issues: defaults.issues,
     tasks: recalculatedTasks
   };
-  doc.metadata.dataChecks = formatDataChecksString(doc);
   return doc;
 }
 
@@ -635,7 +528,6 @@ export async function encodeReportDocToBuffer(
   const wb = XLSX.utils.book_new();
 
   const m = doc.metadata;
-  const dataChecksStr = formatDataChecksString(doc);
 
   // 1. Sheet 01_General
   const generalRows: (string | number)[][] = [
@@ -675,11 +567,9 @@ export async function encodeReportDocToBuffer(
     ['Email', m.email || '', 'Email người lập'],
     ['UpdateTime', m.updateTime || new Date().toISOString(), 'Thời gian nộp'],
     ['SiteManager', m.siteManager || '', 'Trưởng ga / CHT'],
-    ['ApprovedAt', m.approvedAt || '', 'Thời gian duyệt'],
     ['TcjvRep', m.tcjvRep || '', 'Đại diện TCJV'],
     ['EngineerAck', m.engineerAck || '', 'TVGS xác nhận'],
-    ['ApprovalComment', m.approvalComment || '', 'Ý kiến duyệt'],
-    ['DataChecks', dataChecksStr, 'Chuỗi kiểm tra K01..K12']
+    ['ApprovalComment', m.approvalComment || '', 'Ý kiến duyệt']
   ];
   const wsGeneral = XLSX.utils.aoa_to_sheet(generalRows);
   wsGeneral['!cols'] = [{ wch: 22 }, { wch: 70 }, { wch: 35 }];

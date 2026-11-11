@@ -8,6 +8,7 @@ import {
   ReportMetadata,
   WorkQtyRow
 } from '../types/report.types';
+import { Icon } from '../../../core/components/Icon';
 
 export interface IReportSectionsEditorProps {
   doc: ReportDoc;
@@ -21,7 +22,6 @@ export interface IReportSectionsEditorProps {
   onIssuesChange: (rows: IssueRow[]) => void;
   onUploadPhotos: (files: FileList) => Promise<void>;
   onDeletePhoto: (serverRelativeUrl: string, name: string) => Promise<void>;
-  onApproveReport: () => void;
 }
 
 function parseInputNum(val: string): number | undefined {
@@ -41,8 +41,7 @@ export const ReportSectionsEditor: React.FC<IReportSectionsEditorProps> = ({
   onMaterialsChange,
   onIssuesChange,
   onUploadPhotos,
-  onDeletePhoto,
-  onApproveReport
+  onDeletePhoto
 }) => {
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);
   const { metadata, manpower, equipment, workItems, materials, issues, photos = [] } = doc;
@@ -221,7 +220,7 @@ export const ReportSectionsEditor: React.FC<IReportSectionsEditorProps> = ({
           </span>
           <button
             type="button"
-            className="report-section-add-btn"
+            className="btn btn--light btn--sm"
             onClick={addManpowerRow}
             disabled={disabled}
           >
@@ -294,17 +293,17 @@ export const ReportSectionsEditor: React.FC<IReportSectionsEditorProps> = ({
                         className="report-row-lock-badge"
                         title="Mục cố định theo template (không được xoá)"
                       >
-                        🔒
+                        <Icon name="lock" size={16} />
                       </span>
                     ) : (
                       <button
                         type="button"
-                        className="report-row-del-btn"
+                        className="btn btn--ghost-danger btn--icon btn--sm"
                         onClick={() => removeManpowerRow(idx)}
                         disabled={disabled}
                         title="Xoá dòng"
                       >
-                        ×
+                        <Icon name="dismiss" size={16} />
                       </button>
                     )}
                   </td>
@@ -327,7 +326,7 @@ export const ReportSectionsEditor: React.FC<IReportSectionsEditorProps> = ({
           </table>
         </div>
 
-        <div className="report-section-body" style={{ borderTop: '1px solid #e2e8f0' }}>
+        <div className="report-section-body" style={{ borderTop: '1px solid var(--color-border)' }}>
           <div className="report-info-field-item">
             <label className="report-info-field-label">Tóm tắt | Summary</label>
             <textarea
@@ -350,7 +349,7 @@ export const ReportSectionsEditor: React.FC<IReportSectionsEditorProps> = ({
           </span>
           <button
             type="button"
-            className="report-section-add-btn"
+            className="btn btn--light btn--sm"
             onClick={addEquipmentRow}
             disabled={disabled}
           >
@@ -434,17 +433,17 @@ export const ReportSectionsEditor: React.FC<IReportSectionsEditorProps> = ({
                         className="report-row-lock-badge"
                         title="Mục cố định theo template (không được xoá)"
                       >
-                        🔒
+                        <Icon name="lock" size={16} />
                       </span>
                     ) : (
                       <button
                         type="button"
-                        className="report-row-del-btn"
+                        className="btn btn--ghost-danger btn--icon btn--sm"
                         onClick={() => removeEquipmentRow(idx)}
                         disabled={disabled}
                         title="Xoá dòng"
                       >
-                        ×
+                        <Icon name="dismiss" size={16} />
                       </button>
                     )}
                   </td>
@@ -454,7 +453,7 @@ export const ReportSectionsEditor: React.FC<IReportSectionsEditorProps> = ({
           </table>
         </div>
 
-        <div className="report-section-body" style={{ borderTop: '1px solid #e2e8f0' }}>
+        <div className="report-section-body" style={{ borderTop: '1px solid var(--color-border)' }}>
           <div className="report-info-field-item">
             <label className="report-info-field-label">Tóm tắt | Summary</label>
             <textarea
@@ -477,7 +476,7 @@ export const ReportSectionsEditor: React.FC<IReportSectionsEditorProps> = ({
           </span>
           <button
             type="button"
-            className="report-section-add-btn"
+            className="btn btn--light btn--sm"
             onClick={addWorkQtyRow}
             disabled={disabled}
           >
@@ -572,17 +571,17 @@ export const ReportSectionsEditor: React.FC<IReportSectionsEditorProps> = ({
                         className="report-row-lock-badge"
                         title="Mục cố định theo template (không được xoá)"
                       >
-                        🔒
+                        <Icon name="lock" size={16} />
                       </span>
                     ) : (
                       <button
                         type="button"
-                        className="report-row-del-btn"
+                        className="btn btn--ghost-danger btn--icon btn--sm"
                         onClick={() => removeWorkQtyRow(idx)}
                         disabled={disabled}
                         title="Xoá dòng"
                       >
-                        ×
+                        <Icon name="dismiss" size={16} />
                       </button>
                     )}
                   </td>
@@ -592,7 +591,7 @@ export const ReportSectionsEditor: React.FC<IReportSectionsEditorProps> = ({
           </table>
         </div>
 
-        <div className="report-section-body" style={{ borderTop: '1px solid #e2e8f0' }}>
+        <div className="report-section-body" style={{ borderTop: '1px solid var(--color-border)' }}>
           <div className="report-info-field-item">
             <label className="report-info-field-label">Tóm tắt | Summary</label>
             <textarea
@@ -615,7 +614,7 @@ export const ReportSectionsEditor: React.FC<IReportSectionsEditorProps> = ({
           </span>
           <button
             type="button"
-            className="report-section-add-btn"
+            className="btn btn--light btn--sm"
             onClick={addMaterialRow}
             disabled={disabled}
           >
@@ -695,17 +694,17 @@ export const ReportSectionsEditor: React.FC<IReportSectionsEditorProps> = ({
                         className="report-row-lock-badge"
                         title="Mục cố định theo template (không được xoá)"
                       >
-                        🔒
+                        <Icon name="lock" size={16} />
                       </span>
                     ) : (
                       <button
                         type="button"
-                        className="report-row-del-btn"
+                        className="btn btn--ghost-danger btn--icon btn--sm"
                         onClick={() => removeMaterialRow(idx)}
                         disabled={disabled}
                         title="Xoá dòng"
                       >
-                        ×
+                        <Icon name="dismiss" size={16} />
                       </button>
                     )}
                   </td>
@@ -715,7 +714,7 @@ export const ReportSectionsEditor: React.FC<IReportSectionsEditorProps> = ({
           </table>
         </div>
 
-        <div className="report-section-body" style={{ borderTop: '1px solid #e2e8f0' }}>
+        <div className="report-section-body" style={{ borderTop: '1px solid var(--color-border)' }}>
           <div className="report-info-field-item">
             <label className="report-info-field-label">Tóm tắt | Summary</label>
             <textarea
@@ -789,7 +788,7 @@ export const ReportSectionsEditor: React.FC<IReportSectionsEditorProps> = ({
           </span>
           <button
             type="button"
-            className="report-section-add-btn"
+            className="btn btn--light btn--sm"
             onClick={addIssueRow}
             disabled={disabled}
           >
@@ -895,17 +894,17 @@ export const ReportSectionsEditor: React.FC<IReportSectionsEditorProps> = ({
                         className="report-row-lock-badge"
                         title="Mục cố định theo template (không được xoá)"
                       >
-                        🔒
+                        <Icon name="lock" size={16} />
                       </span>
                     ) : (
                       <button
                         type="button"
-                        className="report-row-del-btn"
+                        className="btn btn--ghost-danger btn--icon btn--sm"
                         onClick={() => removeIssueRow(idx)}
                         disabled={disabled}
                         title="Xoá dòng"
                       >
-                        ×
+                        <Icon name="dismiss" size={16} />
                       </button>
                     )}
                   </td>
@@ -915,7 +914,7 @@ export const ReportSectionsEditor: React.FC<IReportSectionsEditorProps> = ({
           </table>
         </div>
 
-        <div className="report-section-body" style={{ borderTop: '1px solid #e2e8f0' }}>
+        <div className="report-section-body" style={{ borderTop: '1px solid var(--color-border)' }}>
           <div className="report-info-field-item">
             <label className="report-info-field-label">Tóm tắt | Summary</label>
             <textarea
@@ -1047,24 +1046,11 @@ export const ReportSectionsEditor: React.FC<IReportSectionsEditorProps> = ({
                 />
                 <button
                   type="button"
-                  className="report-upload-photo-btn"
+                  className="btn btn--primary btn--sm"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={disabled || isUploadingPhoto}
                 >
-                  <svg
-                    width="15"
-                    height="15"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                    <polyline points="17 8 12 3 7 8" />
-                    <line x1="12" y1="3" x2="12" y2="15" />
-                  </svg>
+                  <Icon name="upload" size={16} />
                   <span>{isUploadingPhoto ? 'Đang tải ảnh...' : 'Tải ảnh hiện trường lên'}</span>
                 </button>
               </div>
@@ -1081,16 +1067,17 @@ export const ReportSectionsEditor: React.FC<IReportSectionsEditorProps> = ({
                       className="report-photo-link"
                       title={p.name}
                     >
-                      📷 {p.name}
+                      <Icon name="image" size={16} />
+                      <span>{p.name}</span>
                     </a>
                     <button
                       type="button"
-                      className="report-photo-del-btn"
+                      className="btn btn--ghost-danger btn--icon btn--sm"
                       onClick={() => onDeletePhoto(p.serverRelativeUrl, p.name)}
                       disabled={disabled || isUploadingPhoto}
                       title="Xoá ảnh này khỏi SharePoint"
                     >
-                      ×
+                      <Icon name="dismiss" size={16} />
                     </button>
                   </div>
                 ))}
@@ -1143,15 +1130,6 @@ export const ReportSectionsEditor: React.FC<IReportSectionsEditorProps> = ({
           <span className="report-section-banner-title">
             IX. THÔNG TIN KÝ DUYỆT <span className="report-section-banner-en">| SIGN-OFF</span>
           </span>
-          <button
-            type="button"
-            className="report-section-add-btn"
-            onClick={onApproveReport}
-            disabled={disabled}
-            title="Cập nhật thời gian Trưởng ga / CHT duyệt báo cáo"
-          >
-            ✓ Xác nhận Trưởng ga Duyệt
-          </button>
         </div>
 
         <div className="report-section-body">

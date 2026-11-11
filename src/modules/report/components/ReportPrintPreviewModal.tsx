@@ -15,18 +15,6 @@ function formatDateVN(dateStr: string): string {
   return dateStr;
 }
 
-function formatDateTimeVN(isoStr: string): string {
-  if (!isoStr) return '';
-  const d = new Date(isoStr);
-  if (isNaN(d.getTime())) return isoStr;
-  const hh = ('0' + d.getHours()).slice(-2);
-  const mm = ('0' + d.getMinutes()).slice(-2);
-  const dd = ('0' + d.getDate()).slice(-2);
-  const mo = ('0' + (d.getMonth() + 1)).slice(-2);
-  const yyyy = d.getFullYear();
-  return `${hh}:${mm} ${dd}/${mo}/${yyyy}`;
-}
-
 export const ReportPrintPreviewModal: React.FC<IReportPrintPreviewModalProps> = ({
   doc,
   onClose
@@ -110,6 +98,18 @@ export const ReportPrintPreviewModal: React.FC<IReportPrintPreviewModalProps> = 
       page-break-inside: avoid;
       break-inside: avoid;
     }
+    /* Không để mục bị cắt lẻ: tiêu đề + hàng tiêu đề + 2 dòng đầu đi cùng nhau,
+       2 dòng cuối đi cùng nhau. Phần giữa vẫn chảy liên tục, không bỏ trống trang. */
+    .bcn-table thead tr,
+    .bcn-table tbody tr:first-child,
+    .bcn-table tbody tr:nth-last-child(2) {
+      page-break-after: avoid;
+      break-after: avoid;
+    }
+    .bcn-table tbody tr:last-child {
+      page-break-after: auto;
+      break-after: auto;
+    }
     .bcn-table th,
     .bcn-table td {
       border: 1px solid #9ca3af;
@@ -126,7 +126,7 @@ export const ReportPrintPreviewModal: React.FC<IReportPrintPreviewModalProps> = 
       text-align: center;
       font-weight: 800;
       font-size: 14px;
-      color: #1f4e79;
+      color: #014a94;
     }
     .bcn-header-title-cell {
       width: 64%;
@@ -134,15 +134,16 @@ export const ReportPrintPreviewModal: React.FC<IReportPrintPreviewModalProps> = 
       padding: 4px 8px;
     }
     .bcn-title-vi {
-      font-size: 16px;
+      font-size: 18px;
       font-weight: 800;
-      color: #1f4e79;
+      color: #014a94;
       margin: 0;
     }
     .bcn-title-en {
-      font-size: 11px;
-      color: #4b5563;
-      margin: 1px 0 2px;
+      font-size: 18px;
+      font-weight: 800;
+      color: #c00000;
+      margin: 1px 0 3px;
     }
     .bcn-subtitle {
       font-size: 10px;
@@ -159,14 +160,14 @@ export const ReportPrintPreviewModal: React.FC<IReportPrintPreviewModalProps> = 
       color: #6b7280;
     }
     .bcn-sec-title {
-      background: #1f4e79 !important;
+      background: #014a94 !important;
       color: #ffffff !important;
       font-weight: 700;
       font-size: 11px;
       padding: 4px 8px;
       margin-top: 5px;
       text-align: left;
-      border: 1px solid #1f4e79;
+      border: 1px solid #014a94;
       page-break-after: avoid;
       break-after: avoid;
       page-break-inside: avoid;
@@ -178,7 +179,7 @@ export const ReportPrintPreviewModal: React.FC<IReportPrintPreviewModalProps> = 
       opacity: 0.95;
     }
     .bcn-th-row th {
-      background: #d9e2f3;
+      background: #dbe6f1;
       color: #1f2937;
       font-weight: 700;
       text-align: center;
@@ -198,9 +199,10 @@ export const ReportPrintPreviewModal: React.FC<IReportPrintPreviewModalProps> = 
     .sev-tb { color: #9a3412; font-weight: 700; }
     .bcn-preline { white-space: pre-line; }
     .bcn-sign-box {
-      height: 56px;
-      vertical-align: top !important;
+      height: 110px; /* chừa chỗ trống phía trên tên để ký */
+      vertical-align: bottom !important;
       text-align: center;
+      padding-bottom: 8px;
     }
     .bcn-footer-note {
       font-size: 9px;
@@ -240,7 +242,7 @@ export const ReportPrintPreviewModal: React.FC<IReportPrintPreviewModalProps> = 
             </span>
           </div>
           <div className="bcn-preview-toolbar-right">
-            <button type="button" className="report-btn-save-primary" onClick={handlePrint}>
+            <button type="button" className="btn btn--primary" onClick={handlePrint}>
               <svg
                 width="16"
                 height="16"
@@ -257,7 +259,7 @@ export const ReportPrintPreviewModal: React.FC<IReportPrintPreviewModalProps> = 
               </svg>
               <span>In / Lưu thành PDF (A4)</span>
             </button>
-            <button type="button" className="report-btn-refresh" onClick={onClose}>
+            <button type="button" className="btn btn--secondary" onClick={onClose}>
               Đóng
             </button>
           </div>
@@ -290,14 +292,8 @@ export const ReportPrintPreviewModal: React.FC<IReportPrintPreviewModalProps> = 
                     <td className="bcn-meta-label">
                       Mã tài liệu <span>| Doc. code</span>
                     </td>
-                    <td className="font-bold" style={{ width: '48%' }}>
+                    <td className="font-bold" colSpan={3} style={{ wordBreak: 'break-all' }}>
                       {m.docCode}
-                    </td>
-                    <td className="bcn-meta-label" style={{ width: '17%' }}>
-                      Phiên bản mẫu <span>| Template</span>
-                    </td>
-                    <td style={{ width: '18%', fontWeight: 600 }}>
-                      {m.templateVersion || doc.latestTemplateInfo?.version || `default_${doc.unit}`}
                     </td>
                   </tr>
                   <tr>
@@ -319,6 +315,14 @@ export const ReportPrintPreviewModal: React.FC<IReportPrintPreviewModalProps> = 
                       Ca <span>| Shift</span>
                     </td>
                     <td>{m.shift}</td>
+                  </tr>
+                  <tr>
+                    <td className="bcn-meta-label">
+                      Phiên bản mẫu <span>| Template</span>
+                    </td>
+                    <td colSpan={3}>
+                      {m.templateVersion || doc.latestTemplateInfo?.version || `default_${doc.unit}`}
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -732,30 +736,20 @@ export const ReportPrintPreviewModal: React.FC<IReportPrintPreviewModalProps> = 
                   <tbody>
                     <tr>
                       <td className="bcn-sign-box">
-                        <div style={{ marginTop: '14px', fontWeight: 600 }}>
+                        <div style={{ fontWeight: 600 }}>
                           {m.preparedBy || m.email || '[Người lập]'}
                         </div>
-                        {m.updateTime && (
-                          <div style={{ fontSize: '9px', color: '#4b5563', marginTop: '4px' }}>
-                            Nộp lúc {formatDateTimeVN(m.updateTime)}
-                          </div>
-                        )}
                       </td>
                       <td className="bcn-sign-box">
-                        <div style={{ marginTop: '14px', fontWeight: 600 }}>
+                        <div style={{ fontWeight: 600 }}>
                           {m.siteManager || '[Trưởng ga]'}
                         </div>
-                        {m.approvedAt && (
-                          <div style={{ fontSize: '9px', color: '#4b5563', marginTop: '4px' }}>
-                            Duyệt {formatDateTimeVN(m.approvedAt)}
-                          </div>
-                        )}
                       </td>
                       <td className="bcn-sign-box">
-                        <div style={{ marginTop: '14px', fontWeight: 600 }}>{m.tcjvRep || ''}</div>
+                        <div style={{ fontWeight: 600 }}>{m.tcjvRep || ''}</div>
                       </td>
                       <td className="bcn-sign-box">
-                        <div style={{ marginTop: '14px', fontWeight: 600 }}>{m.engineerAck || ''}</div>
+                        <div style={{ fontWeight: 600 }}>{m.engineerAck || ''}</div>
                       </td>
                     </tr>
                   </tbody>
@@ -769,14 +763,13 @@ export const ReportPrintPreviewModal: React.FC<IReportPrintPreviewModalProps> = 
                     </div>
                   )}
                   <div>
-                    Sinh tự động từ Microsoft 365 (SharePoint) – không sửa số liệu trên PDF. Bản chính thức lưu
-                    trên CDE BIC (zone A) theo TMP-001.
+                    Sinh tự động từ Microsoft 365 (SharePoint)
                   </div>
                   <div>
-                    Ảnh: <code>{`data/${doc.unit}/${doc.docId}_${doc.dateStr.replace(/-/g, '')}/photos/`}</code>
+                    Ảnh: {`data/${doc.unit}/${doc.docId}_${doc.dateStr.replace(/-/g, '')}/photos/`}
                     {' | '}
                     Template version:{' '}
-                    <code>{formatTemplateVersionDisplay(m.templateVersion || doc.latestTemplateInfo?.version)}</code>
+                    {formatTemplateVersionDisplay(m.templateVersion || doc.latestTemplateInfo?.version)}
                   </div>
                 </div>
               </div>

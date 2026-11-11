@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import type { UserSession, UserProfileRecord } from '../../core/auth';
 import { UserProfileService, extractCleanEmail, checkIsAdmin } from '../../core/auth';
 import type { PortalModule } from '../../core/types';
+import { Icon } from '../../core/components/Icon';
 
 export interface HomeViewProps {
   currentUser?: UserSession;
@@ -92,11 +93,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
         <section className="landing-hero-card">
           {/* Brand Badge */}
           <div className="landing-brand-badge">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="currentColor" opacity="0.2" />
-              <polyline points="2 17 12 22 22 17" />
-              <polyline points="2 12 12 17 22 12" />
-            </svg>
+            <Icon name="apps" size={16} />
             <span>Workspace Portal</span>
           </div>
 
@@ -113,10 +110,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
             {/* Email */}
             <div className="landing-user-email">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-                <polyline points="22,6 12,13 2,6" />
-              </svg>
+              <Icon name="mail" size={16} />
               <span>{currentUser?.email || cleanCurrentEmail || 'Microsoft 365 Account'}</span>
             </div>
 
@@ -127,26 +121,14 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   {currentUser?.isAdmin ? 'ADMIN' : (currentUser?.role?.toUpperCase() || 'USER')}
                 </span>
               ) : (
-                <span className="badge" style={{ backgroundColor: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca' }}>
+                <span className="badge badge--danger">
                   Chưa gán quyền
                 </span>
               )}
 
               {currentUser?.department && (
                 <span className="landing-dept-badge">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="4" y="2" width="16" height="20" rx="2" ry="2" />
-                    <line x1="9" y1="22" x2="9" y2="22.01" />
-                    <line x1="15" y1="22" x2="15" y2="22.01" />
-                    <line x1="9" y1="18" x2="9" y2="18.01" />
-                    <line x1="15" y1="18" x2="15" y2="18.01" />
-                    <line x1="9" y1="14" x2="9" y2="14.01" />
-                    <line x1="15" y1="14" x2="15" y2="14.01" />
-                    <line x1="9" y1="10" x2="9" y2="10.01" />
-                    <line x1="15" y1="10" x2="15" y2="10.01" />
-                    <line x1="9" y1="6" x2="9" y2="6.01" />
-                    <line x1="15" y1="6" x2="15" y2="6.01" />
-                  </svg>
+                  <Icon name="building" size={16} />
                   <span>{currentUser.department}</span>
                 </span>
               )}
@@ -161,11 +143,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
             <div className="landing-modules-container">
               {notice && (
                 <div className="landing-module-notice" role="alert">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="12" y1="8" x2="12" y2="12" />
-                    <line x1="12" y1="16" x2="12.01" y2="16" />
-                  </svg>
+                  <Icon name="info" size={20} />
                   <span>{notice}</span>
                   <button
                     type="button"
@@ -173,7 +151,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                     onClick={() => setNotice(null)}
                     title="Đóng thông báo"
                   >
-                    ×
+                    <Icon name="dismiss" size={16} />
                   </button>
                 </div>
               )}
@@ -193,21 +171,15 @@ export const HomeView: React.FC<HomeViewProps> = ({
                       </svg>
                     </div>
                     <span className="landing-grid-btn-text">{module.title}</span>
-                    <svg className="landing-grid-btn-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="9 18 15 12 9 6" />
-                    </svg>
+                    <Icon name="chevron-right" size={20} className="landing-grid-btn-arrow" />
                   </button>
                 ))}
               </div>
             </div>
           ) : (
-            <div style={{ maxWidth: '480px', textAlign: 'center', marginTop: '8px' }}>
+            <div className="landing-unauthorized">
               <div className="landing-alert-notice" role="status">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="12" r="10" />
-                  <line x1="12" y1="8" x2="12" y2="12" />
-                  <line x1="12" y1="16" x2="12.01" y2="16" />
-                </svg>
+                <Icon name="info" size={20} />
                 <span>
                   Tài khoản của bạn chưa có trong danh sách phân quyền <strong>UserProfiles</strong>. Vui lòng liên hệ Admin để được cấp quyền.
                 </span>
@@ -218,19 +190,19 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
         {/* Developer & QA Role Switcher */}
         {profiles.length > 0 && (
-          <div style={{ textAlign: 'center', marginTop: '4px' }}>
+          <div className="landing-switcher">
             <button
               type="button"
-              className="btn-secondary"
-              style={{ fontSize: '12px', padding: '6px 14px', color: '#64748b' }}
+              className="btn btn--secondary btn--sm"
               onClick={() => setShowRoleSwitcher(!showRoleSwitcher)}
             >
-              {showRoleSwitcher ? '▲ Ẩn bộ chuyển đổi vai trò thử nghiệm' : '▼ Chế độ Thử nghiệm Vai trò (Developer / QA)'}
+              <Icon name={showRoleSwitcher ? 'chevron-up' : 'chevron-down'} size={16} />
+              <span>{showRoleSwitcher ? 'Ẩn bộ chuyển đổi vai trò thử nghiệm' : 'Chế độ Thử nghiệm Vai trò (Developer / QA)'}</span>
             </button>
 
             {showRoleSwitcher && (
-              <div className="sso-profiles-list" style={{ maxWidth: '480px', margin: '12px auto 0' }}>
-                <p style={{ fontSize: '12px', color: '#64748b', textAlign: 'center', margin: '0 0 8px 0' }}>
+              <div className="sso-profiles-list">
+                <p className="landing-switcher-hint">
                   Bấm vào hồ sơ bên dưới để thử nghiệm giao diện với vai trò tương ứng:
                 </p>
                 {profiles.map((p, idx) => (

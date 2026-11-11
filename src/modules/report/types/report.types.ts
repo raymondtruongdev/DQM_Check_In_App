@@ -50,11 +50,9 @@ export interface ReportMetadata {
   // Sign-off & Data Checks
   preparedBy: string;
   siteManager: string;
-  approvedAt: string;
   tcjvRep: string;
   engineerAck: string;
   approvalComment: string;
-  dataChecks: string;
 }
 
 export interface ManpowerRow {

@@ -26,7 +26,8 @@
 * **Framework:** SharePoint Framework (SPFx) `1.24.1`
 * **UI Library:** React `18.3.1` (Hooks, Functional Components)
 * **Build System:** `@rushstack/heft` `1.3.2` + Webpack `5.105.4` + TypeScript `~5.8.0`
-* **Styling:** Custom Modern SaaS Design System (Pure CSS variables trong `src/core/styles/portal.css`, palette `#1d4ed8`)
+* **Styling:** Custom Modern SaaS Design System (Pure CSS variables trong `src/core/styles/portal.css`, accent `#1d4ed8`, một tông xanh duy nhất)
+* **Icons:** Fluent UI System Icons (`@fluentui/react-icons`, bản Regular) qua component `core/components/Icon.tsx` (tree-shaken, bundle ~205KB)
 * **HTTP Client:** `@microsoft/sp-http` (`SPHttpClient` v1)
 
 ---
@@ -56,7 +57,7 @@ DQM_Check_In_App/
 │   ├── core/                    # Dùng chung cho mọi module (KHÔNG import từ modules/)
 │   │   ├── auth/                # Session, UserProfileService, extractCleanEmail, checkIsAdmin
 │   │   ├── services/            # SharePointClient (generic CRUD qua SPHttpClient)
-│   │   ├── components/layout/   # TopAppBar, ToastAlert
+│   │   ├── components/          # Icon (Fluent), layout/ (TopAppBar, ToastAlert)
 │   │   ├── types/ constants/ utils/
 │   │   └── styles/portal.css    # Design System CSS tokens & styling
 │   ├── modules/
@@ -97,7 +98,7 @@ DQM_Check_In_App/
 * **Navigation & Tile Buttons (`ReportLandingView.tsx`):**
   - Landing page shows tile buttons based on assigned roles (e.g. `ST01 DailyReport`, `ST01 WeeklyReport`, `ST02 DailyReport`), grouped with unit tabs and search filter.
 * **6-Sheet Daily Report Architecture (`DailyReport_template.xlsx` & `reportCodec.ts`):**
-  - `01_General`: Key-Value metadata (`DocTile`, `DocTileEn`, `SubTile`, `DocCode`, `Location`, `ReportNo`, `ReportDate`, `Shift`, `WeatherAM`, `WeatherPM`, `MaxTemp`, `HrsLost`, `ProgressEval`, `Summary`, `ManpowerSummary`, `EquipmentSummary`, `WorkQtySummary`, `MaterialsSummary`, `WorksPlanSummary`, `IssuesSummary`, `WorksToday`, `PlanTomorrow`, HSE KPIs, `PreparedBy`, `SiteManager`, `ApprovedAt`, `TcjvRep`, `EngineerAck`, `ApprovalComment`, `DataChecks`).
+  - `01_General`: Key-Value metadata (`DocTile`, `DocTileEn`, `SubTile`, `DocCode`, `Location`, `ReportNo`, `ReportDate`, `Shift`, `WeatherAM`, `WeatherPM`, `MaxTemp`, `HrsLost`, `ProgressEval`, `Summary`, `ManpowerSummary`, `EquipmentSummary`, `WorkQtySummary`, `MaterialsSummary`, `WorksPlanSummary`, `IssuesSummary`, `WorksToday`, `PlanTomorrow`, HSE KPIs, `PreparedBy`, `SiteManager`, `TcjvRep`, `EngineerAck`, `ApprovalComment`). Không còn `ApprovedAt` (bỏ nút xác nhận duyệt; ngày lưu = `Ngày | Date`) và `DataChecks` (K01..K12 đã bỏ hoàn toàn).
   - `02_Manpower`: `Org | Category | Nos | Hrs | ManHrs | IsLocked` (auto-calculates `ManHrs = Nos * Hrs` and totals).
   - `03_Equipment`: `Equipment | Qty | Hrs | Status | Remark | IsLocked`.
   - `04_WorkQty`: `ActivityID | Item | Unit | Plan | Actual | Percent | Remark | IsLocked` (auto-calculates `Percent = round(Actual / Plan * 100)`).
@@ -112,6 +113,7 @@ DQM_Check_In_App/
   3. If no prior report exists for that unit, falls back to `_template/<DocID>_template.xlsx`.
 * **A4 Print Preview & PDF Export (`ReportPrintPreviewModal.tsx`):**
   - Renders the bilingual report (Sections I $\rightarrow$ VIII + 4-column Signature block) in A4 portrait layout (`Mau_BCN_ST06_20261025.pdf` standard) with continuous page flow (no blank page gaps when dynamic rows are added) and full table borders.
+  - Ngắt trang: tiêu đề mục + hàng tiêu đề + 2 dòng đầu luôn đi cùng nhau, 2 dòng cuối không bị bỏ lẻ (`break-after: avoid` trên `thead tr`, `tbody tr:first-child`, `tbody tr:nth-last-child(2)`); phần giữa chảy liên tục. Trên điện thoại khung xem trước giữ bề rộng A4 tối thiểu và cuộn ngang.
 * **Save & Overwrite:**
   - Automatically ensures `data/<Unit>` and `data/<Unit>/<DocID>_<yyyyMMdd>/` exist before saving, with ETag concurrency protection.
 * **SheetJS Lazy-Loading:** Loaded via dynamic `import(/* webpackChunkName: 'xlsx' */ 'xlsx')` so other modules do not incur bundle overhead.
@@ -159,7 +161,11 @@ npm run build
 ## 7. Guidelines for AI Agents Working on This Codebase
 
 1. **Do NOT import `@microsoft/power-apps`:** This project is deliberately detached from Power Apps to eliminate licensing costs.
-2. **Preserve Design Tokens:** Always use CSS variables from `portal.css` (`--color-accent`, `--space-*`, `--radius-*`) instead of hardcoding random hex colors.
+2. **Preserve Design Tokens:** Always use CSS variables from `portal.css` (`--color-accent`, `--space-*`, `--radius-*`) instead of hardcoding random hex colors. Không dùng `!important` (reset nút dùng `:where()` nên mọi class đều ghi đè được). Ngoại lệ duy nhất: CSS in A4 trong `ReportPrintPreviewModal.tsx` (iframe riêng, màu cố định theo mẫu giấy: tiêu đề mục `#014a94`, nền hàng tiêu đề `#dbe6f1`, `DAILY REPORT` đỏ `#c00000`).
+   - **Nút:** chỉ dùng `.btn` + biến thể: `btn--primary` (hành động chính: Lưu, Tải template), `btn--secondary` (mọi nút còn lại: Trang chủ, Quay lại, Làm mới, In), `btn--ghost` / `btn--ghost-danger` (nút nhỏ trong bảng), `btn--danger` (chỉ thao tác phá huỷ), `btn--light` (trên banner xanh đậm); cỡ `btn--sm`, `btn--icon`. Một tông xanh, KHÔNG tạo class nút riêng theo module (như `report-btn-*`).
+   - **Chiều cao điều khiển:** dùng `--control-h` (40px; tự lên 44px khi ≤768px hoặc màn cảm ứng) và `--control-h-sm` (32px → 36px). Không đặt `height` cứng cho nút/ô nhập.
+   - **Icon:** luôn dùng `<Icon name="..." size={16|20|24} />` (thêm icon mới vào bảng `ICONS` trong `Icon.tsx`); không viết `<svg>` tay hay emoji/ký tự (×, ✓, 🔒) làm icon giao diện. Ngoại lệ: hình thương hiệu của ô module trong `moduleRegistry.tsx`.
+   - **Ô nhập & bảng:** ô nhập dùng class có trong khối form của `portal.css` (`.portal-input`, `.report-info-input`, `.report-cell-input`...) và phải `box-sizing: border-box`; bảng nhập liệu bọc trong `.table-responsive`.
 3. **Git Commit & Push Policy:** DO NOT automatically run `git commit` or `git push`. Only commit and push when the user explicitly requests or approves it.
 4. **Responsive & Cross-Device UI Rules (BẮT BUỘC khi thêm/sửa giao diện):**
    - **Kiểm tra mọi cỡ màn hình:** desktop rộng (≥1440px), laptop (1024–1440px), **iPad mini / tablet dọc (768px)**, tablet ngang (1024px), điện thoại (≤480px). Mỗi thay đổi UI phải được rà lại ở các cỡ này, không chỉ ở desktop.

@@ -1,5 +1,5 @@
 import { ReportDoc, TemplateVersionInfo } from '../types/report.types';
-import { getDefaultDailyReportSections, formatDataChecksString, parseReportDocFromBuffer } from '../utils/reportCodec';
+import { getDefaultDailyReportSections, parseReportDocFromBuffer } from '../utils/reportCodec';
 import { ReportFileService } from './ReportFileService';
 
 export class ReportTemplateService {
@@ -65,11 +65,9 @@ export class ReportTemplateService {
           planSummary: '',
           preparedBy: currentUserEmail,
           siteManager: siteManager || '',
-          approvedAt: '',
           tcjvRep: '',
           engineerAck: '',
-          approvalComment: '',
-          dataChecks: ''
+          approvalComment: ''
         },
         manpower: defaults.manpower,
         equipment: defaults.equipment,
@@ -104,7 +102,6 @@ export class ReportTemplateService {
     doc.metadata.updateTime = new Date().toISOString();
     doc.dateStr = dateStr;
     doc.templateUpdateRequired = false;
-    doc.metadata.dataChecks = formatDataChecksString(doc);
 
     return {
       doc,

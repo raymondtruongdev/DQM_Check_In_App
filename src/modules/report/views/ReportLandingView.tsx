@@ -2,6 +2,7 @@ import * as React from 'react';
 import { RoleEntry } from '../../../core/types';
 import { ReportTile } from '../components/ReportTile';
 import { NoAccessState } from '../components/NoAccessState';
+import { Icon } from '../../../core/components/Icon';
 
 export interface IReportLandingViewProps {
   assignments: RoleEntry[];
@@ -70,15 +71,12 @@ export const ReportLandingView: React.FC<IReportLandingViewProps> = ({
           <div className="report-landing-header-left">
             <button
               type="button"
-              className="btn-action btn-nav-home"
+              className="btn btn--secondary"
               onClick={onGoHome}
               title="Quay về trang chủ Portal"
               aria-label="Về Trang Chủ"
             >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                <polyline points="9 22 9 12 15 12 15 22" />
-              </svg>
+              <Icon name="home" size={20} />
               <span>Trang Chủ</span>
             </button>
             <div className="header-text-group">
@@ -89,28 +87,13 @@ export const ReportLandingView: React.FC<IReportLandingViewProps> = ({
           <div className="report-landing-header-right">
             <button
               type="button"
-              className={`btn-action btn-refresh ${isLoading ? 'is-loading' : ''}`}
+              className="btn btn--secondary"
               onClick={onRefresh}
               disabled={isLoading}
               title="Tải lại danh sách phân quyền"
               aria-label="Làm mới"
             >
-              <svg
-                className={`action-icon ${isLoading ? 'spin' : ''}`}
-                width="15"
-                height="15"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-                <path d="M3 3v5h5" />
-                <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
-                <path d="M16 21h5v-5" />
-              </svg>
+              <Icon name="refresh" size={20} spin={isLoading} />
               <span className="btn-label">{isLoading ? 'Đang tải...' : 'Làm mới'}</span>
             </button>
           </div>
@@ -131,15 +114,12 @@ export const ReportLandingView: React.FC<IReportLandingViewProps> = ({
         <div className="report-landing-header-left">
           <button
             type="button"
-            className="btn-action btn-nav-home"
+            className="btn btn--secondary"
             onClick={onGoHome}
             title="Quay về trang chủ Portal"
             aria-label="Về Trang Chủ"
           >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-              <polyline points="9 22 9 12 15 12 15 22" />
-            </svg>
+            <Icon name="home" size={20} />
             <span>Trang Chủ</span>
           </button>
           <div className="header-text-group">
@@ -150,28 +130,13 @@ export const ReportLandingView: React.FC<IReportLandingViewProps> = ({
         <div className="report-landing-header-right">
           <button
             type="button"
-            className={`btn-action btn-refresh ${isLoading ? 'is-loading' : ''}`}
+            className="btn btn--secondary"
             onClick={onRefresh}
             disabled={isLoading}
             title="Tải lại danh sách phân quyền"
             aria-label="Làm mới"
           >
-            <svg
-              className={`action-icon ${isLoading ? 'spin' : ''}`}
-              width="15"
-              height="15"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-              <path d="M3 3v5h5" />
-              <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
-              <path d="M16 21h5v-5" />
-            </svg>
+            <Icon name="refresh" size={20} spin={isLoading} />
             <span className="btn-label">{isLoading ? 'Đang tải...' : 'Làm mới'}</span>
           </button>
         </div>
@@ -204,18 +169,7 @@ export const ReportLandingView: React.FC<IReportLandingViewProps> = ({
         </div>
 
         <div className="report-search-wrap">
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            className="search-icon"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
+          <Icon name="search" size={16} className="search-icon" />
           <input
             type="text"
             className="portal-input report-search-input"
@@ -230,7 +184,7 @@ export const ReportLandingView: React.FC<IReportLandingViewProps> = ({
               onClick={() => setSearchTerm('')}
               title="Xoá tìm kiếm"
             >
-              ×
+              <Icon name="dismiss" size={16} />
             </button>
           )}
         </div>

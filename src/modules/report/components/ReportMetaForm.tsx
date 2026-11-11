@@ -25,9 +25,15 @@ export const ReportMetaForm: React.FC<IReportMetaFormProps> = ({
           <div className="report-info-left-group">
             <div className="report-info-badges-inline">
               {metadata.docCode && (
-                <div className="report-info-code-badge" title={metadata.docCode}>
-                  {metadata.docCode}
-                </div>
+                <input
+                  type="text"
+                  readOnly
+                  className="report-info-code-badge"
+                  value={metadata.docCode}
+                  title={metadata.docCode}
+                  aria-label="Mã tài liệu (chỉ đọc, có thể sao chép)"
+                  onFocus={(e) => e.currentTarget.select()}
+                />
               )}
             </div>
             {metadata.subTitle && (

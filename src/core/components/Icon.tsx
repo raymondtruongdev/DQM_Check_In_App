@@ -1,0 +1,84 @@
+import * as React from 'react';
+import {
+  AddRegular,
+  AppsRegular,
+  ArrowDownloadRegular,
+  ArrowLeftRegular,
+  ArrowRightRegular,
+  ArrowSyncRegular,
+  ArrowUploadRegular,
+  BuildingRegular,
+  CalendarDayRegular,
+  CalendarRegular,
+  CheckmarkCircleRegular,
+  ChevronDownRegular,
+  ChevronRightRegular,
+  ChevronUpRegular,
+  DismissRegular,
+  DocumentArrowUpRegular,
+  ErrorCircleRegular,
+  GridRegular,
+  HomeRegular,
+  ImageRegular,
+  InfoRegular,
+  LockClosedRegular,
+  MailRegular,
+  PersonRegular,
+  PrintRegular,
+  SaveRegular,
+  SearchRegular,
+  TableRegular,
+} from '@fluentui/react-icons';
+
+/**
+ * Bộ icon dùng chung của toàn app – Fluent UI System Icons (Regular).
+ * Mọi icon đi qua component này để đồng nhất nét vẽ và kích thước.
+ * Kích thước chuẩn: 16 (trong nút nhỏ / chữ), 20 (nút thường), 24 (ô thẻ).
+ */
+const ICONS = {
+  add: AddRegular,
+  apps: AppsRegular,
+  'arrow-left': ArrowLeftRegular,
+  'arrow-right': ArrowRightRegular,
+  building: BuildingRegular,
+  calendar: CalendarRegular,
+  'calendar-day': CalendarDayRegular,
+  'check-circle': CheckmarkCircleRegular,
+  'chevron-down': ChevronDownRegular,
+  'chevron-right': ChevronRightRegular,
+  'chevron-up': ChevronUpRegular,
+  dismiss: DismissRegular,
+  download: ArrowDownloadRegular,
+  'error-circle': ErrorCircleRegular,
+  'file-up': DocumentArrowUpRegular,
+  grid: GridRegular,
+  home: HomeRegular,
+  image: ImageRegular,
+  info: InfoRegular,
+  lock: LockClosedRegular,
+  mail: MailRegular,
+  person: PersonRegular,
+  print: PrintRegular,
+  refresh: ArrowSyncRegular,
+  save: SaveRegular,
+  search: SearchRegular,
+  table: TableRegular,
+  upload: ArrowUploadRegular,
+} as const;
+
+export type IconName = keyof typeof ICONS;
+
+export interface IconProps {
+  name: IconName;
+  /** Kích thước px (mặc định 20). */
+  size?: number;
+  className?: string;
+  /** Xoay liên tục – dùng cho trạng thái đang tải. */
+  spin?: boolean;
+}
+
+export const Icon: React.FC<IconProps> = ({ name, size = 20, className, spin }) => {
+  const Glyph = ICONS[name];
+  const cls = ['icon', spin ? 'spin' : '', className || ''].filter(Boolean).join(' ');
+  return <Glyph className={cls} style={{ width: size, height: size }} aria-hidden="true" focusable="false" />;
+};

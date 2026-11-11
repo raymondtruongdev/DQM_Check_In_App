@@ -18,6 +18,7 @@ import { ReportMetaForm } from '../components/ReportMetaForm';
 import { ReportTaskTable } from '../components/ReportTaskTable';
 import { ReportSectionsEditor } from '../components/ReportSectionsEditor';
 import { ReportPrintPreviewModal } from '../components/ReportPrintPreviewModal';
+import { Icon } from '../../../core/components/Icon';
 
 export interface IReportEntryViewProps {
   role: RoleEntry;
@@ -266,25 +267,6 @@ export const ReportEntryView: React.FC<IReportEntryViewProps> = ({
     }
   };
 
-  // Site manager approve timestamp
-  const handleApproveReport = (): void => {
-    if (!doc) return;
-    const nowIso = new Date().toISOString();
-    setDoc({
-      ...doc,
-      metadata: {
-        ...doc.metadata,
-        approvedAt: nowIso,
-        siteManager: doc.metadata.siteManager || role.siteManager || currentUserEmail
-      }
-    });
-    setHasUnsavedChanges(true);
-    setToast({
-      type: 'success',
-      text: 'Đã ghi nhận thời gian Trưởng ga / CHT duyệt. Hãy bấm "Lưu báo cáo" để lưu lên SharePoint.'
-    });
-  };
-
   // Load new template when existing / previous-day report uses an outdated template
   const handleLoadLatestTemplate = async (): Promise<void> => {
     if (!doc) return;
@@ -362,25 +344,13 @@ export const ReportEntryView: React.FC<IReportEntryViewProps> = ({
         <div className="report-header-left">
           <button
             type="button"
-            className="report-back-square-btn"
+            className="btn btn--secondary btn--icon"
             onClick={handleBack}
             disabled={isSaving}
             title="Quay lại danh sách báo cáo"
             aria-label="Quay lại"
           >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <line x1="19" y1="12" x2="5" y2="12" />
-              <polyline points="12 19 5 12 12 5" />
-            </svg>
+            <Icon name="arrow-left" size={20} />
           </button>
 
           <div className="report-header-divider" />
@@ -394,35 +364,12 @@ export const ReportEntryView: React.FC<IReportEntryViewProps> = ({
             <div className="report-header-status-row">
               {doc?.isExisting ? (
                 <span className="report-status-text-saved">
-                  <svg
-                    width="13"
-                    height="13"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <circle cx="12" cy="12" r="10" />
-                    <polyline points="9 12 11 14 15 10" />
-                  </svg>
+                  <Icon name="check-circle" size={16} />
                   Đã lưu trên SharePoint
                 </span>
               ) : (
                 <span className="report-status-text-new">
-                  <svg
-                    width="13"
-                    height="13"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                  >
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="12" y1="8" x2="12" y2="12" />
-                    <line x1="12" y1="16" x2="12.01" y2="16" />
-                  </svg>
+                  <Icon name="info" size={16} />
                   {doc?.copiedFromDate
                     ? `Kế thừa từ ngày ${doc.copiedFromDate.split('-').reverse().join('/')}`
                     : 'Tạo mới từ template (6 sheets)'}
@@ -456,60 +403,32 @@ export const ReportEntryView: React.FC<IReportEntryViewProps> = ({
           {/* Xem bản in / Xuất PDF Button */}
           <button
             type="button"
-            className="report-btn-print-preview"
+            className="btn btn--secondary"
             onClick={() => setShowPrintPreview(true)}
             disabled={isLoading || !doc || Boolean(doc.templateUpdateRequired)}
             title="Xem bản in 2 trang A4 và xuất PDF"
           >
-            <svg
-              width="15"
-              height="15"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.1"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <polyline points="6 9 6 2 18 2 18 9" />
-              <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
-              <rect x="6" y="14" width="12" height="8" />
-            </svg>
+            <Icon name="print" size={20} />
             <span>Xem bản in / Xuất PDF</span>
           </button>
 
           {/* Làm mới Button */}
           <button
             type="button"
-            className={`report-btn-refresh ${isLoading ? 'is-loading' : ''}`}
+            className="btn btn--secondary"
             onClick={() => loadData(dateStr)}
             disabled={isLoading || isSaving}
             title="Tải lại dữ liệu"
             aria-label="Làm mới"
           >
-            <svg
-              className={`action-icon ${isLoading ? 'spin' : ''}`}
-              width="15"
-              height="15"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-              <path d="M3 3v5h5" />
-              <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
-              <path d="M16 21h5v-5" />
-            </svg>
+            <Icon name="refresh" size={20} spin={isLoading} />
             <span>{isLoading ? 'Đang tải...' : 'Làm mới'}</span>
           </button>
 
           {/* Lưu báo cáo Button */}
           <button
             type="button"
-            className="report-btn-save-primary"
+            className="btn btn--primary"
             onClick={handleSave}
             disabled={isLoading || isSaving || !doc || Boolean(doc.templateUpdateRequired)}
           >
@@ -520,20 +439,7 @@ export const ReportEntryView: React.FC<IReportEntryViewProps> = ({
               </>
             ) : (
               <>
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-                  <polyline points="17 21 17 13 7 13 7 21" />
-                  <polyline points="7 3 7 8 15 8" />
-                </svg>
+                <Icon name="save" size={20} />
                 <span>Lưu báo cáo</span>
               </>
             )}
@@ -574,21 +480,7 @@ export const ReportEntryView: React.FC<IReportEntryViewProps> = ({
         <div className="report-template-upgrade-card">
           <div className="report-template-upgrade-header">
             <div className="report-template-upgrade-icon">
-              <svg
-                width="26"
-                height="26"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                <polyline points="14 2 14 8 20 8" />
-                <line x1="12" y1="18" x2="12" y2="12" />
-                <polyline points="9 15 12 12 15 15" />
-              </svg>
+              <Icon name="file-up" size={24} />
             </div>
             <div className="report-template-upgrade-title-wrap">
               <h3 className="report-template-upgrade-title">
@@ -637,7 +529,7 @@ export const ReportEntryView: React.FC<IReportEntryViewProps> = ({
             </div>
 
             <div className="report-template-ver-arrow" aria-hidden="true">
-              ➔
+              <Icon name="arrow-right" size={20} />
             </div>
 
             <div className="report-template-ver-box is-new">
@@ -658,23 +550,10 @@ export const ReportEntryView: React.FC<IReportEntryViewProps> = ({
           <div className="report-template-upgrade-actions">
             <button
               type="button"
-              className="report-btn-save-primary report-btn-load-new-template"
+              className="btn btn--primary"
               onClick={handleLoadLatestTemplate}
             >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="7 10 12 15 17 10" />
-                <line x1="12" y1="15" x2="12" y2="3" />
-              </svg>
+              <Icon name="download" size={20} />
               <span>
                 Tải Template Mới ({doc.latestTemplateInfo?.fileName || doc.latestTemplateInfo?.version}) &amp; Tiếp Tục Nhập
               </span>
@@ -683,7 +562,7 @@ export const ReportEntryView: React.FC<IReportEntryViewProps> = ({
             {doc.isExisting && (
               <button
                 type="button"
-                className="report-btn-refresh"
+                className="btn btn--secondary"
                 onClick={handleKeepCurrentTemplate}
               >
                 Xem dữ liệu cũ (không đổi template)
@@ -714,7 +593,6 @@ export const ReportEntryView: React.FC<IReportEntryViewProps> = ({
             onIssuesChange={handleIssuesChange}
             onUploadPhotos={handleUploadPhotos}
             onDeletePhoto={handleDeletePhoto}
-            onApproveReport={handleApproveReport}
           />
 
           {isWeekly && doc.tasks && doc.tasks.length > 0 && (

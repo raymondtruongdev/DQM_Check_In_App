@@ -8,6 +8,7 @@ import { SharePointClient } from '../core/services';
 import { SESSION_STORAGE_KEY } from '../core/constants';
 import { HomeView } from '../modules/home';
 import { PORTAL_MODULES } from './moduleRegistry';
+import { Icon } from '../core/components/Icon';
 
 export const PortalShell: React.FC<IPortalProps> = (props) => {
   const { spHttpClient, siteUrl, userDisplayName, userEmail, userLoginName } = props;
@@ -116,14 +117,10 @@ export const PortalShell: React.FC<IPortalProps> = (props) => {
   if (isResolvingAuth) {
     return (
       <div className="app-layout">
-        <main className="main-content" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
-          <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
-            <svg className="spin" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.5">
-              <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-            </svg>
-            <p style={{ color: '#475569', fontSize: '15px', fontWeight: 500 }}>
-              Đang xác thực danh tính Microsoft 365...
-            </p>
+        <main className="main-content landing-wrapper">
+          <div className="portal-loading">
+            <Icon name="refresh" size={32} spin />
+            <p>Đang xác thực danh tính Microsoft 365...</p>
           </div>
         </main>
       </div>
