@@ -671,12 +671,15 @@
 .report-info-code-badge {
   display: inline-block;
   align-self: flex-start;
-  padding: 4px 10px;
-  font-size: 12px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
   font-family: inherit;
-  color: #475569;
-  background: #f1f5f9;
-  border: 1px solid #e2e8f0;
+  color: var(--color-accent, #1d4ed8);
+  background: #eff6ff;
+  border: 1px solid #93c5fd;
+  border-left: 4px solid var(--color-accent, #1d4ed8);
   border-radius: 6px;
   max-width: 100%;
   overflow: hidden;
@@ -1651,7 +1654,15 @@
 /* ==========================================================================
    Template Version Badges & Template Upgrade Prompt Card
    ========================================================================== */
+.report-header-template-row {
+  display: flex;
+  margin-top: 4px;
+}
+
 .report-template-ver-pill {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
   display: inline-flex;
   align-items: center;
   gap: 5px;

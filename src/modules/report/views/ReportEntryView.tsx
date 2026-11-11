@@ -424,22 +424,24 @@ export const ReportEntryView: React.FC<IReportEntryViewProps> = ({
                     <line x1="12" y1="16" x2="12.01" y2="16" />
                   </svg>
                   {doc?.copiedFromDate
-                    ? `Kế thừa từ ngày ${doc.copiedFromDate.split('-').reverse().join('/')} (chưa lưu)`
+                    ? `Kế thừa từ ngày ${doc.copiedFromDate.split('-').reverse().join('/')}`
                     : 'Tạo mới từ template (6 sheets)'}
                 </span>
               )}
+            </div>
 
-              {doc && (
+            {doc && (
+              <div className="report-header-template-row">
                 <span
                   className={`report-template-ver-pill ${
                     doc.templateUpdateRequired ? 'is-outdated' : 'is-current'
                   }`}
                   title="Phiên bản biểu mẫu (Template Version)"
                 >
-                  📋 Template: {formatTemplateVersionDisplay(doc.metadata.templateVersion)}
+                  Biểu mẫu (Template): {formatTemplateVersionDisplay(doc.metadata.templateVersion)}
                 </span>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -697,7 +699,6 @@ export const ReportEntryView: React.FC<IReportEntryViewProps> = ({
             onDateChange={handleDateChange}
             onMetadataChange={handleMetadataChange}
             isExisting={!!doc.isExisting}
-            latestTemplateVersion={doc.latestTemplateInfo?.version}
             disabled={isSaving}
           />
 

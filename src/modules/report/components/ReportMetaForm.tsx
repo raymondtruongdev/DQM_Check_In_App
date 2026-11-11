@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { ReportMetadata } from '../types/report.types';
-import { formatTemplateVersionDisplay } from '../utils/reportFileNaming';
 
 export interface IReportMetaFormProps {
   metadata: ReportMetadata;
@@ -8,7 +7,6 @@ export interface IReportMetaFormProps {
   onDateChange: (newDate: string) => void;
   onMetadataChange: <K extends keyof ReportMetadata>(field: K, value: ReportMetadata[K]) => void;
   isExisting: boolean;
-  latestTemplateVersion?: string;
   disabled?: boolean;
 }
 
@@ -17,7 +15,6 @@ export const ReportMetaForm: React.FC<IReportMetaFormProps> = ({
   dateStr,
   onDateChange,
   onMetadataChange,
-  latestTemplateVersion,
   disabled = false
 }) => {
   return (
@@ -32,13 +29,6 @@ export const ReportMetaForm: React.FC<IReportMetaFormProps> = ({
                   {metadata.docCode}
                 </div>
               )}
-              <div
-                className="report-info-template-badge"
-                title={`Phiên bản biểu mẫu: ${metadata.templateVersion || latestTemplateVersion || ''}`}
-              >
-                <span>Biểu mẫu (Template):</span>{' '}
-                <strong>{formatTemplateVersionDisplay(metadata.templateVersion || latestTemplateVersion)}</strong>
-              </div>
             </div>
             {metadata.subTitle && (
               <div className="report-info-subtitle">
