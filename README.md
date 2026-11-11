@@ -1,77 +1,74 @@
-# dqm-spfx-checkin
+# THADICO DQM - Workspace Portal (SPFx 1.24.1)
 
-## Summary
-
-Short summary on functionality and used technologies.
-
-[picture of the solution in action, if possible]
-
-## Used SharePoint Framework Version
-
-![version](https://img.shields.io/badge/version-1.24.1-green.svg)
-
-## Applies to
-
-- [SharePoint Framework](https://aka.ms/spfx)
-- [Microsoft 365 tenant](https://docs.microsoft.com/sharepoint/dev/spfx/set-up-your-developer-tenant)
-
-> Get your own free development tenant by subscribing to [Microsoft 365 developer program](http://aka.ms/o365devprogram)
-
-## Prerequisites
-
-> Any special pre-requisites?
-
-## Solution
-
-| Solution    | Author(s)                                               |
-| ----------- | ------------------------------------------------------- |
-| folder name | Author details (name, company, twitter alias with link) |
-
-## Version history
-
-| Version | Date             | Comments        |
-| ------- | ---------------- | --------------- |
-| 1.1     | March 10, 2021   | Update comment  |
-| 1.0     | January 29, 2021 | Initial release |
-
-## Disclaimer
-
-**THIS CODE IS PROVIDED _AS IS_ WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING ANY IMPLIED WARRANTIES OF FITNESS FOR A PARTICULAR PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.**
+Ứng dụng **Workspace Portal** phát triển trên nền tảng **SharePoint Framework (SPFx 1.24.1)** và **React 18**, vận hành trực tiếp trên **SharePoint Online** bằng tài khoản Microsoft 365 tiêu chuẩn (miễn phí 100% bản quyền, không yêu cầu Power Apps Premium).
 
 ---
 
-## Minimal Path to Awesome
+## 1. Các phân hệ chính (Modules)
 
-- Clone this repository
-- Ensure that you are at the solution folder
-- in the command-line run:
-  - `npm install -g @rushstack/heft`
-  - `npm install`
-  - `heft start`
+### 1.1. Quản lý Check-in (`src/modules/checkin`)
+- Kết nối trực tiếp với SharePoint List **`data_checkin`** và **`UserProfiles`**.
+- Hỗ trợ xem danh sách Check-in theo **Dạng Thẻ (Cards)** và **Dạng Bảng 7 cột (Table)** có kéo giãn độ rộng cột (`localStorage`).
+- Tìm kiếm, sắp xếp, chỉnh sửa và xoá bản ghi theo phân quyền (`admin` / `user`).
 
-> Include any additional steps as needed.
+### 1.2. Quản lý Báo cáo Ngày & Tuần (`src/modules/report`)
+- Lưu trữ trên SharePoint Document Library **`CapNhatCongViec`**:
+  - Phân quyền theo trạm (`Unit`) và loại báo cáo (`DailyReport`, `WeeklyReport`) thông qua file `Report_Role.xlsx`.
+  - Mẫu chuẩn đặt tại `_template/DailyReport_template.xlsx` (cấu trúc **6 sheets**: `01_General`, `02_Manpower`, `03_Equipment`, `04_WorkQty`, `05_Materials`, `06_Issues`) và `_template/WeeklyReport_template.xlsx`.
+  - File báo cáo từng ngày lưu tại: `data/<Unit>/<DocID>_<yyyyMMdd>/<DocID>_<yyyyMMdd>.xlsx`.
+  - Ảnh hiện trường tải lên trực tiếp vào: `data/<Unit>/<DocID>_<yyyyMMdd>/photos/`.
+- **Tính năng nổi bật:**
+  - **Tự động kế thừa dữ liệu ngày trước:** Khi mở một ngày mới chưa có báo cáo, hệ thống tự động lấy dữ liệu từ báo cáo của ngày liền kề trước đó (hoặc ngày gần nhất trước đó) để điền sẵn vào form; nếu chưa có mới lấy từ `_template`.
+  - **Khoá dòng cố định theo Template (`IsLocked`):** Các mục cố định (ví dụ đơn vị `TCJV`, `NTP-TV01` trong bảng Nhân lực; mã `*-DW-1120`, `*-DW-1130` trong bảng Khối lượng) được khoá biểu tượng `🔒`, không cho xoá hoặc sửa mã định danh.
+  - **Xem bản in / Xuất PDF khổ A4:** Dựng đúng bố cục báo cáo song ngữ Việt – Anh chuẩn A4 (tự động chảy trang liên tục, không bị ngắt khoảng trắng, giữ nguyên đường viền bảng) để in hoặc lưu thành PDF trực tiếp từ trình duyệt.
+  - **Lazy-load SheetJS (`xlsx`):** Chỉ tải thư viện đọc/ghi Excel khi người dùng mở phân hệ Báo cáo.
 
-Other build commands can be listed using `heft --help`.
+---
 
-## Features
+## 2. Yêu cầu hệ thống & Cài đặt
 
-Description of the extension that expands upon high-level summary above.
+- **Node.js:** `v22.x` (theo chuẩn SPFx `1.24.1`)
+- **Trình quản lý gói:** `npm`
 
-This extension illustrates the following concepts:
+```bash
+cd /Volumes/DATA/THADICO_local/REPO_DQM/DQM_Check_In_App
+npm install
+```
 
-- topic 1
-- topic 2
-- topic 3
+---
 
-> Notice that better pictures and documentation will increase the sample usage and the value you are providing for others. Thanks for your submissions advance.
+## 3. Chạy thử nghiệm ở môi trường Local (Development)
 
-> Share your web part with others through Microsoft 365 Patterns and Practices program to get visibility and exposure. More details on the community, open-source projects and other activities from http://aka.ms/m365pnp.
+```bash
+npm run start
+```
 
-## References
+1. Dịch vụ local chạy tại `https://localhost:4321`.
+2. Nếu mở trên trình duyệt mới lần đầu, truy cập `https://localhost:4321/temp/build/manifests.js` $\rightarrow$ Chọn **Advanced** $\rightarrow$ **Proceed to localhost (unsafe)** để tin cậy chứng chỉ SSL local.
+3. Mở SharePoint Hosted Workbench tại:
+   - `https://ytf84.sharepoint.com/sites/metro-checkin-dev/_layouts/15/workbench.aspx?reset=true`
 
-- [Getting started with SharePoint Framework](https://docs.microsoft.com/sharepoint/dev/spfx/set-up-your-developer-tenant)
-- [Building for Microsoft teams](https://docs.microsoft.com/sharepoint/dev/spfx/build-for-teams-overview)
-- [Use Microsoft Graph in your solution](https://docs.microsoft.com/sharepoint/dev/spfx/web-parts/get-started/using-microsoft-graph-apis)
-- [Publish SharePoint Framework applications to the Marketplace](https://docs.microsoft.com/sharepoint/dev/spfx/publish-to-marketplace-overview)
-- [Microsoft 365 Patterns and Practices](https://aka.ms/m365pnp) - Guidance, tooling, samples and open-source controls for your Microsoft 365 development
-- [Heft Documentation](https://heft.rushstack.io/)
+---
+
+## 4. Đóng gói bản Production (`.sppkg`) & Triển khai
+
+```bash
+npm run build
+```
+
+- Lệnh trên thực thi `heft test --clean --production` và `heft package-solution --production`.
+- Gói cài đặt thành phẩm được xuất ra tại:
+  `sharepoint/solution/workspace_portal.sppkg`
+
+### Các bước triển khai lên SharePoint App Catalog:
+1. Mở **SharePoint App Catalog** của site hoặc tenant (`Apps for SharePoint`).
+2. Tải file `sharepoint/solution/workspace_portal.sppkg` lên và chọn **Deploy**.
+3. Mở trang SharePoint đích $\rightarrow$ **Edit** $\rightarrow$ Bấm **`+`** $\rightarrow$ Chọn **Workspace Portal** $\rightarrow$ **Republish**.
+
+---
+
+## 5. Tài liệu tham khảo nội bộ
+
+- [`AGENTS.md`](./AGENTS.md): Quy chuẩn kiến trúc, quy tắc UI đa thiết bị (Responsive) và hướng dẫn dành cho AI Agent / Developer.
+- [`project_architecture.md`](./project_architecture.md): Sơ đồ kiến trúc phân tầng Multi-Module (`entry`, `app`, `core`, `modules`).
+- [`docs/REPORT_MODULE_PLAN.md`](./docs/REPORT_MODULE_PLAN.md): Chi tiết thiết kế 6 sheets và nghiệp vụ của phân hệ Quản lý Report.

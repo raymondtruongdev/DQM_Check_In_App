@@ -116,20 +116,31 @@ DQM_Check_In_App/
 ### 4. Report Management Module (`modules/report`)
 
 * **Storage Model:** Uses the SharePoint Document Library (`CapNhatCongViec`).
-  - Permissions: `Report_Role.xlsx` (sheet `Role`).
-  - Base Templates: `_template/<DocID>_template.xlsx` (e.g. `DailyReport_template.xlsx`, `WeeklyReport_template.xlsx`).
+  - Permissions: `Report_Role.xlsx` (sheet `Role`: `ID`, `Unit`, `DocID`, `DocTitle`, `Site manager`, `Email`, `Status`).
+  - Base Templates: `_template/<DocID>_template.xlsx` (`DailyReport_template.xlsx`, `WeeklyReport_template.xlsx`).
   - Daily/Weekly Report Folders & Files: `data/<Unit>/<DocID>_<yyyyMMdd>/<DocID>_<yyyyMMdd>.xlsx` (e.g. `data/ST01/DailyReport_20261110/DailyReport_20261110.xlsx`).
-* **Role Authorization:** User email matches `Report_Role.xlsx` with `Status = TRUE` for valid DocIDs (`DailyReport`, `WeeklyReport`). Admin (`UserProfiles.Role = admin`) has access to all active assignments.
-* **Navigation & Tile Buttons:**
+  - Site Photos Subfolder: `data/<Unit>/<DocID>_<yyyyMMdd>/photos/` (uploaded/deleted directly from the form via `ReportFileService`).
+* **Role Authorization (`core/services/RoleResolutionService.ts`):** User email matches `Report_Role.xlsx` with `Status = TRUE` for valid DocIDs (`DailyReport`, `WeeklyReport`). Admin (`UserProfiles.Role = admin`) has access to all active assignments.
+* **Navigation & Tile Buttons (`ReportLandingView.tsx`):**
   - Landing page shows tile buttons based on assigned roles (e.g. `ST01 DailyReport`, `ST01 WeeklyReport`, `ST02 DailyReport`), grouped with unit tabs and search filter.
-* **Hierarchical Tasks & Metadata:**
-  - Metadata form displays report info (`DocTile`, `SubTile`, `DocCode`, `Location`, `ReportNo`, `Shift`, `Email`, `UpdateTime`).
-  - Date picker supports backfilling reports for any date.
-  - Tree-table with automatic parent rate calculation (arithmetic average of direct children).
-  - Leaf tasks allow input of completion rate (0-100%) and quantity.
+* **6-Sheet Daily Report Architecture (`DailyReport_template.xlsx` & `reportCodec.ts`):**
+  - `01_General`: Key-Value metadata (`DocTile`, `DocTileEn`, `SubTile`, `DocCode`, `Location`, `ReportNo`, `ReportDate`, `Shift`, `WeatherAM`, `WeatherPM`, `MaxTemp`, `HrsLost`, `ProgressEval`, `Summary`, `ManpowerSummary`, `EquipmentSummary`, `WorkQtySummary`, `MaterialsSummary`, `WorksPlanSummary`, `IssuesSummary`, `WorksToday`, `PlanTomorrow`, HSE KPIs, `PreparedBy`, `SiteManager`, `ApprovedAt`, `TcjvRep`, `EngineerAck`, `ApprovalComment`, `DataChecks`).
+  - `02_Manpower`: `Org | Category | Nos | Hrs | ManHrs | IsLocked` (auto-calculates `ManHrs = Nos * Hrs` and totals).
+  - `03_Equipment`: `Equipment | Qty | Hrs | Status | Remark | IsLocked`.
+  - `04_WorkQty`: `ActivityID | Item | Unit | Plan | Actual | Percent | Remark | IsLocked` (auto-calculates `Percent = round(Actual / Plan * 100)`).
+  - `05_Materials`: `Material | Unit | Recv | Used | MirMar | IsLocked`.
+  - `06_Issues`: `IssueID | Description | Severity | CriticalPath | Owner | DueDate | Status | IsLocked`.
+  - `07_Tasks` (optional, used for `WeeklyReport` tree-table with automatic parent rate calculation).
+* **Locked Predefined Template Rows (`IsLocked`):**
+  - Rows with `IsLocked = TRUE` in the template (by default `TCJV` and `NTP-TV01` in `02_Manpower`, and `<Unit>-DW-1120` / `<Unit>-DW-1130` in `04_WorkQty`) cannot be deleted (`🔒` badge replaces `×` button) and their key identifier columns (`Org`, `Category`, `ActivityID`, `Item`, `Unit`) are `readOnly`. Users can still edit quantities/hours and add/delete custom rows (`IsLocked = FALSE`).
+* **Smart Data Loading & Previous-Day Prefill (`ReportDataService.loadReport`):**
+  1. If `data/<Unit>/<DocID>_<yyyyMMdd>/<DocID>_<yyyyMMdd>.xlsx` exists on SharePoint, loads that exact report (`isExisting = true`).
+  2. Otherwise, looks for the adjacent previous day's report (`dateStr - 1 day`) or scans `data/<Unit>/` subfolders for the closest prior `<DocID>_<yyyyMMdd>` report (`getPreviousReportFile`). If found, pre-fills the form from that previous report (`copiedFromDate` badge shown, `isExisting = false`).
+  3. If no prior report exists for that unit, falls back to `_template/<DocID>_template.xlsx`.
+* **A4 Print Preview & PDF Export (`ReportPrintPreviewModal.tsx`):**
+  - Renders the bilingual report (Sections I $\rightarrow$ VIII + 4-column Signature block) in A4 portrait layout (`Mau_BCN_ST06_20261025.pdf` standard) with continuous page flow (no blank page gaps when dynamic rows are added) and full table borders.
 * **Save & Overwrite:**
-  - Automatically creates subfolder `data/<Unit>/<DocID>_<yyyyMMdd>/` if not present.
-  - Preserves template layout and styling when saving, with ETag concurrency protection.
+  - Automatically ensures `data/<Unit>` and `data/<Unit>/<DocID>_<yyyyMMdd>/` exist before saving, with ETag concurrency protection.
 * **SheetJS Lazy-Loading:** Loaded via dynamic `import(/* webpackChunkName: 'xlsx' */ 'xlsx')` so other modules do not incur bundle overhead.
 
 ---
