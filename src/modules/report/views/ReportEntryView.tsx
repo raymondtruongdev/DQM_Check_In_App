@@ -433,12 +433,12 @@ export const ReportEntryView: React.FC<IReportEntryViewProps> = ({
 
       {/* 2. Quick Section Navigation Pills */}
       {!isLoading && doc && !doc.templateUpdateRequired && (
-        <div className="report-sec-jump-bar" role="navigation" aria-label="Mục báo cáo">
+        <div className="chips card report-sec-jump-bar" role="navigation" aria-label="Mục báo cáo">
           {SECTION_NAV_ITEMS.map((item) => (
             <button
               key={item.id}
               type="button"
-              className="report-sec-jump-pill"
+              className="chip"
               onClick={() => scrollToSection(item.id)}
             >
               {item.label}
@@ -458,7 +458,7 @@ export const ReportEntryView: React.FC<IReportEntryViewProps> = ({
       {isLoading ? (
         <LoadingState message="Đang kiểm tra phiên bản biểu mẫu (template) và nạp dữ liệu..." />
       ) : doc && doc.templateUpdateRequired ? (
-        <div className="report-template-upgrade-card">
+        <div className="card report-template-upgrade-card">
           <div className="report-template-upgrade-header">
             <div className="report-template-upgrade-icon">
               <Icon name="file-up" size={24} />
@@ -485,11 +485,11 @@ export const ReportEntryView: React.FC<IReportEntryViewProps> = ({
               <label htmlFor="upgrade-date-picker" className="field__label">
                 Ngày báo cáo
               </label>
-              <div className="report-info-date-input-wrap">
+              <div className="report-date-wrap">
                 <input
                   id="upgrade-date-picker"
                   type="date"
-                  className="input report-info-date-input"
+                  className="input report-date-width"
                   value={dateStr}
                   onChange={(e) => handleDateChange(e.target.value)}
                 />

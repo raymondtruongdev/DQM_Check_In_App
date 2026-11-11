@@ -19,7 +19,7 @@ export const ReportMetaForm: React.FC<IReportMetaFormProps> = ({
 }) => {
   return (
     <>
-      <div className="report-info-card">
+      <div className="card report-info-card">
         {/* 1. Top Section: Doc Code + Template Version + Subtitle on Left, Date Picker on Right */}
         <div className="report-info-top-row">
           <div className="report-info-left-group">
@@ -28,7 +28,7 @@ export const ReportMetaForm: React.FC<IReportMetaFormProps> = ({
                 <input
                   type="text"
                   readOnly
-                  className="report-info-code-badge"
+                  className="report-doc-code"
                   value={metadata.docCode}
                   title={metadata.docCode}
                   aria-label="Mã tài liệu (chỉ đọc, có thể sao chép)"
@@ -47,11 +47,11 @@ export const ReportMetaForm: React.FC<IReportMetaFormProps> = ({
             <label htmlFor="report-date-picker-input" className="field__label">
               Ngày báo cáo
             </label>
-            <div className="report-info-date-input-wrap">
+            <div className="report-date-wrap">
               <input
                 id="report-date-picker-input"
                 type="date"
-                className="input report-info-date-input"
+                className="input report-date-width"
                 value={dateStr}
                 onChange={(e) => onDateChange(e.target.value)}
                 disabled={disabled}

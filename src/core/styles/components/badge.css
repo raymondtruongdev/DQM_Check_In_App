@@ -1,5 +1,7 @@
 /* ==========================================================================
-   6. Badge
+   Badge – nhãn trạng thái nhỏ dạng viên thuốc
+   <span class="badge badge--info|success|warning|danger">Nhãn</span>
+   Vai trò: .sso-badge-admin / .sso-badge-user · Chưa lưu: .unsaved-badge
    ========================================================================== */
 :where(.app-layout) .badge {
   display: inline-flex;

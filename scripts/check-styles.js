@@ -19,6 +19,29 @@ const LEGACY_CLASSES = new Set([
   'qty-input', 'rate-input', 'rate-unit', 'task-name-text', 'task-name-wrap', 'font-parent', 'unit-text',
   'sev-cao', 'sev-tb'
 ]);
+/**
+ * Từ khóa trong tên class của module gợi ý đang viết lại thành phần có sẵn của core.
+ * Gặp từ khóa → lỗi, trừ khi có trong REINVENT_ALLOW (kèm lý do).
+ */
+const REINVENT_KEYWORDS = {
+  btn: '.btn (+ btn--primary/secondary/…)', button: '.btn (+ btn--primary/secondary/…)',
+  card: '.card hoặc .section-card', banner: '.section-card__banner',
+  badge: '.badge (+ badge--info/success/warning/danger)', pill: '.badge hoặc <FilterChips />',
+  chip: '<FilterChips />', chips: '<FilterChips />', tab: '<FilterChips />', tabs: '<FilterChips />',
+  header: '<PageHeader />', input: '.input / .textarea / .field', textarea: '.textarea',
+  search: '<SearchInput />', spinner: '<LoadingState />', loading: '<LoadingState />',
+  empty: '<EmptyState />', toast: '<ToastAlert />'
+};
+/** Ngoại lệ có chủ đích (tên trùng từ khóa nhưng là phần nội dung riêng của module). */
+const REINVENT_ALLOW = {
+  'report-info-card': 'mở rộng .card (padding/gap), luôn đi kèm class card',
+  'report-template-upgrade-card': 'mở rộng .card (viền cảnh báo), luôn đi kèm class card',
+  'report-tile-header': 'dòng đầu bên trong ô báo cáo (không phải header trang)',
+  'report-photos-header': 'dòng đầu bên trong hộp upload ảnh',
+  'report-template-upgrade-header': 'dòng đầu bên trong thẻ nâng cấp template',
+  'report-task-header-bar': 'thanh tiêu đề bảng tiến độ (Weekly placeholder)',
+  'report-row-lock-badge': 'ô vuông icon khoá trong bảng, không phải badge chữ'
+};
 /** Rule được phép dùng màu hex (CSS bản in A4 / xem trước phải cố định theo giấy). */
 const HEX_ALLOWED_SELECTOR = /\.bcn-|\.sev-cao|\.sev-tb/;
 /** File TSX được phép chứa hex (CSS in A4 trong chuỗi, hình thương hiệu module). */
@@ -96,6 +119,12 @@ for (const file of cssFiles) {
         if (!prefixes.some((p) => c.startsWith(p)) && !LEGACY_CLASSES.has(c) && !isShared) {
           fail(file, `class "${c}" thiếu tiền tố module (${prefixes.join(' hoặc ')})`);
         }
+        if (!isShared && !LEGACY_CLASSES.has(c) && !c.startsWith('bcn-') && !REINVENT_ALLOW[c]) {
+          const hit = c.split('-').find((seg) => REINVENT_KEYWORDS[seg]);
+          if (hit) {
+            fail(file, `class "${c}" có vẻ viết lại thành phần có sẵn → dùng ${REINVENT_KEYWORDS[hit]} (hoặc thêm vào REINVENT_ALLOW kèm lý do)`);
+          }
+        }
       }
     }
   }
@@ -109,10 +138,36 @@ for (const file of tsFiles) {
   if (!HEX_ALLOWED_TSX.some((r) => r.test(file)) && /#[0-9a-fA-F]{6}\b/.test(text)) {
     fail(file, 'màu hex trong TSX – dùng token CSS');
   }
-  if (/<svg[\s>]/.test(text) && !HEX_ALLOWED_TSX.some((r) => r.test(file)) && !/style-lint: allow-svg/.test(text)) {
+  const code = text.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+  if (/<svg[\s>]/.test(code) && !HEX_ALLOWED_TSX.some((r) => r.test(file)) && !/style-lint: allow-svg/.test(text)) {
     fail(file, '<svg> viết tay – dùng <Icon name="..." />');
   }
 }
+
+// ---- Tài liệu phải khớp code: mọi thành phần/biến thể của core đều có trong AGENTS.md ----
+(function checkDocs() {
+  const agentsPath = path.join(__dirname, '..', 'AGENTS.md');
+  const docs = fs.readFileSync(agentsPath, 'utf8');
+  const need = (name, kind) => {
+    if (!docs.includes(name)) errors.push(`AGENTS.md: thiếu ${kind} "${name}" trong bảng thành phần dùng chung (mục 8.3)`);
+  };
+  // a) React component xuất ra từ core/components
+  for (const f of files.filter((x) => /src[\\/]core[\\/]components[\\/][^\\/]+\.tsx$/.test(x))) {
+    const text = fs.readFileSync(f, 'utf8');
+    for (const m of text.matchAll(/export const ([A-Z]\w*)\s*:\s*React\.FC/g)) need(m[1], 'component');
+  }
+  // b) biến thể (block--variant) và block có element (block__el) trong core/styles/components
+  const blocks = new Set();
+  for (const f of cssFiles.filter((x) => /src[\\/]core[\\/]styles[\\/]components[\\/]/.test(x))) {
+    const css = fs.readFileSync(f, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+    for (const m of css.matchAll(/\.([a-z][a-z0-9-]*?)--([a-z][a-z0-9-]*)/g)) {
+      need(`${m[1]}--${m[2]}`, 'biến thể');
+      blocks.add(m[1]);
+    }
+    for (const m of css.matchAll(/\.([a-z][a-z0-9-]*?)__[a-z]/g)) blocks.add(m[1]);
+  }
+  blocks.forEach((b) => need(b, 'thành phần'));
+})();
 
 if (errors.length) {
   console.error(`\n✖ ${errors.length} vi phạm quy ước style:\n`);

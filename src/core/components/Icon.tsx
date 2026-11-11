@@ -68,6 +68,9 @@ const ICONS = {
 
 export type IconName = keyof typeof ICONS;
 
+/** Danh sách tên icon hiện có (dùng cho trang UI Kit). */
+export const ICON_NAMES = Object.keys(ICONS) as IconName[];
+
 export interface IconProps {
   name: IconName;
   /** Kích thước px (mặc định 20). */
@@ -77,6 +80,10 @@ export interface IconProps {
   spin?: boolean;
 }
 
+/**
+ * Icon dùng chung (Fluent UI Regular). Không viết <svg> tay.
+ * @example <Icon name="save" />  ·  <Icon name="refresh" size={16} spin={isLoading} />
+ */
 export const Icon: React.FC<IconProps> = ({ name, size = 20, className, spin }) => {
   const Glyph = ICONS[name];
   const cls = ['icon', spin ? 'spin' : '', className || ''].filter(Boolean).join(' ');

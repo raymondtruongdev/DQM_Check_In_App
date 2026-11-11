@@ -1,5 +1,7 @@
 /* ==========================================================================
-   8. Feedback: toast · spinner · empty state · notice
+   Feedback – toast, spinner, thông báo, trạng thái (state)
+   <ToastAlert /> (.app-toast) · .loading-spinner(-sm) · .landing-*-notice
+   <LoadingState /> · <EmptyState /> (.state) ở cuối file
    ========================================================================== */
 :where(.app-layout) .app-toast {
   display: flex;

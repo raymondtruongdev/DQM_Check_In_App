@@ -1,5 +1,7 @@
 /* ==========================================================================
-   7. Table  (cuộn ngang trong .table-responsive, không tràn trang)
+   Table – bảng dữ liệu
+   <div class="table-responsive"><table class="portal-table">…</table></div>
+   Luôn bọc .table-responsive: bảng cuộn ngang thay vì tràn trang trên màn hẹp.
    ========================================================================== */
 :where(.app-layout) .table-responsive {
   width: 100%;

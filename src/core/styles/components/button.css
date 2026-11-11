@@ -1,5 +1,5 @@
 /* ==========================================================================
-   4. Button  (.btn + biến thể + cỡ) – MỘT tông xanh
+   Button – <button class="btn btn--primary|secondary|…"> – MỘT tông xanh
    primary   = hành động chính, nền xanh đặc (Lưu, Tải template)
    secondary = mọi hành động khác, viền + chữ xanh (Trang chủ, Quay lại, Làm mới, In)
    ghost / ghost-danger = nút nhỏ trong bảng (xoá dòng)

@@ -5,7 +5,10 @@ export interface LoadingStateProps {
   message: React.ReactNode;
 }
 
-/** Trạng thái đang tải (spinner + thông điệp). */
+/**
+ * Trạng thái đang tải (spinner + thông điệp).
+ * @example <LoadingState message="Đang tải…" />
+ */
 export const LoadingState: React.FC<LoadingStateProps> = ({ message }) => (
   <div className="state" role="status" aria-live="polite">
     <div className="loading-spinner" />
@@ -26,7 +29,10 @@ export interface EmptyStateProps {
   narrow?: boolean;
 }
 
-/** Trạng thái rỗng / không có quyền / không có dữ liệu. */
+/**
+ * Trạng thái rỗng / không có quyền / không có dữ liệu.
+ * @example <EmptyState narrow tone="danger" icon="error-circle" title="Không có quyền" message="…" action={<button className="btn btn--primary">Thử lại</button>} />
+ */
 export const EmptyState: React.FC<EmptyStateProps> = ({
   icon,
   title,

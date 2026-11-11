@@ -200,6 +200,7 @@ src/core/styles/
 └── layout/             # app-bar, landing (khung portal)
 src/core/components/    # React tương ứng: Icon, PageHeader, FilterChips, SearchInput, LoadingState/EmptyState…
 src/modules/<name>/<name>.css   # CHỈ style riêng của module (nạp trong <Name>Module.tsx, SAU core)
+src/modules/styleguide/         # "UI Kit" (chỉ admin thấy trên trang chủ): tài liệu sống của mọi thành phần dùng chung
 ```
 
 ### 8.2 Nguyên tắc cốt lõi
@@ -214,16 +215,18 @@ src/modules/<name>/<name>.css   # CHỈ style riêng của module (nạp trong <
 
 ### 8.3 Danh mục thành phần dùng chung (dùng ĐÚNG, đừng tự chế)
 
+**Trước khi viết bất kỳ UI nào, theo thứ tự:** (1) đọc bảng dưới; (2) mở module **UI Kit** (`modules/styleguide`, admin thấy tile "UI Kit (Style Guide)" trên trang chủ) để xem mọi thành phần và biến thể; (3) đọc JSDoc `@example` của component trong `core/components/*.tsx` và đầu file `core/styles/components/*.css`; (4) chỉ khi KHÔNG có thành phần phù hợp mới thêm vào `core` (kèm cập nhật bảng này và UI Kit), rồi mới dùng.
+
 | Cần | Dùng | Ghi chú |
 |---|---|---|
-| Nút | `.btn` + `btn--primary` (hành động chính: Lưu, Tải template) · `btn--secondary` (mọi nút còn lại: Trang chủ, Quay lại, Làm mới, In) · `btn--ghost` / `btn--ghost-danger` (nút nhỏ trong bảng) · `btn--danger` (chỉ phá huỷ) · `btn--light` (trên banner xanh đậm) | cỡ `btn--sm`, `btn--icon`; KHÔNG tạo nút riêng kiểu `report-btn-*` |
+| Nút | `.btn` + `btn--primary` (hành động chính: Lưu, Tải template) · `btn--secondary` (mọi nút còn lại: Trang chủ, Quay lại, Làm mới, In) · `btn--ghost` / `btn--ghost-danger` (nút nhỏ trong bảng) · `btn--danger` (chỉ phá huỷ) · `btn--light` (trên banner xanh đậm) | cỡ `btn--sm`, `btn--icon` (chỉ icon, vuông), `btn--block` (rộng hết hàng); KHÔNG tạo nút riêng kiểu `report-btn-*` |
 | Ô nhập | `.input`, `.textarea`; biến thể `input--cell` (trong bảng), `input--readonly`, `input--locked`, `input--danger`, `input--warning` | ô nhập đã `border-box`, cao `--control-h` |
 | Nhãn + ô nhập | `.field` > `.field__label` (hoặc `field__label--bilingual` với `field__label-main`/`field__label-sub`) | |
 | Đầu trang view | `<PageHeader leading title badge meta actions divider />` | desktop: tiêu đề trái, actions phải; ≤768px xếp dọc |
 | Lọc / tìm | `<FilterChips />`, `<SearchInput />` | |
-| Đang tải / rỗng / không quyền | `<LoadingState />`, `<EmptyState icon title message hint action tone narrow />` | |
+| Đang tải / rỗng / không quyền | `<LoadingState />`, `<EmptyState icon title message hint action tone narrow />` | `tone="danger"` → `state--danger`; `narrow` → `state--narrow` (khung hẹp giữa trang) |
 | Khối nội dung | `.card`; khối có banner xanh đậm: `.section-card` > `__banner` (`__title`, `__title-sub`) + `__body` | |
-| Nhãn trạng thái | `.badge` + `badge--info/success/warning/danger` | |
+| Nhãn trạng thái | `.badge` + `badge--info` · `badge--success` · `badge--warning` · `badge--danger` | |
 | Bảng nhập liệu | `<div class="table-responsive"><table class="portal-table …">` | cuộn ngang, không tràn trang |
 | Thông báo | `<ToastAlert />` | |
 
@@ -245,8 +248,9 @@ export const TasksModule: React.FC<ModuleProps> = ({ onGoHome }) => (
 2. Dùng `PageHeader`, `FilterChips`, `SearchInput`, `LoadingState/EmptyState`, `.btn`, `.input`, `.card/.section-card`, `<Icon>` – không viết lại.
 3. Cần mẫu UI mới dùng chung? Thêm vào `core` (CSS + React) và ghi vào bảng 8.3, rồi mới dùng ở module.
 4. Responsive đủ 4 mốc: `≤1024`, `≤768`, `≤640`, `≤480` (xem mục 7, điều 4).
-5. Chạy `npm run lint:styles` (kiểm: không `!important`, không hex ngoài token, class module có tiền tố, core không chứa tên module/không import `modules/`, không `<svg>` tay) + `npx tsc --noEmit -p tsconfig.json` + `npx eslint src --ext .ts,.tsx`.
-6. Xem trên workbench ở 1440 / 1024 / 768 / 390px. KHÔNG chạy `npm run build` khi `npm run start` đang chạy (build xoá `dist/` đang phục vụ nên workbench rơi về bản cũ).
+5. Chạy `npm run lint:styles` – kiểm: không `!important`; không hex ngoài token; class module có tiền tố; **class module trùng ý thành phần có sẵn** (tên chứa `btn/card/badge/chip/header/input/search/loading/empty/toast…` → báo lỗi và gợi ý dùng thành phần của core; ngoại lệ có chủ đích phải ghi vào `REINVENT_ALLOW` kèm lý do); core không chứa tên module/không import `modules/`; không `<svg>` tay; **mọi component, biến thể (`block--x`) và block của core phải được ghi trong bảng 8.3** (thêm thành phần mà quên cập nhật tài liệu → lint lỗi). Chạy kèm `npx tsc --noEmit -p tsconfig.json` và `npx eslint src --ext .ts,.tsx`.
+6. Nếu thêm thành phần/biến thể mới ở core: thêm một ví dụ vào `modules/styleguide/StyleGuideModule.tsx`.
+7. Xem trên workbench ở 1440 / 1024 / 768 / 390px. KHÔNG chạy `npm run build` khi `npm run start` đang chạy (build xoá `dist/` đang phục vụ nên workbench rơi về bản cũ).
 
 ### 8.6 Nợ kỹ thuật đã biết (đừng nhân rộng)
 * `report.css` còn một số class chưa có tiền tố thuộc phần Weekly placeholder (`kpi-box`, `id-tag`, `rate-input`… – danh sách trong `scripts/check-styles.js` → `LEGACY_CLASSES`). Dọn (đổi sang `report-…`) khi làm báo cáo tuần; KHÔNG thêm class mới không tiền tố.

@@ -14,7 +14,15 @@ export interface PageHeaderProps {
   actions?: React.ReactNode;
 }
 
-/** Đầu trang chuẩn của mọi view module: trái = leading + tiêu đề, phải = actions. */
+/**
+ * Đầu trang chuẩn của mọi view module: trái = leading + tiêu đề, phải = actions.
+ * @example
+ * <PageHeader
+ *   leading={<button className="btn btn--secondary btn--icon" aria-label="Quay lại"><Icon name="arrow-left" /></button>}
+ *   divider title="Báo cáo ngày" badge={<span className="badge badge--info">ST01</span>}
+ *   meta={<span className="badge badge--success">Đã lưu</span>}
+ *   actions={<button className="btn btn--primary"><Icon name="save" /><span>Lưu</span></button>} />
+ */
 export const PageHeader: React.FC<PageHeaderProps> = ({ leading, divider, title, badge, meta, actions }) => (
   <header className="page-header">
     <div className="page-header__lead">

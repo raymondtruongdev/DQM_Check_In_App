@@ -41,7 +41,7 @@ interface IPhotoCardProps {
 const PhotoCard: React.FC<IPhotoCardProps> = ({ url, name, disabled, onDelete }) => {
   const [failed, setFailed] = React.useState(false);
   return (
-    <figure className="report-photo-card">
+    <figure className="report-photo-item">
       <a
         href={url}
         target="_blank"

@@ -8,7 +8,10 @@ export interface SearchInputProps {
   ariaLabel?: string;
 }
 
-/** Ô tìm kiếm chuẩn: icon kính lúp + nút xoá khi có nội dung. */
+/**
+ * Ô tìm kiếm chuẩn: icon kính lúp + nút xoá khi có nội dung.
+ * @example <SearchInput value={q} onChange={setQ} placeholder="Tìm…" />
+ */
 export const SearchInput: React.FC<SearchInputProps> = ({ value, onChange, placeholder, ariaLabel }) => (
   <div className="search">
     <Icon name="search" size={16} className="search__icon" />

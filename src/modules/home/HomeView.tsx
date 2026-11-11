@@ -85,6 +85,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   };
 
   const isAuthorized = Boolean(currentUser);
+  const visibleModules = modules.filter((m) => !m.adminOnly || currentUser?.isAdmin);
 
   return (
     <div className="landing-wrapper">
@@ -157,7 +158,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
               )}
 
               <div className="sp-tiles-grid">
-                {modules.map((module) => (
+                {visibleModules.map((module) => (
                   <button
                     key={module.id}
                     type="button"

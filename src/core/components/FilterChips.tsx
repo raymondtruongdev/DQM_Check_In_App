@@ -12,7 +12,10 @@ export interface FilterChipsProps {
   ariaLabel?: string;
 }
 
-/** Nhóm nút lọc dạng viên thuốc (chọn một). */
+/**
+ * Nhóm nút lọc dạng viên thuốc (chọn một).
+ * @example <FilterChips options={[{ value: 'ALL', label: 'Tất cả (3)' }]} value={unit} onChange={setUnit} />
+ */
 export const FilterChips: React.FC<FilterChipsProps> = ({ options, value, onChange, ariaLabel }) => (
   <div className="chips" role="group" aria-label={ariaLabel}>
     {options.map((o) => (

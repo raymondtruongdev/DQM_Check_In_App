@@ -170,12 +170,8 @@
 .report-info-card {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 14px;
-  padding: 22px 24px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  gap: var(--space-5);
+  padding: var(--space-5) var(--space-6);
 }
 
 .report-info-top-row {
@@ -195,7 +191,7 @@
 }
 
 /* Mã tài liệu: ô chỉ-đọc, cuộn ngang để xem hết chuỗi và sao chép */
-.report-info-code-badge {
+.report-doc-code {
   width: 100%;
   min-width: 0;
   height: var(--control-h);
@@ -213,7 +209,7 @@
   outline: none;
 }
 
-.report-info-code-badge:focus {
+.report-doc-code:focus {
   border-color: var(--color-accent);
   box-shadow: 0 0 0 3px var(--color-accent-ring);
 }
@@ -233,13 +229,13 @@
   align-items: flex-start;
 }
 
-.report-info-date-input-wrap {
+.report-date-wrap {
   position: relative;
   display: flex;
   align-items: center;
 }
 
-.report-info-date-input {
+.report-date-width {
   width: 180px;
   font-weight: 500;
 }
@@ -476,34 +472,7 @@
 
 /* Quick Section Jump Bar */
 .report-sec-jump-bar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  padding: 10px 14px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-}
-
-.report-sec-jump-pill {
-  padding: 6px 12px;
-  font-size: var(--text-xs);
-  font-weight: 600;
-  color: var(--color-text-strong);
-  background: var(--color-canvas);
-  border: 1px solid var(--color-border-hover);
-  border-radius: 9999px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  white-space: nowrap;
-}
-
-.report-sec-jump-pill:hover {
-  background: var(--color-accent);
-  border-color: var(--color-accent);
-  color: var(--color-text-inverse);
+  padding: var(--space-2-5) var(--space-3);
 }
 
 .report-sections-stack {
@@ -642,7 +611,7 @@
   gap: var(--space-3);
 }
 
-.report-photo-card {
+.report-photo-item {
   display: flex;
   flex-direction: column;
   margin: 0;
@@ -941,12 +910,9 @@
 .report-template-upgrade-card {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  padding: 24px;
-  background: var(--color-surface);
+  gap: var(--space-5);
+  padding: var(--space-6);
   border: 1.5px solid var(--color-warning);
-  border-radius: var(--radius-lg);
-  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.08);
 }
 
 .report-template-upgrade-header {
@@ -1091,18 +1057,11 @@
 }
 
 @media (max-width: 768px) {
-  
-
-  
-
-  
 
   .report-landing-controls {
     flex-direction: column;
     align-items: stretch;
   }
-
-  
 
   .report-tiles-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1187,23 +1146,11 @@
     gap: var(--space-2);
   }
 
-  
-
   .report-landing-container,
   .report-entry-container {
     min-width: 0;
   }
 
-  /* Header: nút + tiêu đề cho phép xuống hàng, không bẻ từng chữ */
-  
-
-  
-
-  
-
-  
-
-  
   .report-info-top-row {
     flex-direction: column;
     align-items: stretch;
@@ -1218,17 +1165,9 @@
 
 @media (max-width: 480px) {
   .report-info-card,
-.report-task-section,
-.report-template-upgrade-card {
-    padding: 14px 16px;
+  .report-task-section,
+  .report-template-upgrade-card {
+    padding: var(--space-3) var(--space-4);
     border-radius: var(--radius-md);
   }
-
-  
-
-  
-
-  
-
 }
-
