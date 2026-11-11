@@ -7,6 +7,7 @@
 ## 1. Các phân hệ chính (Modules)
 
 ### 1.1. Quản lý Báo cáo Ngày & Tuần (`src/modules/report`)
+
 - Lưu trữ trên SharePoint Document Library **`CapNhatCongViec`**:
   - Phân quyền theo trạm (`Unit`) và loại báo cáo (`DailyReport`, `WeeklyReport`) thông qua file `Report_Role.xlsx`.
   - Mẫu chuẩn đặt tại `_template/DailyReport_template.xlsx` (cấu trúc **6 sheets**: `01_General`, `02_Manpower`, `03_Equipment`, `04_WorkQty`, `05_Materials`, `06_Issues`) và `_template/WeeklyReport_template.xlsx`.
@@ -32,7 +33,48 @@ npm install
 
 ---
 
-## 3. Chạy thử nghiệm ở môi trường Local (Development)
+## 3. Thiết lập SharePoint (một lần cho mỗi site)
+
+Ứng dụng chỉ cần **1 SharePoint List** và **1 Document Library** trên site đích (Dev: `https://ytf84.sharepoint.com/sites/metro-checkin-dev`)
+
+### 3.1. List `UserProfiles` (phân quyền Admin / User)
+
+Tạo List tên chính xác **`UserProfiles`** với các cột:
+
+| Cột hiển thị | Tên nội bộ           | Kiểu | Ý nghĩa                       |
+| --------------- | ----------------------- | ----- | ------------------------------- |
+| Email           | `Title` / `field_1` | Text  | Email Microsoft 365 (UPN)       |
+| Username        | `field_2`             | Text  | Tên hoặc mã người dùng    |
+| DepartmentCode  | `field_3`             | Text  | Mã phòng ban (ADMIN, DIRC...) |
+| DepartmentName  | `field_4`             | Text  | Tên phòng ban hiển thị      |
+| Role            | `field_5`             | Text  | `admin` hoặc `user`        |
+
+- Người dùng có `Role = admin` được xem toàn bộ trạm và loại báo cáo trong module Report.
+- Tài khoản chưa có trong list vẫn đăng nhập được, nhưng Landing Page sẽ cảnh báo chưa được cấp quyền.
+
+### 3.2. Document Library `CapNhatCongViec` (module Report)
+
+Tạo Document Library tên **`CapNhatCongViec`** với cấu trúc:
+
+```text
+CapNhatCongViec/
+├── Report_Role.xlsx                 # Sheet "Role": ID | Unit | DocID | DocTitle | Site manager | Email | Status
+├── _template/
+│   ├── DailyReport_template.xlsx
+│   └── WeeklyReport_template.xlsx
+└── data/
+    └── <Unit>/<DocID>_<yyyyMMdd>/
+        ├── <DocID>_<yyyyMMdd>.xlsx  # Tạo tự động khi lưu báo cáo
+        └── photos/                  # Ảnh hiện trường
+```
+
+- Có thể lấy file mẫu tại `data_test/sharepoint_sample/` (`Report_Role.xlsx`, `_template/`).
+- `Report_Role.xlsx` và 2 file `_template` phải được tải lên thủ công; thư mục `data/...` được app tự tạo.
+- Người dùng cần quyền **Edit** trên library để lưu báo cáo và tải ảnh.
+
+---
+
+## 4. Chạy thử nghiệm ở môi trường Local (Development)
 
 ```bash
 npm run start
@@ -45,7 +87,7 @@ npm run start
 
 ---
 
-## 4. Đóng gói bản Production (`.sppkg`) & Triển khai
+## 5. Đóng gói bản Production (`.sppkg`) & Triển khai
 
 ```bash
 npm run build
@@ -56,14 +98,15 @@ npm run build
   `sharepoint/solution/workspace_portal.sppkg`
 
 ### Các bước triển khai lên SharePoint App Catalog:
+
 1. Mở **SharePoint App Catalog** của site hoặc tenant (`Apps for SharePoint`).
 2. Tải file `sharepoint/solution/workspace_portal.sppkg` lên và chọn **Deploy**.
 3. Mở trang SharePoint đích $\rightarrow$ **Edit** $\rightarrow$ Bấm **`+`** $\rightarrow$ Chọn **Workspace Portal** $\rightarrow$ **Republish**.
 
 ---
 
-## 5. Tài liệu tham khảo nội bộ
+## 6. Tài liệu tham khảo nội bộ
 
 - [`AGENTS.md`](./AGENTS.md): Quy chuẩn kiến trúc, quy tắc UI đa thiết bị (Responsive) và hướng dẫn dành cho AI Agent / Developer.
 - [`project_architecture.md`](./project_architecture.md): Sơ đồ kiến trúc phân tầng Multi-Module (`entry`, `app`, `core`, `modules`).
-- [`docs/REPORT_MODULE_PLAN.md`](./docs/REPORT_MODULE_PLAN.md): Chi tiết thiết kế 6 sheets và nghiệp vụ của phân hệ Quản lý Report.
+- [`docs/REPORT_MODULE.md`](./docs/REPORT_MODULE.md): Chi tiết thiết kế 6 sheets và nghiệp vụ của phân hệ Quản lý Report.

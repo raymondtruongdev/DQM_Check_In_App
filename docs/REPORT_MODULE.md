@@ -1,6 +1,6 @@
-# Kế hoạch & Tài liệu kỹ thuật Module "Quản lý Report" (`src/modules/report`)
+# Tài liệu kỹ thuật Module "Quản lý Report" (`src/modules/report`)
 
-> **Trạng thái:** ✅ Đã hoàn thành triển khai & nâng cấp chuẩn Báo cáo ngày 6 sheets + In PDF A4 + Khoá dòng cố định (`IsLocked`) + Kế thừa dữ liệu ngày liền kề trước đó.
+> **Trạng thái:** ✅ Đã triển khai, gồm Báo cáo ngày 6 sheets + In PDF A4 + Khoá dòng cố định (`IsLocked`) + Kế thừa dữ liệu ngày liền kề trước đó.
 > Tài liệu tham chiếu cho AI agent và Developer. Đọc kèm `AGENTS.md` ở thư mục gốc.
 
 ---
@@ -101,7 +101,6 @@ src/modules/report/
 
 ## 4. Danh sách tính năng đã hoàn thiện (Checklist)
 
-- [x] Tách biệt hoàn toàn khỏi module `progress` cũ (đã xoá toàn bộ thư mục `src/modules/progress` và các file không còn sử dụng).
 - [x] Phân quyền đọc từ `CapNhatCongViec/Report_Role.xlsx` (Admin xem được tất cả các trạm có `Status = TRUE`).
 - [x] Chuẩn hoá `DailyReport_template.xlsx` thành 6 sheets (`01_General` $\rightarrow$ `06_Issues`).
 - [x] Bổ sung ô `Tóm tắt | Summary` cho tất cả các mục từ **I** đến **VII**.

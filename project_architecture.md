@@ -31,7 +31,7 @@ DQM_Check_In_App/
 ├── config/                              # Cấu hình SPFx build, serve & package-solution
 ├── sharepoint/solution/                 # Gói cài đặt thành phẩm (workspace_portal.sppkg)
 ├── docs/
-│   └── REPORT_MODULE_PLAN.md            # Tài liệu thiết kế & trạng thái triển khai module Report
+│   └── REPORT_MODULE.md            # Tài liệu thiết kế & trạng thái triển khai module Report
 ├── data_test/
 │   ├── Mau_BCN_ST06_20261025.pdf        # Mẫu chuẩn Báo cáo ngày A4 song ngữ
 │   └── sharepoint_sample/               # Dữ liệu mẫu mô phỏng thư viện SharePoint CapNhatCongViec
@@ -88,3 +88,14 @@ DQM_Check_In_App/
 - **Khoá dòng cố định (`IsLocked`):** Bảo vệ các dòng định mức trong template (như đơn vị `TCJV`, `NTP-TV01` và hạng mục `*-DW-1120`, `*-DW-1130`) không bị người dùng xoá hoặc sửa nhầm mã.
 - **Tự động kế thừa ngày liền kề trước đó:** Khi sang ngày mới chưa có báo cáo, hệ thống tự động nạp dữ liệu từ báo cáo của ngày liền kề trước đó để người dùng không phải nhập lại từ đầu; nếu chưa có mới nạp từ `_template`.
 - **In / Xuất PDF A4 trực tiếp:** Kết xuất bố cục chuẩn A4 song ngữ Việt – Anh ngay trên trình duyệt, tự động chảy trang mượt mà không tạo khoảng trắng dư thừa.
+
+---
+
+## 4. Tài nguyên SharePoint cần có
+
+| Tài nguyên | Loại | Dùng cho |
+|---|---|---|
+| `UserProfiles` | List | Phân quyền `admin` / `user`, phòng ban (đọc bởi `core/auth/UserProfileService`) |
+| `CapNhatCongViec` | Document Library | `Report_Role.xlsx`, `_template/`, `data/<Unit>/...` của module Report |
+
+Các list `data_checkin` và `Account` đã bị xoá cùng module check-in. Hướng dẫn tạo chi tiết xem mục 3 trong [README.md](./README.md).
