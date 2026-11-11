@@ -68,6 +68,35 @@ export class ReportDataService {
       };
     }
 
+    // Try loading from the adjacent / closest previous day's report first
+    const prevReport = await this._fileService.getPreviousReportFile(unit, docId, dateStr);
+    if (prevReport && prevReport.buffer) {
+      const doc = await parseReportDocFromBuffer(prevReport.buffer, docId, unit, dateStr);
+      doc.dateStr = dateStr;
+      doc.isExisting = false;
+      doc.eTag = undefined;
+      doc.copiedFromDate = prevReport.sourceDateStr;
+      doc.photos = photos;
+      doc.metadata.photosCount = photos.length;
+      doc.metadata.photosFolder = `BCN_AnhHienTruong/${unit}/${dateStr}`;
+      doc.metadata.email = currentUserEmail;
+      if (!doc.metadata.preparedBy) {
+        doc.metadata.preparedBy = currentUserEmail;
+      }
+      if (siteManager && !doc.metadata.siteManager) {
+        doc.metadata.siteManager = siteManager;
+      }
+      doc.metadata.updateTime = new Date().toISOString();
+      doc.metadata.approvedAt = '';
+      doc.metadata.dataChecks = formatDataChecksString(doc);
+
+      return {
+        doc,
+        templateBuffer,
+        isExisting: false
+      };
+    }
+
     const templateResult = await this._templateService.getTemplate(
       docId,
       unit,

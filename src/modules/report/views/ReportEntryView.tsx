@@ -383,7 +383,9 @@ export const ReportEntryView: React.FC<IReportEntryViewProps> = ({
                     <line x1="12" y1="8" x2="12" y2="12" />
                     <line x1="12" y1="16" x2="12.01" y2="16" />
                   </svg>
-                  Tạo mới từ template (6 sheets)
+                  {doc?.copiedFromDate
+                    ? `Kế thừa từ ngày ${doc.copiedFromDate.split('-').reverse().join('/')} (chưa lưu)`
+                    : 'Tạo mới từ template (6 sheets)'}
                 </span>
               )}
             </div>

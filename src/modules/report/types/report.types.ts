@@ -138,4 +138,5 @@ export interface ReportDoc {
   photos?: ReportPhotoFile[];
   eTag?: string;
   isExisting?: boolean;
+  copiedFromDate?: string; // e.g. "2026-11-10" when pre-filled from previous day
 }

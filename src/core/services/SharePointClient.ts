@@ -373,4 +373,29 @@ export class SharePointClient {
       eTag: f.ETag
     }));
   }
+
+  /**
+   * List subfolder names in a folder.
+   */
+  public async getFolderSubfolderNames(siteUrl: string, folderServerRelativeUrl: string): Promise<string[]> {
+    try {
+      const safeFolder = this._escapeUrl(folderServerRelativeUrl);
+      const endpoint = `${siteUrl}/_api/web/GetFolderByServerRelativeUrl('${safeFolder}')/Folders?$select=Name`;
+      const response: SPHttpClientResponse = await this._spHttpClient.get(
+        endpoint,
+        SPHttpClient.configurations.v1,
+        { headers: { 'Accept': 'application/json;odata=nometadata' } }
+      );
+
+      if (!response.ok) {
+        return [];
+      }
+
+      const json = await response.json();
+      const items = (json.value || []) as Array<{ Name: string }>;
+      return items.map((f) => f.Name).filter(Boolean);
+    } catch {
+      return [];
+    }
+  }
 }

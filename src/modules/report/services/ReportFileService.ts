@@ -10,6 +10,24 @@ import {
   getUnitFolderRelativePath
 } from '../utils/reportFileNaming';
 
+function getPreviousCalendarDateStr(dateStr: string): string {
+  const parts = dateStr.split('-');
+  if (parts.length === 3) {
+    const y = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10) - 1;
+    const d = parseInt(parts[2], 10);
+    const dt = new Date(y, m, d);
+    if (!isNaN(dt.getTime())) {
+      dt.setDate(dt.getDate() - 1);
+      const yy = dt.getFullYear();
+      const mm = ('0' + (dt.getMonth() + 1)).slice(-2);
+      const dd = ('0' + dt.getDate()).slice(-2);
+      return `${yy}-${mm}-${dd}`;
+    }
+  }
+  return '';
+}
+
 export class ReportFileService {
   private _client: SharePointClient;
   private _siteUrl: string;
@@ -85,6 +103,70 @@ export class ReportFileService {
   ): Promise<{ buffer: ArrayBuffer; eTag: string } | undefined> {
     const path = getReportFileRelativePath(this.getLibraryPath(), unit, docId, dateStr);
     return await this._client.getFileWithMeta(this._siteUrl, path);
+  }
+
+  /**
+   * Find and load the closest previous report file before dateStr
+   * (Checks immediate previous day first, then scans unit subfolders for the closest prior date)
+   */
+  public async getPreviousReportFile(
+    unit: string,
+    docId: string,
+    dateStr: string
+  ): Promise<{ buffer: ArrayBuffer; sourceDateStr: string } | undefined> {
+    // 1. Try the immediate adjacent previous calendar day (dateStr - 1 day)
+    const prevDateStr = getPreviousCalendarDateStr(dateStr);
+    if (prevDateStr) {
+      try {
+        const adjFile = await this.getReportFileWithMeta(unit, docId, prevDateStr);
+        if (adjFile && adjFile.buffer) {
+          return { buffer: adjFile.buffer, sourceDateStr: prevDateStr };
+        }
+      } catch {
+        // Ignore and fallback to folder scan
+      }
+    }
+
+    // 2. Scan subfolders in data/<Unit> for the most recent <DocID>_<yyyyMMdd> prior to dateStr
+    try {
+      const unitFolder = this.getUnitFolderPath(unit);
+      const subfolders = await this._client.getFolderSubfolderNames(this._siteUrl, unitFolder);
+      if (!subfolders || subfolders.length === 0) return undefined;
+
+      const cleanDocId = sanitizeSharePointPath(docId).toLowerCase();
+      const targetCompact = dateStr.replace(/-/g, '');
+      const prefix = `${cleanDocId}_`;
+
+      const priorDates: string[] = [];
+      for (let i = 0; i < subfolders.length; i++) {
+        const name = subfolders[i];
+        const lower = name.toLowerCase();
+        if (lower.indexOf(prefix) === 0) {
+          const compactDate = name.slice(prefix.length).trim();
+          if (/^\d{8}$/.test(compactDate) && compactDate < targetCompact) {
+            const isoDate = `${compactDate.slice(0, 4)}-${compactDate.slice(4, 6)}-${compactDate.slice(6, 8)}`;
+            if (isoDate !== prevDateStr) {
+              priorDates.push(isoDate);
+            }
+          }
+        }
+      }
+
+      // Sort descending so closest date comes first
+      priorDates.sort((a, b) => b.localeCompare(a));
+
+      for (let i = 0; i < Math.min(priorDates.length, 3); i++) {
+        const candidateDate = priorDates[i];
+        const found = await this.getReportFileWithMeta(unit, docId, candidateDate);
+        if (found && found.buffer) {
+          return { buffer: found.buffer, sourceDateStr: candidateDate };
+        }
+      }
+    } catch {
+      // Ignore folder scan errors
+    }
+
+    return undefined;
   }
 
   /**
