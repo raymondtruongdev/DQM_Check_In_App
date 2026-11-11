@@ -2,7 +2,7 @@ import * as React from 'react';
 import { RoleEntry } from '../../../core/types';
 import { ReportTile } from '../components/ReportTile';
 import { NoAccessState } from '../components/NoAccessState';
-import { Icon } from '../../../core/components/Icon';
+import { Icon, PageHeader, FilterChips, SearchInput, LoadingState, EmptyState } from '../../../core/components';
 
 export interface IReportLandingViewProps {
   assignments: RoleEntry[];
@@ -64,142 +64,77 @@ export const ReportLandingView: React.FC<IReportLandingViewProps> = ({
     });
   }, [assignments, selectedUnit, searchTerm]);
 
+  const header = (
+    <PageHeader
+      leading={
+        <button
+          type="button"
+          className="btn btn--secondary"
+          onClick={onGoHome}
+          title="Quay về trang chủ Portal"
+          aria-label="Về Trang Chủ"
+        >
+          <Icon name="home" />
+          <span>Trang Chủ</span>
+        </button>
+      }
+      title="Quản lý Báo cáo thi công"
+      actions={
+        <button
+          type="button"
+          className="btn btn--secondary"
+          onClick={onRefresh}
+          disabled={isLoading}
+          title="Tải lại danh sách phân quyền"
+          aria-label="Làm mới"
+        >
+          <Icon name="refresh" spin={isLoading} />
+          <span>{isLoading ? 'Đang tải...' : 'Làm mới'}</span>
+        </button>
+      }
+    />
+  );
+
   if (!isLoading && assignments.length === 0) {
     return (
       <div className="report-landing-container">
-        <div className="report-landing-header">
-          <div className="report-landing-header-left">
-            <button
-              type="button"
-              className="btn btn--secondary"
-              onClick={onGoHome}
-              title="Quay về trang chủ Portal"
-              aria-label="Về Trang Chủ"
-            >
-              <Icon name="home" size={20} />
-              <span>Trang Chủ</span>
-            </button>
-            <div className="header-text-group">
-              <h2 className="report-landing-title">Quản lý Báo cáo thi công</h2>
-            </div>
-          </div>
-
-          <div className="report-landing-header-right">
-            <button
-              type="button"
-              className="btn btn--secondary"
-              onClick={onRefresh}
-              disabled={isLoading}
-              title="Tải lại danh sách phân quyền"
-              aria-label="Làm mới"
-            >
-              <Icon name="refresh" size={20} spin={isLoading} />
-              <span className="btn-label">{isLoading ? 'Đang tải...' : 'Làm mới'}</span>
-            </button>
-          </div>
-        </div>
-        <NoAccessState
-          userEmail={userEmail}
-          allRoles={allRoles}
-          onRefresh={onRefresh}
-        />
+        {header}
+        <NoAccessState userEmail={userEmail} allRoles={allRoles} onRefresh={onRefresh} />
       </div>
     );
   }
 
+  const unitOptions = [
+    { value: 'ALL', label: `Tất cả (${assignments.length})` },
+    ...units.map((u) => ({
+      value: u,
+      label: `${u} (${assignments.filter((a) => a.unit.trim().toLowerCase() === u.toLowerCase()).length})`
+    }))
+  ];
+  const activeUnit = units.find((u) => u.toLowerCase() === selectedUnit.toLowerCase()) || 'ALL';
+
   return (
     <div className="report-landing-container">
-      {/* 1. Header Banner */}
-      <div className="report-landing-header">
-        <div className="report-landing-header-left">
-          <button
-            type="button"
-            className="btn btn--secondary"
-            onClick={onGoHome}
-            title="Quay về trang chủ Portal"
-            aria-label="Về Trang Chủ"
-          >
-            <Icon name="home" size={20} />
-            <span>Trang Chủ</span>
-          </button>
-          <div className="header-text-group">
-            <h2 className="report-landing-title">Quản lý Báo cáo thi công</h2>
-          </div>
-        </div>
+      {header}
 
-        <div className="report-landing-header-right">
-          <button
-            type="button"
-            className="btn btn--secondary"
-            onClick={onRefresh}
-            disabled={isLoading}
-            title="Tải lại danh sách phân quyền"
-            aria-label="Làm mới"
-          >
-            <Icon name="refresh" size={20} spin={isLoading} />
-            <span className="btn-label">{isLoading ? 'Đang tải...' : 'Làm mới'}</span>
-          </button>
-        </div>
-      </div>
-
-      {/* 2. Controls bar: Unit filter tabs & search input */}
       <div className="report-landing-controls">
-        <div className="report-unit-tabs">
-          <button
-            type="button"
-            className={`report-unit-tab ${!selectedUnit || selectedUnit === 'ALL' ? 'active' : ''}`}
-            onClick={() => onSelectUnit('ALL')}
-          >
-            Tất cả ({assignments.length})
-          </button>
-          {units.map((u) => {
-            const count = assignments.filter((a) => a.unit.trim().toLowerCase() === u.toLowerCase()).length;
-            const isActive = selectedUnit.toLowerCase() === u.toLowerCase();
-            return (
-              <button
-                key={u}
-                type="button"
-                className={`report-unit-tab ${isActive ? 'active' : ''}`}
-                onClick={() => onSelectUnit(u)}
-              >
-                {u} ({count})
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="report-search-wrap">
-          <Icon name="search" size={16} className="search-icon" />
-          <input
-            type="text"
-            className="portal-input report-search-input"
-            placeholder="Tìm theo mã ga, loại báo cáo, người quản lý..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          {searchTerm && (
-            <button
-              type="button"
-              className="clear-search-btn"
-              onClick={() => setSearchTerm('')}
-              title="Xoá tìm kiếm"
-            >
-              <Icon name="dismiss" size={16} />
-            </button>
-          )}
-        </div>
+        <FilterChips
+          options={unitOptions}
+          value={activeUnit}
+          onChange={onSelectUnit}
+          ariaLabel="Lọc theo trạm"
+        />
+        <SearchInput
+          value={searchTerm}
+          onChange={setSearchTerm}
+          placeholder="Tìm theo mã ga, loại báo cáo, người quản lý..."
+        />
       </div>
 
-      {/* 3. Grid of Report Tiles */}
       {isLoading ? (
-        <div className="report-loading-state">
-          <div className="loading-spinner" />
-          <p>Đang tải dữ liệu phân quyền báo cáo...</p>
-        </div>
+        <LoadingState message="Đang tải dữ liệu phân quyền báo cáo..." />
       ) : filteredAssignments.length === 0 ? (
-        <div className="report-empty-state">
-          <p>Không tìm thấy báo cáo phù hợp với điều kiện lọc</p>
-        </div>
+        <EmptyState message="Không tìm thấy báo cáo phù hợp với điều kiện lọc" />
       ) : (
         <div className="report-tiles-grid">
           {filteredAssignments.map((role) => (
@@ -214,4 +149,3 @@ export const ReportLandingView: React.FC<IReportLandingViewProps> = ({
     </div>
   );
 };
-

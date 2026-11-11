@@ -1,0 +1,77 @@
+/* ==========================================================================
+   Base – nền chung cho MỌI module (font, box-sizing, reset nút, focus, tiện ích)
+   ========================================================================== */
+.app-layout *, .app-layout *::before, .app-layout *::after {
+  box-sizing: border-box;
+}
+
+.app-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  width: 100%;
+  background-color: var(--color-canvas);
+  font-family: var(--font-family);
+  font-size: var(--text-base);
+  color: var(--color-text-primary);
+  line-height: 1.5;
+}
+
+:where(.app-layout) button,
+:where(.app-layout) input,
+:where(.app-layout) select,
+:where(.app-layout) textarea {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+:where(.app-layout) button {
+  cursor: pointer;
+  border: 0;
+  background: none;
+  color: inherit;
+  padding: 0;
+}
+
+:where(.app-layout) button:disabled {
+  cursor: not-allowed;
+}
+
+.app-layout :focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+:where(.app-layout) .main-content {
+  flex: 1;
+  width: 100%;
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+:where(.app-layout) .text-center { text-align: center; }
+:where(.app-layout) .text-right { text-align: right; }
+:where(.app-layout) .font-semibold { font-weight: 600; }
+:where(.app-layout) .font-bold { font-weight: 700; }
+
+@keyframes portal-spin { to { transform: rotate(360deg); } }
+@keyframes portal-fade-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-layout * { transition-duration: 0.01ms; animation-duration: 0.01ms; }
+}
+
+/* Icon (Fluent UI) + xoay khi đang tải */
+:where(.app-layout) .icon { flex-shrink: 0; display: inline-block; vertical-align: middle; fill: currentColor; }
+:where(.app-layout) .spin { animation: portal-spin 0.8s linear infinite; }
+
+@media (max-width: 768px) {
+  :where(.app-layout) .main-content { padding: var(--space-3); }
+}

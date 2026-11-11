@@ -1,0 +1,51 @@
+/* ==========================================================================
+   6. Badge
+   ========================================================================== */
+:where(.app-layout) .badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  padding: 2px var(--space-2-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-subtle);
+  color: var(--color-text-secondary);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+:where(.app-layout) .badge--info { background: var(--color-accent-subtle); border-color: var(--color-accent-border); color: var(--color-accent); }
+:where(.app-layout) .badge--success { background: var(--color-success-bg); border-color: var(--color-success-border); color: var(--color-success-text); }
+:where(.app-layout) .badge--warning { background: var(--color-warning-bg); border-color: var(--color-warning-border); color: var(--color-warning-text); }
+:where(.app-layout) .badge--danger { background: var(--color-danger-bg); border-color: var(--color-danger-border); color: var(--color-danger-text); }
+
+:where(.app-layout) .sso-badge-admin,
+:where(.app-layout) .sso-badge-user {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px var(--space-2-5);
+  border: 1px solid;
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  line-height: 1.5;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+:where(.app-layout) .sso-badge-admin { background: var(--color-danger-bg); border-color: var(--color-danger-border); color: var(--color-danger-text); }
+:where(.app-layout) .sso-badge-user { background: var(--color-accent-subtle); border-color: var(--color-accent-border); color: var(--color-accent); }
+
+:where(.app-layout) .unsaved-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px var(--space-2-5);
+  border: 1px solid var(--color-warning-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  white-space: nowrap;
+}

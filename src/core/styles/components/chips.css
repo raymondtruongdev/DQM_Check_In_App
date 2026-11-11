@@ -1,0 +1,60 @@
+/* ==========================================================================
+   Chips – nhóm nút lọc dạng viên thuốc (<FilterChips />) và ô tìm kiếm (<SearchInput />)
+   ========================================================================== */
+:where(.app-layout) .chips {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+:where(.app-layout) .chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--control-h-sm);
+  padding: 0 var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+}
+
+:where(.app-layout) .chip:hover { background: var(--color-canvas); color: var(--color-accent); }
+
+:where(.app-layout) .chip.is-active {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-text-inverse);
+  box-shadow: var(--shadow-xs);
+}
+
+/* Ô tìm kiếm: icon bên trái, nút xoá bên phải */
+:where(.app-layout) .search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 0 1 340px;
+  min-width: 260px;
+}
+
+:where(.app-layout) .search__icon {
+  position: absolute;
+  left: var(--space-3);
+  color: var(--color-text-subtle);
+  pointer-events: none;
+}
+
+:where(.app-layout) .search__input { padding-left: 36px; padding-right: 36px; }
+
+:where(.app-layout) .search__clear {
+  position: absolute;
+  right: var(--space-1);
+}
+
+@media (max-width: 640px) {
+  :where(.app-layout) .search { min-width: 0; flex: 1 1 100%; }
+}

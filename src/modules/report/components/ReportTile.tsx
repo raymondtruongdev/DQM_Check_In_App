@@ -28,8 +28,8 @@ export const ReportTile: React.FC<IReportTileProps> = ({ role, onClick }) => {
       className="report-tile"
     >
       <div className="report-tile-header">
-        <span className="report-tile-unit-badge">{role.unit}</span>
-        <span className={`report-tile-type-badge ${isWeekly ? 'weekly' : 'daily'}`}>
+        <span className="badge">{role.unit}</span>
+        <span className={`badge ${isWeekly ? 'badge--success' : 'badge--info'}`}>
           {isWeekly ? 'Tuần' : 'Ngày'}
         </span>
       </div>

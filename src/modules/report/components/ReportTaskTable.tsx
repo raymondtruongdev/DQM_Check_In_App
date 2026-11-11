@@ -127,7 +127,7 @@ export const ReportTaskTable: React.FC<IReportTaskTableProps> = ({
                             min="0"
                             max="100"
                             step="0.1"
-                            className="portal-input rate-input"
+                            className="input rate-input"
                             value={task.completionRate !== undefined ? task.completionRate : ''}
                             onChange={(e) => {
                               const v = e.target.value.trim();
@@ -157,7 +157,7 @@ export const ReportTaskTable: React.FC<IReportTaskTableProps> = ({
                         <input
                           type="number"
                           step="any"
-                          className="portal-input qty-input"
+                          className="input qty-input"
                           value={task.quantity !== undefined ? task.quantity : ''}
                           onChange={(e) => {
                             const v = e.target.value.trim();

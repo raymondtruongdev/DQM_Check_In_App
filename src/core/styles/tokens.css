@@ -1,0 +1,115 @@
+/* ==========================================================================
+   Design tokens (màu · chữ · spacing · radius · shadow · kích thước điều khiển)
+   CHỈ chứa biến CSS. Đổi giao diện toàn app = sửa file này.
+   Token gắn vào .app-layout (không rò rỉ ra cả trang SharePoint).
+   ========================================================================== */
+.app-layout {
+  /* Typography */
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+  /* Thang chữ (6 bậc) */
+  --text-xs: 0.75rem;    /* 12px – nhãn, badge, chú thích */
+  --text-sm: 0.8125rem;  /* 13px – nút, bảng, form */
+  --text-base: 0.875rem; /* 14px – nội dung */
+  --text-md: 1rem;       /* 16px – tiêu đề thẻ */
+  --text-lg: 1.125rem;   /* 18px – tiêu đề trang */
+  --text-xl: 1.25rem;    /* 20px */
+  --text-2xl: 1.5rem;    /* 24px */
+
+  /* Neutral (Slate) */
+  --color-canvas: #f8fafc;
+  --color-surface: #ffffff;
+  --color-surface-hover: #f8fafc;
+  --color-surface-subtle: #f1f5f9;
+  --color-surface-active: #e2e8f0;
+
+  --color-border-subtle: #f1f5f9;
+  --color-border: #e2e8f0;
+  --color-border-hover: #cbd5e1;
+  --color-border-focus: #94a3b8;
+
+  --color-text-primary: #0f172a;
+  --color-text-strong: #1e293b;
+  --color-text-secondary: #475569;
+  --color-text-muted: #64748b;
+  --color-text-subtle: #94a3b8;
+  --color-text-inverse: #ffffff;
+
+  /* Accent (Blue) */
+  --color-accent: #1d4ed8;
+  --color-accent-hover: #1e40af;
+  --color-accent-active: #1e3a8a;
+  --color-accent-soft: #dbeafe;
+  --color-accent-subtle: #eff6ff;
+  --color-accent-border: #bfdbfe;
+  --color-accent-ring: rgba(29, 78, 216, 0.2);
+
+  /* Banner đầu mục báo cáo */
+  --color-banner: #1e3a8a;
+
+  /* Trạng thái */
+  --color-success: #16a34a;
+  --color-success-bg: #f0fdf4;
+  --color-success-text: #15803d;
+  --color-success-border: #bbf7d0;
+
+  --color-warning: #f59e0b;
+  --color-warning-bg: #fffbeb;
+  --color-warning-text: #b45309;
+  --color-warning-border: #fde68a;
+
+  --color-danger: #dc2626;
+  --color-danger-bg: #fef2f2;
+  --color-danger-text: #b91c1c;
+  --color-danger-border: #fecaca;
+
+  /* Spacing (8px baseline) */
+  --space-0-5: 0.125rem;
+  --space-1: 0.25rem;
+  --space-1-5: 0.375rem;
+  --space-2: 0.5rem;
+  --space-2-5: 0.625rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+
+  /* Radius */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+  --radius-pill: 9999px;
+
+  /* Shadow */
+  --shadow-xs: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
+  --shadow-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.05), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.06), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.04);
+
+  /* Kích thước điều khiển – tự tăng trên cảm ứng/mobile (xem mục 11) */
+  --control-h: 40px;
+  --control-h-sm: 32px;
+  --icon-sm: 16px;
+  --icon-md: 18px;
+  --icon-lg: 24px;
+
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  --content-max: 1440px;
+}
+
+/* Cảm ứng / màn hẹp: tự tăng vùng chạm bằng cách đổi token điều khiển */
+@media (max-width: 768px), (pointer: coarse) {
+  .app-layout {
+    --control-h: 44px;
+    --control-h-sm: 36px;
+  }
+}

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useState, useEffect, useMemo } from 'react';
-import '../core/styles/portal.css';
+import '../core/styles';
 import type { IPortalProps } from './IPortalProps';
 import type { UserSession } from '../core/auth';
 import { UserProfileService, extractCleanEmail, checkIsAdmin } from '../core/auth';
@@ -130,13 +130,18 @@ export const PortalShell: React.FC<IPortalProps> = (props) => {
   const activeModule = PORTAL_MODULES.find((m) => m.id === activeModuleId && m.component);
   if (activeModule && activeModule.component) {
     const ModuleComponent = activeModule.component;
+    // Khung chuẩn cho MỌI module: .app-layout (token + base) + .main-content (lề, max-width)
     return (
-      <ModuleComponent
-        currentUser={currentUser ?? undefined}
-        spHttpClient={spHttpClient}
-        siteUrl={siteUrl}
-        onGoHome={() => setActiveModuleId(null)}
-      />
+      <div className="app-layout">
+        <main className="main-content">
+          <ModuleComponent
+            currentUser={currentUser ?? undefined}
+            spHttpClient={spHttpClient}
+            siteUrl={siteUrl}
+            onGoHome={() => setActiveModuleId(null)}
+          />
+        </main>
+      </div>
     );
   }
 

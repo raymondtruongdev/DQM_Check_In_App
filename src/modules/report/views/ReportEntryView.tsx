@@ -18,7 +18,7 @@ import { ReportMetaForm } from '../components/ReportMetaForm';
 import { ReportTaskTable } from '../components/ReportTaskTable';
 import { ReportSectionsEditor } from '../components/ReportSectionsEditor';
 import { ReportPrintPreviewModal } from '../components/ReportPrintPreviewModal';
-import { Icon } from '../../../core/components/Icon';
+import { Icon, PageHeader, LoadingState, EmptyState } from '../../../core/components';
 
 export interface IReportEntryViewProps {
   role: RoleEntry;
@@ -339,9 +339,10 @@ export const ReportEntryView: React.FC<IReportEntryViewProps> = ({
 
   return (
     <div className="report-entry-container">
-      {/* 1. Top Header Bar */}
-      <div className="report-entry-header-card">
-        <div className="report-header-left">
+      {/* 1. Header (thành phần chung PageHeader) */}
+      <PageHeader
+        divider
+        leading={
           <button
             type="button"
             className="btn btn--secondary btn--icon"
@@ -350,102 +351,85 @@ export const ReportEntryView: React.FC<IReportEntryViewProps> = ({
             title="Quay lại danh sách báo cáo"
             aria-label="Quay lại"
           >
-            <Icon name="arrow-left" size={20} />
+            <Icon name="arrow-left" />
           </button>
-
-          <div className="report-header-divider" />
-
-          <div className="report-header-title-block">
-            <div className="report-header-title-row">
-              <h2 className="report-header-main-title">{reportMainTitle}</h2>
-              <span className="report-unit-badge-pill">{role.unit}</span>
-            </div>
-
-            <div className="report-header-status-row">
-              {doc?.isExisting ? (
-                <span className="report-status-text-saved">
-                  <Icon name="check-circle" size={16} />
-                  Đã lưu trên SharePoint
-                </span>
-              ) : (
-                <span className="report-status-text-new">
-                  <Icon name="info" size={16} />
-                  {doc?.copiedFromDate
-                    ? `Kế thừa từ ngày ${doc.copiedFromDate.split('-').reverse().join('/')}`
-                    : 'Tạo mới từ template (6 sheets)'}
-                </span>
-              )}
-            </div>
-
-            {doc && (
-              <div className="report-header-template-row">
-                <span
-                  className={`report-template-ver-pill ${
-                    doc.templateUpdateRequired ? 'is-outdated' : 'is-current'
-                  }`}
-                  title="Phiên bản biểu mẫu (Template Version)"
-                >
-                  Biểu mẫu (Template): {formatTemplateVersionDisplay(doc.metadata.templateVersion)}
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Right Action Buttons */}
-        <div className="report-header-right">
-          {hasUnsavedChanges && (
-            <span className="unsaved-badge" title="Có dữ liệu chưa lưu">
-              Chưa lưu
-            </span>
-          )}
-
-          {/* Xem bản in / Xuất PDF Button */}
-          <button
-            type="button"
-            className="btn btn--secondary"
-            onClick={() => setShowPrintPreview(true)}
-            disabled={isLoading || !doc || Boolean(doc.templateUpdateRequired)}
-            title="Xem bản in 2 trang A4 và xuất PDF"
-          >
-            <Icon name="print" size={20} />
-            <span>Xem bản in / Xuất PDF</span>
-          </button>
-
-          {/* Làm mới Button */}
-          <button
-            type="button"
-            className="btn btn--secondary"
-            onClick={() => loadData(dateStr)}
-            disabled={isLoading || isSaving}
-            title="Tải lại dữ liệu"
-            aria-label="Làm mới"
-          >
-            <Icon name="refresh" size={20} spin={isLoading} />
-            <span>{isLoading ? 'Đang tải...' : 'Làm mới'}</span>
-          </button>
-
-          {/* Lưu báo cáo Button */}
-          <button
-            type="button"
-            className="btn btn--primary"
-            onClick={handleSave}
-            disabled={isLoading || isSaving || !doc || Boolean(doc.templateUpdateRequired)}
-          >
-            {isSaving ? (
-              <>
-                <div className="loading-spinner-sm" />
-                <span>Đang lưu...</span>
-              </>
+        }
+        title={reportMainTitle}
+        badge={<span className="badge badge--info">{role.unit}</span>}
+        meta={
+          <>
+            {doc?.isExisting ? (
+              <span className="badge badge--success">
+                <Icon name="check-circle" size={16} />
+                Đã lưu trên SharePoint
+              </span>
             ) : (
-              <>
-                <Icon name="save" size={20} />
-                <span>Lưu báo cáo</span>
-              </>
+              <span className="badge badge--info">
+                <Icon name="info" size={16} />
+                {doc?.copiedFromDate
+                  ? `Kế thừa từ ngày ${doc.copiedFromDate.split('-').reverse().join('/')}`
+                  : 'Tạo mới từ template (6 sheets)'}
+              </span>
             )}
-          </button>
-        </div>
-      </div>
+            {doc && (
+              <span
+                className={`badge ${doc.templateUpdateRequired ? 'badge--warning' : 'badge--success'}`}
+                title="Phiên bản biểu mẫu (Template Version)"
+              >
+                Biểu mẫu (Template): {formatTemplateVersionDisplay(doc.metadata.templateVersion)}
+              </span>
+            )}
+          </>
+        }
+        actions={
+          <>
+            {hasUnsavedChanges && (
+              <span className="unsaved-badge" title="Có dữ liệu chưa lưu">
+                Chưa lưu
+              </span>
+            )}
+            <button
+              type="button"
+              className="btn btn--secondary"
+              onClick={() => setShowPrintPreview(true)}
+              disabled={isLoading || !doc || Boolean(doc.templateUpdateRequired)}
+              title="Xem bản in 2 trang A4 và xuất PDF"
+            >
+              <Icon name="print" />
+              <span>Xem bản in / Xuất PDF</span>
+            </button>
+            <button
+              type="button"
+              className="btn btn--secondary"
+              onClick={() => loadData(dateStr)}
+              disabled={isLoading || isSaving}
+              title="Tải lại dữ liệu"
+              aria-label="Làm mới"
+            >
+              <Icon name="refresh" spin={isLoading} />
+              <span>{isLoading ? 'Đang tải...' : 'Làm mới'}</span>
+            </button>
+            <button
+              type="button"
+              className="btn btn--primary"
+              onClick={handleSave}
+              disabled={isLoading || isSaving || !doc || Boolean(doc.templateUpdateRequired)}
+            >
+              {isSaving ? (
+                <>
+                  <div className="loading-spinner-sm" />
+                  <span>Đang lưu...</span>
+                </>
+              ) : (
+                <>
+                  <Icon name="save" />
+                  <span>Lưu báo cáo</span>
+                </>
+              )}
+            </button>
+          </>
+        }
+      />
 
       {/* 2. Quick Section Navigation Pills */}
       {!isLoading && doc && !doc.templateUpdateRequired && (
@@ -472,10 +456,7 @@ export const ReportEntryView: React.FC<IReportEntryViewProps> = ({
 
       {/* 4. Main Content */}
       {isLoading ? (
-        <div className="report-loading-state">
-          <div className="loading-spinner" />
-          <p>Đang kiểm tra phiên bản biểu mẫu (template) và nạp dữ liệu...</p>
-        </div>
+        <LoadingState message="Đang kiểm tra phiên bản biểu mẫu (template) và nạp dữ liệu..." />
       ) : doc && doc.templateUpdateRequired ? (
         <div className="report-template-upgrade-card">
           <div className="report-template-upgrade-header">
@@ -501,14 +482,14 @@ export const ReportEntryView: React.FC<IReportEntryViewProps> = ({
               </p>
             </div>
             <div className="report-info-date-group">
-              <label htmlFor="upgrade-date-picker" className="report-info-field-label">
+              <label htmlFor="upgrade-date-picker" className="field__label">
                 Ngày báo cáo
               </label>
               <div className="report-info-date-input-wrap">
                 <input
                   id="upgrade-date-picker"
                   type="date"
-                  className="report-info-date-input"
+                  className="input report-info-date-input"
                   value={dateStr}
                   onChange={(e) => handleDateChange(e.target.value)}
                 />
@@ -604,9 +585,7 @@ export const ReportEntryView: React.FC<IReportEntryViewProps> = ({
           )}
         </div>
       ) : (
-        <div className="report-empty-state">
-          <p>Không thể nạp dữ liệu mẫu báo cáo</p>
-        </div>
+        <EmptyState message="Không thể nạp dữ liệu mẫu báo cáo" />
       )}
 
       {/* 5. Print / Export PDF A4 Preview Modal */}

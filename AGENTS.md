@@ -26,7 +26,7 @@
 * **Framework:** SharePoint Framework (SPFx) `1.24.1`
 * **UI Library:** React `18.3.1` (Hooks, Functional Components)
 * **Build System:** `@rushstack/heft` `1.3.2` + Webpack `5.105.4` + TypeScript `~5.8.0`
-* **Styling:** Custom Modern SaaS Design System (Pure CSS variables trong `src/core/styles/portal.css`, accent `#1d4ed8`, một tông xanh duy nhất)
+* **Styling:** Custom Modern SaaS Design System (CSS thuần, token trong `src/core/styles/tokens.css`, accent `#1d4ed8`, một tông xanh duy nhất; xem mục 8)
 * **Icons:** Fluent UI System Icons (`@fluentui/react-icons`, bản Regular) qua component `core/components/Icon.tsx` (tree-shaken, bundle ~205KB)
 * **HTTP Client:** `@microsoft/sp-http` (`SPHttpClient` v1)
 
@@ -51,15 +51,16 @@ WebPart tự động nhận diện site hiện hành qua `pageContext.web.absolu
 DQM_Check_In_App/
 ├── config/                      # Cấu hình SPFx build, workbench serve & package solution
 ├── sharepoint/solution/         # Gói cài đặt thành phẩm (workspace_portal.sppkg)
+├── scripts/check-styles.js      # Kiểm tra quy ước style (`npm run lint:styles`)
 ├── src/
 │   ├── entry/                   # Điểm vào SPFx: PortalWebPart.ts, manifest, loc/
 │   ├── app/                     # Khung portal: PortalShell.tsx (auth + chọn module), moduleRegistry.tsx, IPortalProps.ts
 │   ├── core/                    # Dùng chung cho mọi module (KHÔNG import từ modules/)
 │   │   ├── auth/                # Session, UserProfileService, extractCleanEmail, checkIsAdmin
 │   │   ├── services/            # SharePointClient (generic CRUD qua SPHttpClient)
-│   │   ├── components/          # Icon (Fluent), layout/ (TopAppBar, ToastAlert)
+│   │   ├── components/          # React dùng chung: Icon, PageHeader, FilterChips, SearchInput, State (Loading/Empty), layout/ (TopAppBar, ToastAlert)
 │   │   ├── types/ constants/ utils/
-│   │   └── styles/portal.css    # Design System CSS tokens & styling
+│   │   └── styles/              # Design System (xem mục 8): tokens.css, base.css, components/*.css, layout/*.css, index.ts
 │   ├── modules/
 │   │   ├── home/                # HomeView: trang chủ liệt kê module từ registry
 │   │   └── report/              # Module: Quản lý Report (Report_Role.xlsx, Daily/Weekly report, tree-table, SharePoint data/<Unit>/<DocID>_<yyyyMMdd>/)
@@ -163,24 +164,90 @@ npm run build
 ## 7. Guidelines for AI Agents Working on This Codebase
 
 1. **Do NOT import `@microsoft/power-apps`:** This project is deliberately detached from Power Apps to eliminate licensing costs.
-2. **Preserve Design Tokens:** Always use CSS variables from `portal.css` (`--color-accent`, `--space-*`, `--radius-*`) instead of hardcoding random hex colors. Không dùng `!important` (reset nút dùng `:where()` nên mọi class đều ghi đè được). Ngoại lệ duy nhất: CSS in A4 trong `ReportPrintPreviewModal.tsx` (iframe riêng, màu cố định theo mẫu giấy: tiêu đề mục `#014a94`, nền hàng tiêu đề `#dbe6f1`, `DAILY REPORT` đỏ `#c00000`).
-   - **Nút:** chỉ dùng `.btn` + biến thể: `btn--primary` (hành động chính: Lưu, Tải template), `btn--secondary` (mọi nút còn lại: Trang chủ, Quay lại, Làm mới, In), `btn--ghost` / `btn--ghost-danger` (nút nhỏ trong bảng), `btn--danger` (chỉ thao tác phá huỷ), `btn--light` (trên banner xanh đậm); cỡ `btn--sm`, `btn--icon`. Một tông xanh, KHÔNG tạo class nút riêng theo module (như `report-btn-*`).
-   - **Chiều cao điều khiển:** dùng `--control-h` (40px; tự lên 44px khi ≤768px hoặc màn cảm ứng) và `--control-h-sm` (32px → 36px). Không đặt `height` cứng cho nút/ô nhập.
-   - **Icon:** luôn dùng `<Icon name="..." size={16|20|24} />` (thêm icon mới vào bảng `ICONS` trong `Icon.tsx`); không viết `<svg>` tay hay emoji/ký tự (×, ✓, 🔒) làm icon giao diện. Ngoại lệ: hình thương hiệu của ô module trong `moduleRegistry.tsx`.
-   - **Ô nhập & bảng:** ô nhập dùng class có trong khối form của `portal.css` (`.portal-input`, `.report-info-input`, `.report-cell-input`...) và phải `box-sizing: border-box`; bảng nhập liệu bọc trong `.table-responsive`.
+2. **UI & Style System:** mọi thay đổi giao diện phải tuân thủ **mục 8** (token, nút, icon, ô nhập, card, header, quy tắc đặt tên class, khung module). Chạy `npm run lint:styles` trước khi báo hoàn thành.
 3. **Git Commit & Push Policy:** DO NOT automatically run `git commit` or `git push`. Only commit and push when the user explicitly requests or approves it.
 4. **Responsive & Cross-Device UI Rules (BẮT BUỘC khi thêm/sửa giao diện):**
    - **Kiểm tra mọi cỡ màn hình:** desktop rộng (≥1440px), laptop (1024–1440px), **iPad mini / tablet dọc (768px)**, tablet ngang (1024px), điện thoại (≤480px). Mỗi thay đổi UI phải được rà lại ở các cỡ này, không chỉ ở desktop.
-   - **Breakpoints chuẩn:** `≤1024px` (tablet), `≤768px` (iPad mini / tablet nhỏ), `≤640px` và `≤480px` (điện thoại). Đặt media query ở cuối file CSS của phạm vi đó (`core/styles/portal.css` hoặc `modules/<name>/<name>.css`). Lưu ý các quy tắc `@media` cũ có thể ghi đè; khi thêm quy tắc mới phải kiểm tra xung đột (đặc biệt tại đúng 768px).
+   - **Breakpoints chuẩn:** `≤1024px` (tablet), `≤768px` (iPad mini / tablet nhỏ), `≤640px` và `≤480px` (điện thoại). Đặt media query ở cuối file CSS chứa thành phần đó (`core/styles/components/*.css`, `core/styles/layout/*.css` hoặc `modules/<name>/<name>.css`). Token không dùng được trong `@media` nên ghi số trực tiếp theo đúng 4 mốc này. Lưu ý các quy tắc `@media` cũ có thể ghi đè; khi thêm quy tắc mới phải kiểm tra xung đột (đặc biệt tại đúng 768px).
    - **Không để nội dung bị cắt hoặc mất:** lưới dùng `repeat(N, minmax(0, 1fr))`, phần tử con flex/grid có `min-width: 0`; không dùng `white-space: nowrap` trên khối chứa văn bản dài nếu không có `text-overflow: ellipsis` hoặc cho phép xuống dòng. Không dùng `overflow: hidden` ở thẻ cha làm cắt cột bên phải.
    - **Không bóp chữ:** tiêu đề, badge, nút không được bị bẻ từng chữ. Nếu thiếu chỗ thì cho nhóm điều khiển xuống hàng (`flex-wrap: wrap`) thay vì ép `nowrap` toàn bộ hàng.
    - **Bố cục logic theo cỡ màn hình:** desktop/tablet: tiêu đề bên trái, điều khiển (sắp xếp, làm mới, view tabs) bên phải cùng hàng; điện thoại: xếp dọc, điều khiển rộng hết chiều ngang, dùng 1 cột thẻ. Tablet: 2 cột thẻ. Giới hạn bề rộng nội dung (`max-width: 1440px`, căn giữa) trên màn hình rộng.
-   - **Chuyên nghiệp & nhất quán:** dùng token trong `portal.css`, khoảng cách theo `--space-*`, vùng chạm tối thiểu ~36–44px trên cảm ứng, căn hàng đều giữa các nhóm điều khiển, bảng dữ liệu cuộn ngang trong `.table-responsive` thay vì tràn trang.
+   - **Chuyên nghiệp & nhất quán:** dùng token trong `core/styles/tokens.css`, khoảng cách theo `--space-*`, vùng chạm tối thiểu ~36–44px trên cảm ứng, căn hàng đều giữa các nhóm điều khiển, bảng dữ liệu cuộn ngang trong `.table-responsive` thay vì tràn trang.
    - **Xác minh trước khi báo hoàn thành:** build sạch (`npm run build`, 0 cảnh báo lint) và, nếu có thể, kiểm tra trực quan ở 1440px, 1024px, 768px, 390px. Nếu không kiểm tra được trực quan, phải nói rõ với người dùng là chưa xem lại trên thiết bị.
 5. **Standard Recipe for Adding a New Module (e.g. `tasks`):**
-   - Create `src/modules/<name>/` with `<Name>Module.tsx` (receives `ModuleProps`), `views/`, `components/`, `services/<Name>Service.ts`, `types/<name>.types.ts`, `constants/`, `utils/`, and `index.ts` exporting a `PortalModule`.
+   - Create `src/modules/<name>/` with `<Name>Module.tsx` (receives `ModuleProps`; import `./<name>.css` ở đây), `views/`, `components/`, `services/<Name>Service.ts`, `types/<name>.types.ts`, `constants/`, `utils/`, and `index.ts` exporting a `PortalModule`.
    - Only files belonging to a module carry that module's name (e.g. `Report*`). Shared code in `core/` and `app/` must not contain module names or company names.
    - Register the module in `src/app/moduleRegistry.tsx`; `HomeView` lists it automatically and `PortalShell` opens it on click.
    - SharePoint access: build module services on `core/services/SharePointClient`; list names live in the module's service file.
    - Dependencies are one-way: `modules/*` → `core/*`; `core/` never imports `modules/`; modules never import each other.
-   - Storage keys use the prefix `portal_<module>_...`. Use CSS variables from `core/styles/portal.css`.
+   - Storage keys use the prefix `portal_<module>_...`. Style: xem mục 8 (CSS riêng của module chỉ ở `modules/<name>/<name>.css`, class có tiền tố `<name>-`).
+
+---
+
+## 8. UI & Style System (BẮT BUỘC cho mọi module hiện tại và sau này)
+
+Mục tiêu: mọi module trông như MỘT sản phẩm. Module chỉ ghép các thành phần chung của `core`; CSS riêng của module chỉ lo bố cục/nghiệp vụ của chính nó.
+
+### 8.1 Kiến trúc file
+
+```text
+src/core/styles/
+├── index.ts            # điểm nạp DUY NHẤT (thứ tự: tokens → base → components → layout)
+├── tokens.css          # CHỈ biến CSS (màu, chữ, spacing, radius, shadow, --control-h…) – nơi duy nhất được có màu hex
+├── base.css            # nền chung: font, box-sizing, reset nút, focus, tiện ích (.text-center…), .icon/.spin
+├── components/         # button, form (.input/.textarea/.field), badge, card (.card/.section-card), table,
+│                       #   chips (.chip/.search), page-header, feedback (toast, spinner, .state)
+└── layout/             # app-bar, landing (khung portal)
+src/core/components/    # React tương ứng: Icon, PageHeader, FilterChips, SearchInput, LoadingState/EmptyState…
+src/modules/<name>/<name>.css   # CHỈ style riêng của module (nạp trong <Name>Module.tsx, SAU core)
+```
+
+### 8.2 Nguyên tắc cốt lõi
+1. **Token trước:** màu/khoảng cách/radius/shadow/cỡ chữ chỉ dùng `var(--…)`. Hex chỉ nằm trong `tokens.css` (ngoại lệ duy nhất: CSS in A4 trong `ReportPrintPreviewModal.tsx` – iframe riêng, màu cố định theo mẫu giấy: tiêu đề mục `#014a94`, nền hàng tiêu đề `#dbe6f1`, `DAILY REPORT` đỏ `#c00000`).
+2. **Không `!important`.** Core scope bằng `:where(.app-layout) .btn` (specificity 0) nên CSS module luôn ghi đè được mà không cần ép.
+3. **Phạm vi:** `PortalShell` bọc MỌI module trong `.app-layout > .main-content` (token + base + lề + max-width 1440px). Module KHÔNG tự bọc lại, KHÔNG tự đặt `max-width`/`margin auto`/`box-sizing`. Token nằm trên `.app-layout`, không rò ra trang SharePoint.
+4. **Đặt tên:** class của core là tên chung (`.btn`, `.card`, `.input`…); class của module LUÔN có tiền tố module (`report-…`, `tasks-…`; bản in A4 dùng `bcn-…`). Core không bao giờ chứa tên module. Hai module không dùng chung class của nhau.
+5. **Quy tắc “dùng lần thứ hai”:** một mẫu UI xuất hiện ở ≥2 chỗ (hoặc chắc chắn module sau cũng cần) → đưa lên `core` (CSS trong `core/styles/components/` + React trong `core/components/`), không chép sang module khác.
+6. **Một tông xanh:** accent `--color-accent`; không thêm màu nhấn khác. Trạng thái dùng token success/warning/danger.
+7. **Icon:** chỉ `<Icon name="…" size={16|20|24} />` (Fluent Regular; thêm icon mới vào bảng `ICONS` trong `Icon.tsx`). Không `<svg>` tay, không emoji/ký tự (×, ✓, 🔒) làm icon. Ngoại lệ: hình thương hiệu của ô module (`modules/<name>/index.ts`).
+8. **Vùng chạm:** nút/ô nhập dùng `--control-h` (40px; tự 44px khi ≤768px hoặc màn cảm ứng) và `--control-h-sm` (32→36px). Không đặt `height` cứng cho nút/ô nhập.
+
+### 8.3 Danh mục thành phần dùng chung (dùng ĐÚNG, đừng tự chế)
+
+| Cần | Dùng | Ghi chú |
+|---|---|---|
+| Nút | `.btn` + `btn--primary` (hành động chính: Lưu, Tải template) · `btn--secondary` (mọi nút còn lại: Trang chủ, Quay lại, Làm mới, In) · `btn--ghost` / `btn--ghost-danger` (nút nhỏ trong bảng) · `btn--danger` (chỉ phá huỷ) · `btn--light` (trên banner xanh đậm) | cỡ `btn--sm`, `btn--icon`; KHÔNG tạo nút riêng kiểu `report-btn-*` |
+| Ô nhập | `.input`, `.textarea`; biến thể `input--cell` (trong bảng), `input--readonly`, `input--locked`, `input--danger`, `input--warning` | ô nhập đã `border-box`, cao `--control-h` |
+| Nhãn + ô nhập | `.field` > `.field__label` (hoặc `field__label--bilingual` với `field__label-main`/`field__label-sub`) | |
+| Đầu trang view | `<PageHeader leading title badge meta actions divider />` | desktop: tiêu đề trái, actions phải; ≤768px xếp dọc |
+| Lọc / tìm | `<FilterChips />`, `<SearchInput />` | |
+| Đang tải / rỗng / không quyền | `<LoadingState />`, `<EmptyState icon title message hint action tone narrow />` | |
+| Khối nội dung | `.card`; khối có banner xanh đậm: `.section-card` > `__banner` (`__title`, `__title-sub`) + `__body` | |
+| Nhãn trạng thái | `.badge` + `badge--info/success/warning/danger` | |
+| Bảng nhập liệu | `<div class="table-responsive"><table class="portal-table …">` | cuộn ngang, không tràn trang |
+| Thông báo | `<ToastAlert />` | |
+
+### 8.4 Khung module (skeleton)
+```tsx
+// modules/tasks/TasksModule.tsx
+import './tasks.css';                       // CSS riêng, nạp sau core
+export const TasksModule: React.FC<ModuleProps> = ({ onGoHome }) => (
+  <div className="tasks-module-root">       {/* chỉ flex column + gap; lề/max-width do PortalShell lo */}
+    <PageHeader leading={<button className="btn btn--secondary" onClick={onGoHome}><Icon name="home" /><span>Trang Chủ</span></button>}
+                title="Quản lý Công việc" actions={…} />
+    …
+  </div>
+);
+```
+
+### 8.5 Checklist khi làm module mới
+1. Tạo `modules/<name>/<name>.css` (tiền tố class `<name>-`), import trong `<Name>Module.tsx`.
+2. Dùng `PageHeader`, `FilterChips`, `SearchInput`, `LoadingState/EmptyState`, `.btn`, `.input`, `.card/.section-card`, `<Icon>` – không viết lại.
+3. Cần mẫu UI mới dùng chung? Thêm vào `core` (CSS + React) và ghi vào bảng 8.3, rồi mới dùng ở module.
+4. Responsive đủ 4 mốc: `≤1024`, `≤768`, `≤640`, `≤480` (xem mục 7, điều 4).
+5. Chạy `npm run lint:styles` (kiểm: không `!important`, không hex ngoài token, class module có tiền tố, core không chứa tên module/không import `modules/`, không `<svg>` tay) + `npx tsc --noEmit -p tsconfig.json` + `npx eslint src --ext .ts,.tsx`.
+6. Xem trên workbench ở 1440 / 1024 / 768 / 390px. KHÔNG chạy `npm run build` khi `npm run start` đang chạy (build xoá `dist/` đang phục vụ nên workbench rơi về bản cũ).
+
+### 8.6 Nợ kỹ thuật đã biết (đừng nhân rộng)
+* `report.css` còn một số class chưa có tiền tố thuộc phần Weekly placeholder (`kpi-box`, `id-tag`, `rate-input`… – danh sách trong `scripts/check-styles.js` → `LEGACY_CLASSES`). Dọn (đổi sang `report-…`) khi làm báo cáo tuần; KHÔNG thêm class mới không tiền tố.
+* `core/utils/avatarUtils.ts` hiện không còn được dùng (còn sót từ module Check-in đã bỏ) – ứng viên xoá.

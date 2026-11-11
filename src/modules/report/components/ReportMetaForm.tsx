@@ -44,14 +44,14 @@ export const ReportMetaForm: React.FC<IReportMetaFormProps> = ({
           </div>
 
           <div className="report-info-date-group">
-            <label htmlFor="report-date-picker-input" className="report-info-field-label">
+            <label htmlFor="report-date-picker-input" className="field__label">
               Ngày báo cáo
             </label>
             <div className="report-info-date-input-wrap">
               <input
                 id="report-date-picker-input"
                 type="date"
-                className="report-info-date-input"
+                className="input report-info-date-input"
                 value={dateStr}
                 onChange={(e) => onDateChange(e.target.value)}
                 disabled={disabled}
@@ -63,11 +63,11 @@ export const ReportMetaForm: React.FC<IReportMetaFormProps> = ({
         {/* 2. Form Grid (2 Columns x 2 Rows) */}
         <div className="report-info-grid-2x2">
           {/* Row 1, Col 1: Vị trí / Trạm */}
-          <div className="report-info-field-item">
-            <label className="report-info-field-label">Vị trí / Trạm (Location)</label>
+          <div className="field">
+            <label className="field__label">Vị trí / Trạm (Location)</label>
             <input
               type="text"
-              className="report-info-input"
+              className="input"
               value={metadata.location || ''}
               onChange={(e) => onMetadataChange('location', e.target.value)}
               disabled={disabled}
@@ -75,14 +75,14 @@ export const ReportMetaForm: React.FC<IReportMetaFormProps> = ({
           </div>
 
           {/* Row 1, Col 2: Số báo cáo (Report No) */}
-          <div className="report-info-field-item">
-            <label htmlFor="report-no-input" className="report-info-field-label">
+          <div className="field">
+            <label htmlFor="report-no-input" className="field__label">
               Số BCN (Report no.)
             </label>
             <input
               id="report-no-input"
               type="text"
-              className="report-info-input"
+              className="input"
               placeholder="VD: 041"
               // value={metadata.reportNo || ''}
               value={''}
@@ -92,14 +92,14 @@ export const ReportMetaForm: React.FC<IReportMetaFormProps> = ({
           </div>
 
           {/* Row 2, Col 1: Ca làm việc (Shift) */}
-          <div className="report-info-field-item">
-            <label htmlFor="report-shift-input" className="report-info-field-label">
+          <div className="field">
+            <label htmlFor="report-shift-input" className="field__label">
               Ca làm việc (Shift)
             </label>
             <input
               id="report-shift-input"
               type="text"
-              className="report-info-input"
+              className="input"
               placeholder="VD: Cả ngày (2 ca), Ca ngày..."
               value={metadata.shift || ''}
               onChange={(e) => onMetadataChange('shift', e.target.value)}
@@ -108,11 +108,11 @@ export const ReportMetaForm: React.FC<IReportMetaFormProps> = ({
           </div>
 
           {/* Row 2, Col 2: Người báo cáo (Email) */}
-          <div className="report-info-field-item">
-            <label className="report-info-field-label">Người báo cáo (Email)</label>
+          <div className="field">
+            <label className="field__label">Người báo cáo (Email)</label>
             <input
               type="text"
-              className="report-info-input report-info-input-readonly"
+              className="input input--readonly"
               value={metadata.email || ''}
               readOnly
             />
@@ -121,22 +121,22 @@ export const ReportMetaForm: React.FC<IReportMetaFormProps> = ({
       </div>
 
       {/* Section I: THÔNG TIN CHUNG & THỜI TIẾT | GENERAL & WEATHER */}
-      <div id="report-sec-1" className="report-section-card">
-        <div className="report-section-banner">
-          <span className="report-section-banner-title">
-            I. THÔNG TIN CHUNG &amp; THỜI TIẾT <span className="report-section-banner-en">| GENERAL &amp; WEATHER</span>
+      <div id="report-sec-1" className="section-card">
+        <div className="section-card__banner">
+          <span className="section-card__title">
+            I. THÔNG TIN CHUNG &amp; THỜI TIẾT <span className="section-card__title-sub">| GENERAL &amp; WEATHER</span>
           </span>
         </div>
 
-        <div className="report-section-body">
+        <div className="section-card__body">
           <div className="report-weather-grid">
-            <div className="report-info-field-item">
-              <label className="report-info-field-label report-bilingual-label">
-                <span className="label-vi">Sáng</span>
-                <span className="label-en">AM</span>
+            <div className="field">
+              <label className="field__label field__label--bilingual">
+                <span className="field__label-main">Sáng</span>
+                <span className="field__label-sub">AM</span>
               </label>
               <select
-                className="report-info-input"
+                className="input"
                 value={metadata.weatherAM || 'Nắng'}
                 onChange={(e) => onMetadataChange('weatherAM', e.target.value)}
                 disabled={disabled}
@@ -149,13 +149,13 @@ export const ReportMetaForm: React.FC<IReportMetaFormProps> = ({
               </select>
             </div>
 
-            <div className="report-info-field-item">
-              <label className="report-info-field-label report-bilingual-label">
-                <span className="label-vi">Chiều</span>
-                <span className="label-en">PM</span>
+            <div className="field">
+              <label className="field__label field__label--bilingual">
+                <span className="field__label-main">Chiều</span>
+                <span className="field__label-sub">PM</span>
               </label>
               <select
-                className="report-info-input"
+                className="input"
                 value={metadata.weatherPM || 'Nắng'}
                 onChange={(e) => onMetadataChange('weatherPM', e.target.value)}
                 disabled={disabled}
@@ -168,14 +168,14 @@ export const ReportMetaForm: React.FC<IReportMetaFormProps> = ({
               </select>
             </div>
 
-            <div className="report-info-field-item">
-              <label className="report-info-field-label report-bilingual-label">
-                <span className="label-vi">Nhiệt độ max</span>
-                <span className="label-en">Max temp</span>
+            <div className="field">
+              <label className="field__label field__label--bilingual">
+                <span className="field__label-main">Nhiệt độ max</span>
+                <span className="field__label-sub">Max temp</span>
               </label>
               <input
                 type="text"
-                className="report-info-input"
+                className="input"
                 placeholder="VD: 33 °C"
                 value={metadata.maxTemp || ''}
                 onChange={(e) => onMetadataChange('maxTemp', e.target.value)}
@@ -183,16 +183,16 @@ export const ReportMetaForm: React.FC<IReportMetaFormProps> = ({
               />
             </div>
 
-            <div className="report-info-field-item">
-              <label className="report-info-field-label report-bilingual-label">
-                <span className="label-vi">Giờ mất do thời tiết</span>
-                <span className="label-en">Hrs lost</span>
+            <div className="field">
+              <label className="field__label field__label--bilingual">
+                <span className="field__label-main">Giờ mất do thời tiết</span>
+                <span className="field__label-sub">Hrs lost</span>
               </label>
               <input
                 type="number"
                 step="0.5"
                 min="0"
-                className="report-info-input"
+                className="input"
                 placeholder="0"
                 value={metadata.hrsLost !== undefined ? metadata.hrsLost : ''}
                 onChange={(e) => {
@@ -203,13 +203,13 @@ export const ReportMetaForm: React.FC<IReportMetaFormProps> = ({
               />
             </div>
 
-            <div className="report-info-field-item">
-              <label className="report-info-field-label report-bilingual-label">
-                <span className="label-vi">Đánh giá tiến độ</span>
-                <span className="label-en">Progress</span>
+            <div className="field">
+              <label className="field__label field__label--bilingual">
+                <span className="field__label-main">Đánh giá tiến độ</span>
+                <span className="field__label-sub">Progress</span>
               </label>
               <select
-                className="report-info-input"
+                className="input"
                 value={metadata.progressEval || 'Đạt'}
                 onChange={(e) => onMetadataChange('progressEval', e.target.value)}
                 disabled={disabled}
@@ -221,10 +221,10 @@ export const ReportMetaForm: React.FC<IReportMetaFormProps> = ({
             </div>
           </div>
 
-          <div className="report-info-field-item" style={{ marginTop: '14px' }}>
-            <label className="report-info-field-label">Tóm tắt | Summary</label>
+          <div className="field" style={{ marginTop: '14px' }}>
+            <label className="field__label">Tóm tắt | Summary</label>
             <textarea
-              className="report-textarea"
+              className="textarea"
               rows={3}
               placeholder="Nhập tóm tắt công việc trong ngày và giải trình (nếu có)..."
               value={metadata.summary || ''}

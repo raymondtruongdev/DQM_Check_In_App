@@ -166,6 +166,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                     title={`Nhấn để truy cập ${module.title}`}
                   >
                     <div className="landing-grid-btn-icon">
+                      {/* style-lint: allow-svg – icon thương hiệu do module cung cấp (khung 32x32) */}
                       <svg width="26" height="26" viewBox="0 0 32 32" fill="none">
                         {module.icon}
                       </svg>

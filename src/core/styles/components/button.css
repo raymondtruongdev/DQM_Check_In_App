@@ -1,0 +1,86 @@
+/* ==========================================================================
+   4. Button  (.btn + biến thể + cỡ) – MỘT tông xanh
+   primary   = hành động chính, nền xanh đặc (Lưu, Tải template)
+   secondary = mọi hành động khác, viền + chữ xanh (Trang chủ, Quay lại, Làm mới, In)
+   ghost / ghost-danger = nút nhỏ trong bảng (xoá dòng)
+   danger    = chỉ dùng cho thao tác phá huỷ
+   light     = nút trên nền banner xanh đậm
+   ========================================================================== */
+:where(.app-layout) .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--control-h);
+  padding: 0 var(--space-4);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast),
+    color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+:where(.app-layout) .btn:disabled,
+:where(.app-layout) .btn[aria-disabled="true"] {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+:where(.app-layout) .btn--primary {
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-text-inverse);
+  box-shadow: var(--shadow-xs);
+}
+:where(.app-layout) .btn--primary:hover:not(:disabled) { background-color: var(--color-accent-hover); border-color: var(--color-accent-hover); box-shadow: var(--shadow-sm); }
+:where(.app-layout) .btn--primary:active:not(:disabled) { background-color: var(--color-accent-active); border-color: var(--color-accent-active); }
+
+:where(.app-layout) .btn--secondary {
+  background-color: var(--color-surface);
+  border-color: var(--color-accent-border);
+  color: var(--color-accent);
+  box-shadow: var(--shadow-xs);
+}
+:where(.app-layout) .btn--secondary:hover:not(:disabled) { background-color: var(--color-accent-subtle); border-color: var(--color-accent); color: var(--color-accent-hover); }
+:where(.app-layout) .btn--secondary:active:not(:disabled) { background-color: var(--color-accent-soft); }
+
+:where(.app-layout) .btn--danger {
+  background-color: var(--color-danger-bg);
+  border-color: var(--color-danger-border);
+  color: var(--color-danger-text);
+}
+:where(.app-layout) .btn--danger:hover:not(:disabled) { background-color: var(--color-danger-border); }
+
+:where(.app-layout) .btn--ghost {
+  background-color: transparent;
+  color: var(--color-text-muted);
+}
+:where(.app-layout) .btn--ghost:hover:not(:disabled) { background-color: var(--color-surface-subtle); color: var(--color-text-primary); }
+
+:where(.app-layout) .btn--ghost-danger {
+  background-color: transparent;
+  color: var(--color-text-subtle);
+}
+:where(.app-layout) .btn--ghost-danger:hover:not(:disabled) { background-color: var(--color-danger-bg); border-color: var(--color-danger-border); color: var(--color-danger-text); }
+
+:where(.app-layout) .btn--light {
+  background-color: var(--color-surface);
+  border-color: var(--color-surface);
+  color: var(--color-banner);
+}
+:where(.app-layout) .btn--light:hover:not(:disabled) { background-color: var(--color-accent-subtle); }
+
+:where(.app-layout) .btn--sm { min-height: var(--control-h-sm); padding: 0 var(--space-3); font-size: var(--text-xs); }
+
+/* Nút chỉ có icon: vuông, đúng bằng chiều cao điều khiển */
+:where(.app-layout) .btn--icon { width: var(--control-h); padding: 0; }
+:where(.app-layout) .btn--icon.btn--sm { width: var(--control-h-sm); }
+
+:where(.app-layout) .btn--block { width: 100%; }

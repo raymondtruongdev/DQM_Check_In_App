@@ -1,0 +1,51 @@
+/* ==========================================================================
+   Card · Section card
+   .card          = khối nội dung nền trắng, viền, bo góc
+   .section-card  = khối có banner xanh đậm ở đầu (mục báo cáo, nhóm cài đặt…)
+   ========================================================================== */
+:where(.app-layout) .card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+:where(.app-layout) .section-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-hover);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+:where(.app-layout) .section-card__banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding: var(--space-2-5) var(--space-4);
+  background: var(--color-banner);
+  color: var(--color-text-inverse);
+}
+
+:where(.app-layout) .section-card__title {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+:where(.app-layout) .section-card__title-sub {
+  font-weight: 400;
+  opacity: 0.88;
+}
+
+:where(.app-layout) .section-card__body {
+  padding: var(--space-4) var(--space-5);
+}
+
+@media (max-width: 480px) {
+  :where(.app-layout) .section-card__body { padding: var(--space-3) var(--space-4); }
+}
