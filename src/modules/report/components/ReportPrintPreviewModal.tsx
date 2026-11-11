@@ -45,12 +45,15 @@ export const ReportPrintPreviewModal: React.FC<IReportPrintPreviewModalProps> = 
       return;
     }
 
+    // Tên file PDF mặc định: BCN_<unit>_<yyyy-MM-dd>
+    const pdfFileName = `BCN_${doc.unit}_${doc.dateStr}`.replace(/[\\/:*?"<>|\s]+/g, '_');
+
     iframeDoc.open();
     iframeDoc.write(`<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>${m.docCode || `BCN_${doc.unit}_${doc.dateStr}`}</title>
+  <title>${pdfFileName}</title>
   <style>
     @page {
       size: A4 portrait;
@@ -221,6 +224,21 @@ export const ReportPrintPreviewModal: React.FC<IReportPrintPreviewModalProps> = 
     iframeDoc.close();
 
     setTimeout(() => {
+      // Chrome/Edge lấy tên file PDF từ tiêu đề của TRANG CHÍNH (không phải iframe):
+      // đặt tạm document.title rồi trả lại sau khi in xong.
+      const previousTitle = document.title;
+      let restored = false;
+      const restoreTitle = (): void => {
+        if (restored) return;
+        restored = true;
+        document.title = previousTitle;
+        window.removeEventListener('afterprint', restoreTitle);
+      };
+      document.title = pdfFileName;
+      window.addEventListener('afterprint', restoreTitle);
+      iframe.contentWindow?.addEventListener('afterprint', restoreTitle);
+      window.setTimeout(restoreTitle, 120000); // dự phòng nếu trình duyệt không bắn afterprint
+
       iframe.contentWindow?.focus();
       iframe.contentWindow?.print();
       setTimeout(() => {
