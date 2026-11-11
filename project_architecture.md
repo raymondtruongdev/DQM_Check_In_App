@@ -1,7 +1,7 @@
 # Kiến Trúc Dự Án THADICO DQM - Workspace Portal (SPFx 1.24.1)
 
 > **Mô hình kiến trúc:** Multi-Module Workspace Portal (Layered & Feature-Oriented React trên nền tảng SharePoint Framework `1.24.1`)
-> **Mục tiêu:** Đảm bảo tính đóng gói độc lập giữa các module nghiệp vụ (`checkin`, `report`), dùng chung tầng hạ tầng cốt lõi (`core/`), miễn phí 100% bản quyền (không phụ thuộc Power Apps Premium), và dễ dàng mở rộng thêm module mới.
+> **Mục tiêu:** Đảm bảo tính đóng gói độc lập giữa các module nghiệp vụ (hiện có `report`), dùng chung tầng hạ tầng cốt lõi (`core/`), miễn phí 100% bản quyền (không phụ thuộc Power Apps Premium), và dễ dàng mở rộng thêm module mới.
 
 ---
 
@@ -11,10 +11,8 @@
 flowchart TD
     Entry["src/entry/\nPortalWebPart.ts (SPFx Entrypoint)"] --> App["src/app/\nPortalShell.tsx & moduleRegistry.tsx"]
     App --> Home["src/modules/home/\nHomeView.tsx (Landing Portal)"]
-    App --> Checkin["src/modules/checkin/\nCheck-in Management Module"]
     App --> Report["src/modules/report/\nDaily & Weekly Report Module"]
     Home --> Core["src/core/\nAuth, SharePointClient, Layout, Styles, Utils"]
-    Checkin --> Core
     Report --> Core
 ```
 
@@ -62,15 +60,7 @@ DQM_Check_In_App/
 │   └── modules/
 │       ├── home/                        # Trang chủ Portal hiển thị thông tin M365 & danh sách module
 │       │   └── HomeView.tsx
-│       ├── checkin/                     # Module 1: Quản lý Check-in (List data_checkin)
-│       │   ├── CheckinModule.tsx
-│       │   ├── views/                   # CheckinCardsView, CheckinTableView, CheckinEditView
-│       │   ├── components/              # DeleteConfirmModal, SkeletonLoader, ErrorState
-│       │   ├── services/                # CheckinService.ts
-│       │   ├── types/                   # checkin.types.ts
-│       │   ├── constants/               # Cấu hình độ rộng cột, sample records
-│       │   └── utils/                   # fieldParsers.ts
-│       └── report/                      # Module 2: Quản lý Báo cáo Ngày & Tuần (Library CapNhatCongViec)
+│       └── report/                      # Module: Quản lý Báo cáo Ngày & Tuần (Library CapNhatCongViec)
 │           ├── ReportModule.tsx
 │           ├── views/                   # ReportLandingView, ReportEntryView
 │           ├── components/              # ReportMetaForm, ReportSectionsEditor, ReportPrintPreviewModal, ReportTaskTable
@@ -92,11 +82,7 @@ DQM_Check_In_App/
 - **`SharePointClient.ts`:** Bao bọc `SPHttpClient.configurations.v1` với header `Accept: application/json;odata=nometadata`, hỗ trợ đầy đủ thao tác List Items và Document Library (`getFileWithMeta`, `uploadFile` kèm `If-Match: ETag`, `ensureFolder` đệ quy từng cấp, `getFolderFiles`, `getFolderSubfolderNames`).
 - **`RoleResolutionService.ts` & `roleCodec.ts`:** Đọc và phân giải quyền truy cập từ file Excel phân quyền (`Report_Role.xlsx`) kết hợp quyền Admin từ SharePoint List `UserProfiles`.
 
-### 3.2 Module `checkin` (`src/modules/checkin`)
-- Quản lý dữ liệu từ SharePoint List `data_checkin`.
-- Hỗ trợ 2 chế độ hiển thị: **Dạng Bảng 7 cột** (hỗ trợ kéo giãn độ rộng cột lưu vào `localStorage`) và **Dạng Thẻ (Cards)** tối ưu cho thiết bị di động / tablet.
-
-### 3.3 Module `report` (`src/modules/report`)
+### 3.2 Module `report` (`src/modules/report`)
 - Lưu trữ hoàn toàn trên SharePoint Document Library `CapNhatCongViec` theo cấu trúc `data/<Unit>/<DocID>_<yyyyMMdd>/<DocID>_<yyyyMMdd>.xlsx` và thư mục ảnh `photos/`.
 - **Kiến trúc Excel 6 Sheets (`DailyReport`):** `01_General`, `02_Manpower`, `03_Equipment`, `04_WorkQty`, `05_Materials`, `06_Issues` giúp thêm/xoá dòng động không bao giờ làm lệch ô dữ liệu.
 - **Khoá dòng cố định (`IsLocked`):** Bảo vệ các dòng định mức trong template (như đơn vị `TCJV`, `NTP-TV01` và hạng mục `*-DW-1120`, `*-DW-1130`) không bị người dùng xoá hoặc sửa nhầm mã.

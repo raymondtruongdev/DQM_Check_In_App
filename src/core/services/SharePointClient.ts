@@ -10,7 +10,7 @@ export interface ISharePointFileInfo {
 
 /**
  * Generic SharePoint client (REST via SPHttpClient v1).
- * Module-specific services (CheckinService, ProgressService, UserProfileService...) are built on top of it.
+ * Module-specific services (ProgressService, UserProfileService...) are built on top of it.
  */
 export class SharePointClient {
   private _spHttpClient: SPHttpClient;

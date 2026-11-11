@@ -6,12 +6,7 @@
 
 ## 1. Các phân hệ chính (Modules)
 
-### 1.1. Quản lý Check-in (`src/modules/checkin`)
-- Kết nối trực tiếp với SharePoint List **`data_checkin`** và **`UserProfiles`**.
-- Hỗ trợ xem danh sách Check-in theo **Dạng Thẻ (Cards)** và **Dạng Bảng 7 cột (Table)** có kéo giãn độ rộng cột (`localStorage`).
-- Tìm kiếm, sắp xếp, chỉnh sửa và xoá bản ghi theo phân quyền (`admin` / `user`).
-
-### 1.2. Quản lý Báo cáo Ngày & Tuần (`src/modules/report`)
+### 1.1. Quản lý Báo cáo Ngày & Tuần (`src/modules/report`)
 - Lưu trữ trên SharePoint Document Library **`CapNhatCongViec`**:
   - Phân quyền theo trạm (`Unit`) và loại báo cáo (`DailyReport`, `WeeklyReport`) thông qua file `Report_Role.xlsx`.
   - Mẫu chuẩn đặt tại `_template/DailyReport_template.xlsx` (cấu trúc **6 sheets**: `01_General`, `02_Manpower`, `03_Equipment`, `04_WorkQty`, `05_Materials`, `06_Issues`) và `_template/WeeklyReport_template.xlsx`.
